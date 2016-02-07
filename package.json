@@ -1,0 +1,44 @@
+{
+  "name": "fiber",
+  "description": "Give your Backbone Apps some Fiber.",
+  "url": "http://familydev.in.ua/hub/fiber",
+  "keywords": [
+    "backbone",
+    "marionette",
+    "model",
+    "view",
+    "controller",
+    "router",
+    "server",
+    "client",
+    "browser"
+  ],
+  "author": "Igor Krimerman",
+  "devDependencies": {
+    "docco": "^0.7.0",
+    "eslint": "^1.10.3",
+    "uglify-js": "^2.6.1"
+  },
+  "dependencies": {
+    "jquery": "^2.2.0",
+    "lodash": "^4.2.1"
+  },
+  "scripts": {
+    "build": "uglifyjs fiber.js --mangle --source-map fiber-min.map -o fiber-min.js",
+    "doc": "docco fiber.js",
+    "lint": "eslint fiber.js"
+  },
+  "main": "fiber.js",
+  "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imkrimerman/fiber.git"
+  },
+  "files": [
+    "fiber.js",
+    "fiber-min.js",
+    "fiber-min.map",
+    "LICENSE"
+  ]
+}
