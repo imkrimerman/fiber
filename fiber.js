@@ -35,8 +35,13 @@
 })(function(root, Fiber, Backbone, _) {
   'use strict';
 
-  // add more room for support functions
+  // Add more room for support functions
   Fiber.fn = {};
+
+  // Also we'll create object to hold all global variables
+  Fiber.globals = {
+    deepExtendProperties: ['willExtend', 'ownProps', 'extensions', 'events']
+  };
 
   // Fiber extensions holder.
   // Extensions in Fiber are like mixins or common code that you can
@@ -46,8 +51,24 @@
   // expose jQuery from Backbone
   var $ = Fiber.$ = Backbone.$;
 
-  // expose extend method from the Backbone
-  var extend = Fiber.fn.extend = Backbone.Model.extend;
+  // Fiber Class extend method.
+  // Some properties should not be overridden by extend, they should be merge, so we will
+  // search for them in given `proto` object and if one is found then we'll merge it with
+  // object `prototype` value
+  var classExtend = Fiber.fn.extend = function(proto, statics) {
+    _.each(Fiber.globals.deepExtendProperties, function(one) {
+      if (proto.hasOwnProperty(one)) {
+        switch (true) {
+          case _.isArray(proto[one]):
+            proto[one] = proto[one].concat(this.prototype[one]);
+            break;
+          case _.isPlainObject(proto[one]):
+            _.extend(proto[one], this.prototype[one]);
+        }
+      }
+    });
+    return Backbone.Model.extend.call(this, proto, statics);
+  };
 
   // Returns `value` if `value` is not undefined or null, otherwise returns defaults or `notDefined` value
   var val = Fiber.fn.val = function(value, defaults, checker) {
@@ -85,62 +106,53 @@
     return this;
   };
 
-  // Namespace Events extension. It brings namespaces to the event and also
-  // provides catalog to simplify registering of events.
+  // Namespace Events extension brings namespaces to the event and also
+  // provides catalog to simplify registered events.
   Fiber.addExtension('NsEvents', {
+
+    // Events namespace
     eventsNs: '',
+
+    // Events catalog to hold the events
     eventsCatalog: {},
+
+    // Fire `event` with namespace and `catalog` look up with given `payload`
     fire: function(event, payload) {
       return this.trigger(this.getNsEvent(event), payload);
     },
+
+    // Every time namespaced `event` is fired invoke `action`. You can provide listenable
+    // to control object to listen to.
     when: function(event, action, listenable) {
       return this.listenTo(val(listenable, this), this.getNsEvent(event), action);
     },
+
+    // After first namespaced `event` is fired invoke `action` and remove action.
+    // You can provide listenable to control object to listen to.
     after: function(event, action, listenable) {
       return this.listenToOnce(val(listenable, this), this.getNsEvent(event), action);
     },
+
+    // Returns namespaced `event` with `catalog` look up.
     getNsEvent: function(event) {
       return this.eventsNs + ':' + this.getCatalogEvent(event);
     },
+
+    // Returns event from catalog using alias. If not found will return `event` as is.
     getCatalogEvent: function(event) {
       return val(this.eventsCatalog[event], event);
     },
+
+    // Sets `event` to the catalog by `alias`
     setCatalogEvent: function(alias, event) {
       this.eventsCatalog[alias] = event;
       return this;
     }
   });
 
-  // Fiber Class constructor.
-  Fiber.Class = function(options) {
-    this.beforeInitialize.apply(this, arguments);
-    this.applyOwnProps();
-    this.applyExtensions();
-    this.applyOptions(options);
-    this.initialize.apply(this, arguments);
-    this.afterInitialize.apply(this, arguments);
-  };
-
-  // Extend Fiber Class prototype
-  _.extend(Fiber.Class.prototype, Backbone.Events, {
-
-    // Properties keys that will be auto extended from initialize object
-    willExtend: [],
-
-    // Properties keys that will be owned by the instance
-    ownProps: [],
-
-    // Extensions
-    extensions: ['NsEvents'],
-
-    // Before initialize hook
-    beforeInitialize: function() {},
-
-    // Initialize your class here
-    initialize: function() {},
-
-    // After initialize hook
-    afterInitialize: function() {},
+  // Access extension brings getters, setters and unsetters that uses
+  // `lodash` methods to support deep access to the Class.
+  Fiber.addExtension('Access', {
 
     // Gets value by given `property` key. You can provide `defaults` value that
     // will be returned if value is not found by the given key. If `defaults` is
@@ -171,7 +183,39 @@
     unset: function(property) {
       _.unset(this, property);
       return this;
-    },
+    }
+  });
+
+  // Fiber Class constructor.
+  Fiber.Class = function(options) {
+    this.beforeInitialize.apply(this, arguments);
+    this.applyOwnProps();
+    this.applyExtensions();
+    this.applyOptions(options);
+    this.initialize.apply(this, arguments);
+    this.afterInitialize.apply(this, arguments);
+  };
+
+  // Extend Fiber Class prototype
+  _.extend(Fiber.Class.prototype, Backbone.Events, {
+
+    // Properties keys that will be auto extended from initialize object
+    willExtend: [],
+
+    // Properties keys that will be owned by the instance
+    ownProps: [],
+
+    // Extensions
+    extensions: ['Access', 'NsEvents'],
+
+    // Before initialize hook
+    beforeInitialize: function() {},
+
+    // Initialize your class here
+    initialize: function() {},
+
+    // After initialize hook
+    afterInitialize: function() {},
 
     // Includes `mixin` or array of mixins to Fiber Class.
     // Also you can provide `override` boolean to force override properties.
@@ -232,16 +276,7 @@
     }
   });
 
-  // Fiber Class extend method.
-  // Some properties should not be overridden by extend, they should be merge, so we will
-  // search for them in given `proto` object and if one is found then we'll merge it with
-  // object `prototype` value
-  Fiber.Class.extend = function(proto, statics) {
-    _.each(['willExtend', 'ownProps', 'extensions'], function(one) {
-      if (proto.hasOwnProperty(one)) proto[one] = proto[one].concat(this.prototype[one]);
-    });
-    return extend.call(this, proto, statics);
-  };
+  Fiber.Class.extend = Fiber.fn.extend;
 
   return Fiber;
 });
