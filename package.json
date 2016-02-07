@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "uglifyjs fiber.js --mangle --source-map fiber-min.map -o fiber-min.js",
-    "doc": "docco fiber.js && open -a \"Google Chrome\" ",
+    "doc": "docco fiber.js && open -a \"Google Chrome\"  docs/fiber.html",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha"
   },

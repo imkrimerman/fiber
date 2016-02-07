@@ -38,6 +38,11 @@
   // add more room for support functions
   Fiber.fn = {};
 
+  // Fiber extensions holder.
+  // Extensions in Fiber are like mixins or common code that you can
+  // share over the Instances.
+  Fiber.Extension = {};
+
   // expose jQuery from Backbone
   var $ = Fiber.$ = Backbone.$;
 
@@ -46,7 +51,7 @@
 
   // Returns `value` if `value` is not undefined or null, otherwise returns defaults or `notDefined` value
   var val = Fiber.fn.val = function(value, defaults, checker) {
-    // if defaults not specified then assign notDefined ($__NULL__$) value
+    // if defaults not specified then assign notDefined `$__NULL__$` value
     defaults = arguments.length > 1 ? defaults : val.notDefined;
     // if value and checker is specified then use it to additionally check value
     if (_.isFunction(checker) && value != null) {
@@ -62,28 +67,80 @@
   // Value that can represent not defined state.
   val.notDefined = '$__NULL__$';
 
+  // Returns extension if one is found or empty object otherwise
+  Fiber.getExtension = function(alias) {
+    return val(this.Extension[alias], {});
+  };
+
+  // Adds extension
+  Fiber.addExtension = function(alias, extension, override) {
+    if (this.Extension.hasOwnProperty(alias) && ! val(override, false)) return;
+    this.Extension[alias] = extension;
+    return this;
+  };
+
+  // Removes extension
+  Fiber.removeExtension = function(alias) {
+    delete this.Extension[alias];
+    return this;
+  };
+
+  // Namespace Events extension. It brings namespaces to the event and also
+  // provides catalog to simplify registering of events.
+  Fiber.addExtension('NsEvents', {
+    eventsNs: '',
+    eventsCatalog: {},
+    fire: function(event, payload) {
+      return this.trigger(this.getNsEvent(event), payload);
+    },
+    when: function(event, action, listenable) {
+      return this.listenTo(val(listenable, this), this.getNsEvent(event), action);
+    },
+    after: function(event, action, listenable) {
+      return this.listenToOnce(val(listenable, this), this.getNsEvent(event), action);
+    },
+    getNsEvent: function(event) {
+      return this.eventsNs + ':' + this.getCatalogEvent(event);
+    },
+    getCatalogEvent: function(event) {
+      return val(this.eventsCatalog[event], event);
+    },
+    setCatalogEvent: function(alias, event) {
+      this.eventsCatalog[alias] = event;
+      return this;
+    }
+  });
+
   // Fiber Class constructor.
   Fiber.Class = function(options) {
-    this.beforeConstruct.apply(this, arguments);
+    this.beforeInitialize.apply(this, arguments);
     this.applyOwnProps();
+    this.applyExtensions();
     this.applyOptions(options);
-    this.afterConstruct.apply(this, arguments);
+    this.initialize.apply(this, arguments);
+    this.afterInitialize.apply(this, arguments);
   };
 
   // Extend Fiber Class prototype
-  _.extend(Fiber.Class.prototype, {
+  _.extend(Fiber.Class.prototype, Backbone.Events, {
 
-    // properties keys that will be auto extended from initialize object
+    // Properties keys that will be auto extended from initialize object
     willExtend: [],
 
-    // properties keys that will be owned by the instance
+    // Properties keys that will be owned by the instance
     ownProps: [],
 
-    // Before Construct hook
-    beforeConstruct: function() {},
+    // Extensions
+    extensions: ['NsEvents'],
 
-    // After Construct hook
-    afterConstruct: function() {},
+    // Before initialize hook
+    beforeInitialize: function() {},
+
+    // Initialize your class here
+    initialize: function() {},
+
+    // After initialize hook
+    afterInitialize: function() {},
 
     // Gets value by given `property` key. You can provide `defaults` value that
     // will be returned if value is not found by the given key. If `defaults` is
@@ -116,6 +173,37 @@
       return this;
     },
 
+    // Includes `mixin` or array of mixins to Fiber Class.
+    // Also you can provide `override` boolean to force override properties.
+    include: function(mixin, override) {
+      if (! _.isArray(mixin) && _.isPlainObject(mixin))
+        this.mix(mixin, override);
+      else for (var i = 0; i < mixin.length; i ++)
+        this.mix(mixin[i], override);
+      return this;
+    },
+
+    // Adds given `mixin` to Fiber Class. Mixin can be object or function.
+    // Also you can provide `override` boolean to force override properties.
+    mix: function(mixin, override) {
+      override = val(override, false);
+      // If function is given then it will be called with current Class.
+      if (_.isFunction(mixin)) {
+        mixin(this);
+        return this;
+      }
+      var method = 'defaultsDeep';
+      if (override) method = 'assign';
+      _[method](this, mixin);
+      return this;
+    },
+
+    // Mixes Fiber Class to given `object`.
+    // Also you can provide `override` boolean to force override properties.
+    mixTo: function(object, override) {
+      this.mix.call(object, this, override);
+    },
+
     // Extends options object. Only options from `willExtend` keys array will be extended.
     applyOptions: function(options) {
       var willExtend = _.extend(this.result('willExtend'), options.willExtend || {});
@@ -135,37 +223,12 @@
       return this;
     },
 
-    // Includes `mixin` or array of mixins to Fiber Class.
-    // Also you can provide `override` boolean to force override properties.
-    include: function(mixin, override) {
-      if (! _.isArray(mixin) && _.isPlainObject(mixin))
-        this.mix(mixin, override);
-      else for (var i = 0; i < mixin.length; i ++)
-        this.mix(mixin[i], override);
+    // Applies extensions
+    applyExtensions: function() {
+      for (var alias in Fiber.Extension)
+        if (_.contains(this.extensions, alias))
+          this.mix(Fiber.getExtension(alias));
       return this;
-    },
-
-    // Adds given `mixin` to Fiber Class. Mixin can be object or function.
-    // If function is given then it will be called with current Class.
-    // Also you can provide `override` boolean to force override properties.
-    mix: function(mixin, override) {
-      override = val(override, false);
-
-      if (_.isFunction(mixin)) {
-        mixin(this);
-        return this;
-      }
-
-      var method = 'defaultsDeep';
-      if (override) method = 'assign';
-      _[method](this, mixin);
-      return this;
-    },
-
-    // Mixes Fiber Class to given `object`.
-    // Also you can provide `override` boolean to force override properties.
-    mixTo: function(object, override) {
-      this.mix.call(object, this, override);
     }
   });
 
@@ -174,7 +237,7 @@
   // search for them in given `proto` object and if one is found then we'll merge it with
   // object `prototype` value
   Fiber.Class.extend = function(proto, statics) {
-    _.each(['willExtend', 'ownProps'], function(one) {
+    _.each(['willExtend', 'ownProps', 'extensions'], function(one) {
       if (proto.hasOwnProperty(one)) proto[one] = proto[one].concat(this.prototype[one]);
     });
     return extend.call(this, proto, statics);
