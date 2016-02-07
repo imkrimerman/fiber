@@ -40,7 +40,8 @@
 
   // Also we'll create object to hold all global variables
   Fiber.globals = {
-    deepExtendProperties: ['willExtend', 'ownProps', 'extensions', 'events']
+    version: '0.0.4',
+    deepExtendProperties: ['willExtend', 'ownProps', 'extensions', 'events', 'eventsCatalog']
   };
 
   // Fiber extensions holder.
@@ -48,14 +49,22 @@
   // share over the Instances.
   Fiber.Extension = {};
 
-  // expose jQuery from Backbone
+  // Expose jQuery from Backbone
   var $ = Fiber.$ = Backbone.$;
+
+  // Add `lodash` to the Fiber
+  Fiber._ = _;
+
+  // Class extend function grabbed from the Backbone.
+  var classExtend = Backbone.Model.extend;
 
   // Fiber Class extend method.
   // Some properties should not be overridden by extend, they should be merge, so we will
   // search for them in given `proto` object and if one is found then we'll merge it with
   // object `prototype` value
-  var classExtend = Fiber.fn.extend = function(proto, statics) {
+  Fiber.fn.extend = function(proto, statics) {
+    proto = this.assignApply(proto);
+    statics = this.assignApply(statics);
     _.each(Fiber.globals.deepExtendProperties, function(one) {
       if (proto.hasOwnProperty(one)) {
         switch (true) {
@@ -67,7 +76,7 @@
         }
       }
     });
-    return Backbone.Model.extend.call(this, proto, statics);
+    return classExtend.call(this, proto, statics);
   };
 
   // Returns `value` if `value` is not undefined or null, otherwise returns defaults or `notDefined` value
@@ -88,23 +97,54 @@
   // Value that can represent not defined state.
   val.notDefined = '$__NULL__$';
 
+  // Apply `object` prototype `function` with given `args` and `context`
+  Fiber.fn.protoApply = function(fn, object, args, context) {
+    if (! object || ! object.prototype[fn] || ! _.isFunction(object[fn])) return;
+    return object[fn].apply(context, args);
+  };
+
+  // Applies `assign` function with given `args`
+  Fiber.fn.assignApply = function(args) {
+    if (_.isArray(args))
+      return _.assign.apply(_, [{}].concat(args));
+    return args;
+  },
+
   // Returns extension if one is found or empty object otherwise
   Fiber.getExtension = function(alias) {
+    if (_.isArray(alias)) return _.map(alias, function(one) {
+      return this.getExtension(one);
+    }, this);
     return val(this.Extension[alias], {});
   };
 
   // Adds extension
   Fiber.addExtension = function(alias, extension, override) {
-    if (this.Extension.hasOwnProperty(alias) && ! val(override, false)) return;
-    this.Extension[alias] = extension;
+    if (_.isArray(alias)) _.each(alias, function(one) {
+      this.addExtension(one);
+    }, this);
+    else {
+      if (this.Extension.hasOwnProperty(alias) && ! val(override, false)) return;
+      this.Extension[alias] = extension;
+    }
     return this;
   };
 
   // Removes extension
   Fiber.removeExtension = function(alias) {
-    delete this.Extension[alias];
+    if (! _.isArray(alias)) alias = [alias];
+    _.each(alias, function(one) {
+      delete this.Extension[one];
+    }, this);
     return this;
   };
+
+  // Applies extension by `alias` to the given `object`.
+  // Also you can provide `override` boolean to force override properties.
+  Fiber.applyExtension = function(alias, object, override) {
+    this.getExtension('Mixin').include(this.getExtension(alias), object, override);
+    return this;
+  },
 
   // Namespace Events extension brings namespaces to the event and also
   // provides catalog to simplify registered events.
@@ -186,36 +226,9 @@
     }
   });
 
-  // Fiber Class constructor.
-  Fiber.Class = function(options) {
-    this.beforeInitialize.apply(this, arguments);
-    this.applyOwnProps();
-    this.applyExtensions();
-    this.applyOptions(options);
-    this.initialize.apply(this, arguments);
-    this.afterInitialize.apply(this, arguments);
-  };
-
-  // Extend Fiber Class prototype
-  _.extend(Fiber.Class.prototype, Backbone.Events, {
-
-    // Properties keys that will be auto extended from initialize object
-    willExtend: [],
-
-    // Properties keys that will be owned by the instance
-    ownProps: [],
-
-    // Extensions
-    extensions: ['Access', 'NsEvents'],
-
-    // Before initialize hook
-    beforeInitialize: function() {},
-
-    // Initialize your class here
-    initialize: function() {},
-
-    // After initialize hook
-    afterInitialize: function() {},
+  // Mixin extension.
+  // Functions that provides including and mixining objects and array of objects
+  Fiber.addExtension('Mixin', {
 
     // Includes `mixin` or array of mixins to Fiber Class.
     // Also you can provide `override` boolean to force override properties.
@@ -246,7 +259,31 @@
     // Also you can provide `override` boolean to force override properties.
     mixTo: function(object, override) {
       this.mix.call(object, this, override);
-    },
+    }
+  });
+
+  // Fiber Class constructor.
+  Fiber.Class = function(options) {
+    this.applyOwnProps();
+    this.applyExtensions();
+    this.applyOptions(options);
+    this.initialize.apply(this, arguments);
+  };
+
+  // Extend Fiber Class prototype
+  _.extend(Fiber.Class.prototype, Backbone.Events, {
+
+    // Properties keys that will be auto extended from initialize object
+    willExtend: [],
+
+    // Properties keys that will be owned by the instance
+    ownProps: [],
+
+    // Extensions
+    extensions: ['Access', 'NsEvents', 'Mixin'],
+
+    // Initialize your class here
+    initialize: function() {},
 
     // Extends options object. Only options from `willExtend` keys array will be extended.
     applyOptions: function(options) {
@@ -269,9 +306,7 @@
 
     // Applies extensions
     applyExtensions: function() {
-      for (var alias in Fiber.Extension)
-        if (_.contains(this.extensions, alias))
-          this.mix(Fiber.getExtension(alias));
+      Fiber.applyExtension(this.extensions, this);
       return this;
     }
   });
