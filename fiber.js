@@ -41,7 +41,8 @@
   // Also we'll create object to hold all global variables
   Fiber.globals = {
     version: '0.0.4',
-    deepExtendProperties: ['extendable', 'ownProps', 'extensions', 'events', 'eventsCatalog']
+    deepExtendProperties: ['extendable', 'ownProps', 'extensions', 'events', 'eventsCatalog'],
+    templateFunction: _.template
   };
 
   // Fiber extensions holder.
@@ -81,7 +82,11 @@
 
   // Extends `parent` with extender and statics with resolving extensions by `alias`
   Fiber.make = function(parent, extender, statics) {
-    return extend.call(parent, Fiber.getExtension(extender), Fiber.getExtension(statics));
+    return extend.call(
+      val(parent, Fiber.Class),
+      Fiber.getExtension(val(extender, {})),
+      Fiber.getExtension(val(statics, {}))
+    );
   };
 
   // Returns `value` if `value` is not undefined or null, otherwise returns defaults or `notDefined` value
@@ -113,6 +118,11 @@
     if (_.isArray(args))
       return _.assign.apply(_, [{}].concat(args));
     return args;
+  };
+
+  // Template string
+  Fiber.fn.template = function() {
+    return Fiber.globals.templateFunction.apply(arguments);
   };
 
   // Validates model
@@ -408,9 +418,10 @@
       this.resetView();
       var attrs = attributes || {};
       options || (options = {});
-      this.cid = _.uniqueId(this.cidPrefix);
+      this.cid = _.uniqueId(this.cidPrefix + '-');
       this.attributes = {};
       this.applyExtendable(options);
+      this.applyOwnProps();
       if (options.parse) attrs = this.parse(attrs, options) || {};
       attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
       this.when('invalid', this.__whenInvalid.bind(this));
@@ -419,11 +430,7 @@
       this.initialize.apply(this, arguments);
     },
 
-    /**
-     * Fetch model data
-     * @param {Object} options
-     * @returns {*}
-     */
+    // Fetch model data
     fetch: function(options) {
       return Fiber.fn.superCall(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
         success: this.__whenSuccess.bind(this),
@@ -447,10 +454,12 @@
 
     // Checks if Model is fetchable
     isFetchable: function() {
-      if  (this.url &&
-           (this.url !== Backbone.Model.prototype.url) &&
-           (_.isFunction(this.url) || _.isString(this.url))) return true;
-      return false;
+      try {
+        var url = this.url();
+        return _.isString(url);
+      } catch (e) {
+        return false;
+      }
     },
 
     // Validates `attributes` of Model against `rules`
@@ -581,13 +590,470 @@
 
   }]);
 
+  // Fiber Collection
+  Fiber.Collection = Fiber.make(Backbone.Collection, ['NsEvents', 'Mixin', 'Extandable', 'OwnProperties', {
+
+    // Properties keys that will be auto extended from initialize object
+    extendable: ['model', 'url', 'eventsNs', 'eventsCatalog'],
+
+    // Properties keys that will be owned by the instance
+    ownProp: ['eventsNs', 'eventsCatalog'],
+
+    // Set Fiber Model by default
+    model: Fiber.Model,
+
+    // Events namespace
+    eventsNs: 'collection',
+
+    // Events catalog
+    eventsCatalog: {
+      fetchSuccess: 'fetch:success',
+      fetchError: 'fetch:error'
+    },
+
+    constructor: function(models, options) {
+      this.applyExtendable(val(options, {}));
+      this.applyOwnProps();
+      Backbone.Collection.apply(this, arguments);
+    },
+
+    // Checks if collection is fetchable
+    isFetchable: function() {
+      return _.isString(this.result('url'));
+    },
+
+    // Fetch model data
+    fetch: function(options) {
+      return Fiber.fn.superCall(Backbone.Collection, 'fetch', [_.extend({}, options || {}, {
+        success: this.__whenSuccess.bind(this),
+        error: this.__whenError.bind(this)
+      })]);
+    },
+
+    // Fetch success handler
+    whenSuccess: function(model, response, options) {},
+
+    // Fetch error handler
+    whenError: function(model, response, options) {},
+
+    // Private success handler
+    __whenSuccess: function(model, response, options) {
+      this.whenSuccess.apply(this, arguments);
+      this.fire('fetchSuccess', {
+        model: model,
+        response: response,
+        options: options
+      });
+    },
+
+    // Private error handler
+    __whenError: function(model, response, options) {
+      this.whenError.apply(this, arguments);
+      this.fire('fetchError', {
+        model: model,
+        response: response,
+        options: options
+      });
+    }
+  }]);
+
+
+  // Fiber Linked Views Collection
+  Fiber.LinkedViews = Fiber.make(Fiber.Collection, {
+
+    // Parent View
+    parentView: null,
+
+    // Properties keys that will be auto extended from initialize object
+    extendable: ['parentView'],
+
+    // Properties keys that will be owned by the instance
+    ownProp: ['parentView'],
+
+    // Events namespace
+    eventsNs: 'childViews',
+
+    // Adds `view` to child views
+    addView: function(view) {
+      return this.add({id: view.cid, view: view});
+    },
+
+    // Removes `view` from child views
+    removeView: function(view) {
+      return this.remove(view.cid);
+    },
+
+    // Checks if child views has given `view`
+    hasView: function(view) {
+      return ! _.isEmpty(this.get(view.cid));
+    }
+  });
+
+
+  // Fiber Listeners Collection
+  Fiber.Listeners = Fiber.Collection.extend({
+
+    // Checks if event has listeners
+    hasEvent: function(event) {
+      return !! this.filterByEvent(event).length;
+    },
+
+    // Returns listeners for provided `events`
+    getByEvent: function(event) {
+      var listeners = this.filterByEvent(event);
+      if (listeners.length === 1) return listeners[0];
+      return listeners;
+    },
+
+    // Filters collection by event
+    filterByEvent: function(event) {
+      return this.filter(function(listener) {
+        return _.contains(listener.get('events'), event);
+      });
+    },
+
+    // Returns listener event handler
+    getEventHandler: function(event) {
+      var listener = this.getByEvent(event);
+      if (_.isArray(listener))
+        return _.pluck(listener, 'attributes.handler');
+      return listener.get('handler');
+    }
+  });
+
+
   // Fiber View
   Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extendable', 'OwnProperties', 'Access', {
 
+    // Parent View
+    $parent: null,
+
+    // Linked views collection
+    linkedViews: null,
+
+    // View ui selectors
+    ui: {},
+
+    // View `$ui` found elements by `ui` selector
+    $ui: {},
+
+    // Instance key to listen to
+    listens: 'model',
+
+    // Events listeners
+    listeners: [{
+      events: ['sync', 'change'],
+      handler: 'render'
+    }],
+
+    // Events namespace
+    eventsNs: 'view',
+
+    // Event catalog
+    eventsCatalog: {
+      render: 'render',
+      rendered: 'rendered'
+    },
+
+    extendable: ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events',
+                 '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', 'routeArgs'],
+
+    ownProps: ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events',
+               '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'linkedViews'],
+
+    // Constructor
+    constructor: function(options) {
+      this.cid = _.uniqueId('view-');
+      this.linkedViews = new Fiber.LinkedViews();
+      this.applyExtendable(options);
+      this.applyOwnProps();
+      this.resolveListenable();
+      this.__handleEventsUi();
+      this.__wrapRender();
+      this._ensureElement();
+      this.initialize.apply(this, arguments);
+    },
+
+
+    // Before render hook
+    beforeRender: function() {},
+
+    // Render View
+    render: function() {
+      if (this.has('template'))
+        this.$el.html(this.renderTemplate(this.get('template')));
+      if (this.has('$parent'))
+        this.attachToParent(this.result('$parent'));
+      return this;
+    },
+
+    // After render hook
+    afterRender: function() {},
+
+    // Attaches View to parent element
+    attachToParent: function($parent) {
+      if (_.isString($parent)) $parent = $($parent);
+      if ($parent instanceof $) $parent.html(this.$el);
+      return this;
+    },
+
+    // Sets view element html or returns it
+    html: function(html) {
+      this.$el.html(html);
+      return this;
+    },
+
+    // Renders template
+    renderTemplate: function(template, data) {
+      if (_.isString(template)) template = Fiber.fn.template(template);
+      if (_.isFunction(template)) template = template(this.makeTemplateData(data));
+      return template;
+    },
+
+    // Makes data for template
+    makeTemplateData: function(additional) {
+      var data = this.result('templateData', {});
+      if (this.model) data = _.assign({}, data, this.model.toJSON());
+      if (this.val(additional, false, _.isPlainObject))
+        data = _.assign({}, data, additional);
+      data.self = this;
+      return data;
+    },
+
+    // Resolves ui elements
+    resolveUi: function() {
+      this.$ui = {};
+      _.each(this.result('ui'), this.resolveOneUi, this);
+      return this.$ui;
+    },
+
+    // Resolves one ui element by `selector`
+    resolveOneUi: function(selector, alias) {
+      return this.$ui[alias] = this.$(selector);
+    },
+
+    // Resolves listenable instance and starts listening
+    resolveListenable: function() {
+      this.prepareListeners(this.result('listeners'));
+      if (! _.isString(this.listens) || ! this.has(this.listens)) return this;
+      this.listenTo(this.result(this.listens), 'all', this.allEventsHandler.bind(this));
+      return this;
+    },
+
+    // Creates listeners collection from given `listeners`
+    prepareListeners: function(listeners) {
+      if (! _.isArray(listeners))
+        if (_.isPlainObject(listeners)) listeners = [listeners];
+        else listeners = [];
+      return this.listeners = new Fiber.Listeners(listeners);
+    },
+
+    // All events handler
+    allEventsHandler: function(event, listenable) {
+      var args = _.toArray(arguments).slice(1);
+      this.fire(event, args);
+      if (this.listeners.hasEvent(event)) {
+        var handler = this.listeners.getEventHandler(event);
+        if (_.isArray(handler)) _.each(handler, function(oneHandler) {
+          this.applyEventHandler(oneHandler, args);
+        }, this);
+        this.applyEventHandler(handler, args);
+      }
+    },
+
+    // Applies event handler
+    applyEventHandler: function(handler, args) {
+      if (_.isString(handler)) handler = this[handler];
+      if (_.isFunction(handler)) return handler.apply(this, args);
+    },
+
+    // Real render function
+    renderFn: function(render) {
+      this.beforeRender();
+      this.fire('render', this);
+      render.call(this);
+      this.resolveUi();
+      this.afterRender();
+      this.fire('rendered', this);
+    },
+
+    // Removes view
+    remove: function() {
+      this.fire('remove', this);
+      this.unbind();
+      this.linkedViews.parentView = null;
+      this.linkedViews.reset([]);
+      this.$parent = null;
+      this.$ui = {};
+      Fiber.fn.superCall(Backbone.View, 'remove');
+      this.fire('removed', this);
+    },
+
+    // Handles events with @ui
+    __handleEventsUi: function() {
+      if (! this.events) return;
+      var isValidUi = this.ui && ! _.isEmpty(this.ui),
+          events = this.result('events'),
+          handled = {};
+
+      for (var selector in events) {
+        var handler = events[selector];
+        if (~selector.indexOf('@ui.') && isValidUi) {
+          var key = selector.split('@ui.')[1];
+          if (this.ui[key]) selector = selector.replace('@ui.' + key, this.ui[key]);
+        }
+        handled[selector] = handler;
+      }
+      this.events = handled;
+    },
+
+    // Wraps render function
+    __wrapRender: function() {
+      this.__origRender = this.render;
+      this.render = _.wrap(this.render, this.renderFn.bind(this));
+      return this;
+    },
+
+    // Un wraps render function
+    __unwrapRender: function() {
+      if (this.__origRender) this.render = this.__origRender;
+      return this;
+    }
   }]);
 
-  // Add extend function to each Class
-  Fiber.Class.extend = Fiber.Model.extend = Fiber.fn.extend;
+
+  // Fiber Collection View
+  Fiber.CollectionView = Fiber.View.extend({
+
+    // Defaults collection class
+    collectionClass: Fiber.Collection,
+
+    // Collection instance
+    collection: null,
+
+    // Collection initial models to create collection from
+    models: [],
+
+    // Element to render Collection to
+    collectionElement: '.collection-view',
+
+    // Collection jQuery element found/created in DOM
+    $collectionElement: null,
+
+    // View class to create View for each model
+    modelViewClass: Fiber.View,
+
+    // Instance key to listen to
+    listens: 'collection',
+
+    // Events listeners
+    listeners: [{
+      events: ['sync', 'update', 'clear'],
+      handler: 'render'
+    }],
+
+    // Events namespace
+    eventsNs: 'collectionView',
+
+    // Constructor
+    constructor: function() {
+      Fiber.View.apply(this, arguments);
+      this.replaceCollectionElementUi();
+      if (! this.collection) this.createCollection(this.models);
+    },
+
+    // Renders collection
+    renderCollection: function() {
+      this.clearCollectionElement();
+      this.prepareCollection().each(this.renderOne, this);
+      return this;
+    },
+
+    // Prepares collection for render
+    prepareCollection: function() {
+      return this.collection;
+    },
+
+    // Renders one model
+    renderOne: function(model) {
+      var View = this.getModelViewClass(model)
+        , view = this.createModelView(View, {model: model});
+
+      view.render();
+
+      this.$collectionElement.append(view.$el);
+      return view;
+    },
+
+    // Removes view by given `model`
+    removeOne: function(model) {
+      var view = model.getView();
+      if (view) view.remove();
+      return view;
+    },
+
+    // Creates model view
+    createModelView: function(View, options) {
+      var view = new View(options);
+      this.linkedViews.addView(view);
+      view.model.setView(view);
+      return view;
+    },
+
+    // Returns model view class
+    getModelViewClass: function(model) {
+      if (model.has('viewClass')) return model.get('viewClass');
+      return this.modelViewClass;
+    },
+
+    // Clears collection element
+    clearCollectionElement: function() {
+      if (this.$collectionElement instanceof $)
+        this.$collectionElement.empty();
+      return this;
+    },
+
+    // Resolves collection element in DOM
+    resolveCollectionElement: function() {
+      var $element = this.$(this.collectionElement);
+      if ($element.length) return this.$collectionElement = $element;
+
+      var props = {};
+      if (this.collectionClass[0] === '.')
+        props.class = this.collectionClass.slice(1).split('.').join(' ');
+      else if (this.collectionClass[0] === '#')
+        props.id = this.collectionClass.slice(1);
+
+      $element = $('<div />', props);
+      this.$el.append($element);
+      return this.$collectionElement = $element;
+    },
+
+    // Creates collection
+    createCollection: function(models, options) {
+      var CollectionClass = this.collectionClass;
+      return this.collection = new CollectionClass(models, options);
+    },
+
+    // Real render function
+    renderFn: function(render) {
+      this.fire('render', this);
+      this.beforeRender();
+      render.call(this);
+      this.resolveUi();
+      this.resolveCollectionElement();
+      this.renderCollection();
+      this.afterRender();
+      this.fire('rendered', this);
+    },
+
+    //  Replaces collection element selector from `ui`
+    replaceCollectionElementUi: function() {
+      if (~this.collectionElement.indexOf('@ui'))
+        this.collectionElement = this.ui[this.collectionElement.replace('@ui.', '')];
+      return this;
+    }
+  });
 
   return Fiber;
 });
