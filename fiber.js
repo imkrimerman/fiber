@@ -98,7 +98,7 @@
   val.notDefined = '$__NULL__$';
 
   // Apply `object` prototype `function` with given `args` and `context`
-  Fiber.fn.protoApply = function(fn, object, args, context) {
+  Fiber.fn.superCall = function(object, fn, args, context) {
     if (! object || ! object.prototype[fn] || ! _.isFunction(object[fn])) return;
     return object[fn].apply(context, args);
   };
@@ -204,7 +204,7 @@
   Fiber.applyExtension = function(alias, object, override) {
     this.getExtension('Mixin').include(this.getExtension(alias), object, override);
     return this;
-  },
+  };
 
   // Namespace Events extension brings namespaces to the event and also
   // provides catalog to simplify registered events.
@@ -363,11 +363,16 @@
   // Extend Fiber Class prototype
   _.extend(Fiber.Class.prototype, Backbone.Events, {
 
-    // Set right constructor
+    // Set constructor
     constructor: Fiber.Class,
 
     // Initialize your class here
-    initialize: function() {}
+    initialize: function() {},
+
+    // Applies Fiber extension to the Class to provide more flexibility
+    applyExtension: function(alias, override) {
+      Fiber.applyExtension(alias, this, override);
+    }
   });
 
   // Fiber Model
@@ -402,7 +407,7 @@
       this.applyExtendable(options);
       if (options.parse) attrs = this.parse(attrs, options) || {};
       attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
-      this.listenTo(this, 'invalid', this.whenValidationError.bind(this));
+      this.when('invalid', this.__whenInvalid.bind(this));
       this.set(attrs, options);
       this.changed = {};
       this.initialize.apply(this, arguments);
@@ -414,7 +419,7 @@
      * @returns {*}
      */
     fetch: function(options) {
-      return Fiber.fn.protoApply(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
+      return Fiber.fn.superCall(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
         success: this.__whenSuccess.bind(this),
         error: this.__whenError.bind(this)
       })]);
@@ -427,7 +432,7 @@
     whenError: function(model, response, options) {},
 
     // Validation error handler
-    whenValidationError: function(model, errors, options) {},
+    whenInvalid: function(model, errors, options) {},
 
     // Sends request using jQuery `ajax` method with the given `options`
     request: function(options) {
@@ -449,7 +454,7 @@
 
     // Converts Model to JSON
     toJSON: function() {
-      return _.omit(Fiber.fn.protoApply(Backbone.Model, 'toJSON'), this.hidden);
+      return _.omit(Fiber.fn.superCall(Backbone.Model, 'toJSON'), this.hidden);
     },
 
     // Returns validation `rules`
@@ -535,7 +540,7 @@
     // Destroys model and also reset view reference
     destroy: function() {
       this.resetView();
-      return Fiber.fn.protoApply(Backbone.Model, 'destroy', arguments);
+      return Fiber.fn.superCall(Backbone.Model, 'destroy', arguments);
     },
 
     // Private success handler
@@ -554,6 +559,16 @@
       this.fire('fetchError', {
         model: model,
         response: response,
+        options: options
+      });
+    },
+
+    // Private validation error handler
+    __whenInvalid: function(model, errors, options) {
+      this.whenInvalid.apply(this, arguments);
+      this.fire('invalid', {
+        model: model,
+        errors: errors,
         options: options
       });
     }
