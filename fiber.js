@@ -79,6 +79,11 @@
     return classExtend.call(this, proto, statics);
   };
 
+  // Extends `parent` with extender and statics with resolving extensions by `alias`
+  Fiber.make = function(parent, extender, statics) {
+    return extend.call(parent, Fiber.getExtension(extender), Fiber.getExtension(statics));
+  };
+
   // Returns `value` if `value` is not undefined or null, otherwise returns defaults or `notDefined` value
   var val = Fiber.fn.val = function(value, defaults, checker) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
@@ -376,7 +381,7 @@
   });
 
   // Fiber Model
-  Fiber.Model = extend.call(Backbone.Model, Fiber.getExtension(['NsEvents', 'Mixin', 'Extendable', {
+  Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Mixin', 'Extendable', {
 
     // Hidden fields.
     // toJSON method will omit this fields.
@@ -391,7 +396,8 @@
     // Events catalog
     eventsCatalog: {
       fetchSuccess: 'fetch:success',
-      fetchError: 'fetch:error'
+      fetchError: 'fetch:error',
+      invalid: 'invalid'
     },
 
     // Properties keys that will be auto extended from initialize object
@@ -573,7 +579,12 @@
       });
     }
 
-  }]));
+  }]);
+
+  // Fiber View
+  Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extendable', 'OwnProperties', 'Access', {
+
+  }]);
 
   // Add extend function to each Class
   Fiber.Class.extend = Fiber.Model.extend = Fiber.fn.extend;
