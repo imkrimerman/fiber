@@ -63,8 +63,8 @@
   // search for them in given `proto` object and if one is found then we'll merge it with
   // object `prototype` value
   var extend = Fiber.fn.extend = function(proto, statics) {
-    proto = this.assignApply(proto);
-    statics = this.assignApply(statics);
+    proto = Fiber.fn.assignApply(proto);
+    statics = Fiber.fn.assignApply(statics);
     _.each(Fiber.globals.deepExtendProperties, function(one) {
       if (proto.hasOwnProperty(one)) {
         switch (true) {
@@ -75,7 +75,7 @@
             _.extend(proto[one], this.prototype[one]);
         }
       }
-    });
+    }.bind(this));
     return classExtend.call(this, proto, statics);
   };
 
@@ -178,15 +178,15 @@
   // Returns extension if one is found or empty object otherwise
   Fiber.getExtension = function(alias) {
     if (_.isArray(alias)) return _.map(alias, function(one) {
-      return this.getExtension(one);
-    }, this);
+      return Fiber.getExtension(one);
+    });
     return _.isString(alias) ? val(this.Extension[alias], {}) : alias;
   };
 
   // Adds extension
   Fiber.addExtension = function(alias, extension, override) {
     if (_.isArray(alias)) _.each(alias, function(one) {
-      this.addExtension(one);
+      Fiber.addExtension(one);
     }, this);
     else {
       if (this.Extension.hasOwnProperty(alias) && ! val(override, false)) return;
@@ -200,7 +200,7 @@
     if (! _.isArray(alias)) alias = [alias];
     _.each(alias, function(one) {
       delete this.Extension[one];
-    }, this);
+    }.bind(this));
     return this;
   };
 
