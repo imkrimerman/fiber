@@ -41,7 +41,7 @@
   // Also we'll create object to hold all global variables
   Fiber.globals = {
     version: '0.0.4',
-    deepExtendProperties: ['willExtend', 'ownProps', 'extensions', 'events', 'eventsCatalog']
+    deepExtendProperties: ['extendable', 'ownProps', 'extensions', 'events', 'eventsCatalog']
   };
 
   // Fiber extensions holder.
@@ -62,7 +62,7 @@
   // Some properties should not be overridden by extend, they should be merge, so we will
   // search for them in given `proto` object and if one is found then we'll merge it with
   // object `prototype` value
-  Fiber.fn.extend = function(proto, statics) {
+  var extend = Fiber.fn.extend = function(proto, statics) {
     proto = this.assignApply(proto);
     statics = this.assignApply(statics);
     _.each(Fiber.globals.deepExtendProperties, function(one) {
@@ -108,14 +108,74 @@
     if (_.isArray(args))
       return _.assign.apply(_, [{}].concat(args));
     return args;
-  },
+  };
+
+  // Validates model
+  Fiber.fn.validate = function(model, attributes, options) {
+    var rules = model.getRules(),
+        errors = {},
+        setError = function(key, err) {
+          if (! errors[key]) errors[key] = [];
+          errors[key].push(err);
+        };
+
+    attributes = attributes || model.attributes;
+
+    if (_.isEmpty(rules)) return;
+
+    for (var key in attributes) {
+      var attribute = attributes[key],
+          rule = rules[key],
+          applyRule = true;
+
+      if (! rule) continue;
+
+      _.defaults(rule, {
+        required: false,
+        validators: [],
+        when: null,
+        message: null
+      });
+
+      if (_.isFunction(rule.when))
+        applyRule = rule.when(model, attributes, options);
+      else if (_.isBoolean(rule.when))
+        applyRule = rule.when;
+
+      if (! applyRule) continue;
+
+      if (rule.required && (! _.isNumber(attribute) && _.isEmpty(attribute)))
+        setError(key, 'Required attribute [' + key + '] is missing.');
+
+      if (rule.validators) {
+        var validators = [];
+
+        if (_.isFunction(rule.validators)) validators.push(rule.validators);
+        else if (_.isArray(rule.validators)) validators = rule.validators;
+        else if (_.isString(rule.validators) && model[rule.validators])
+          validators.push(model[rule.validators]);
+
+        var matchEvery = _.every(validators, function(validator) {
+          if (_.isFunction(validator))
+            return validator(attribute, rule, options);
+          else if (_.isBoolean(validator))
+            return validator;
+          return false;
+        });
+
+        if (! matchEvery) setError(key, rule.message ? rule.message : '[' + key + '] is not valid');
+      }
+    }
+
+    if (! _.isEmpty(errors)) return errors;
+  };
 
   // Returns extension if one is found or empty object otherwise
   Fiber.getExtension = function(alias) {
     if (_.isArray(alias)) return _.map(alias, function(one) {
       return this.getExtension(one);
     }, this);
-    return val(this.Extension[alias], {});
+    return _.isString(alias) ? val(this.Extension[alias], {}) : alias;
   };
 
   // Adds extension
@@ -262,34 +322,24 @@
     }
   });
 
-  // Fiber Class constructor.
-  Fiber.Class = function(options) {
-    this.applyOwnProps();
-    this.applyExtensions();
-    this.applyOptions(options);
-    this.initialize.apply(this, arguments);
-  };
-
-  // Extend Fiber Class prototype
-  _.extend(Fiber.Class.prototype, Backbone.Events, {
+  // Extendable extension.
+  Fiber.addExtension('Extendable', {
 
     // Properties keys that will be auto extended from initialize object
-    willExtend: [],
+    extendable: [],
+
+    // Extends options object. Only options from `extendable` keys array will be extended.
+    applyExtendable: function(options) {
+      var extendable = _.extend(this.result('extendable'), options.extendable || {});
+      return _.extend(this, _.pick(options, extendable));
+    }
+  });
+
+  // Own Properties extension.
+  Fiber.addExtension('OwnProperties', {
 
     // Properties keys that will be owned by the instance
     ownProps: [],
-
-    // Extensions
-    extensions: ['Access', 'NsEvents', 'Mixin'],
-
-    // Initialize your class here
-    initialize: function() {},
-
-    // Extends options object. Only options from `willExtend` keys array will be extended.
-    applyOptions: function(options) {
-      var willExtend = _.extend(this.result('willExtend'), options.willExtend || {});
-      return _.extend(this, _.pick(options, willExtend));
-    },
 
     // Ensures that class owns properties
     applyOwnProps: function() {
@@ -302,16 +352,216 @@
         });
       }
       return this;
-    },
-
-    // Applies extensions
-    applyExtensions: function() {
-      Fiber.applyExtension(this.extensions, this);
-      return this;
     }
   });
 
-  Fiber.Class.extend = Fiber.fn.extend;
+  // Fiber Class constructor.
+  Fiber.Class = function(options) {
+    this.initialize.apply(this, arguments);
+  };
+
+  // Extend Fiber Class prototype
+  _.extend(Fiber.Class.prototype, Backbone.Events, {
+
+    // Set right constructor
+    constructor: Fiber.Class,
+
+    // Initialize your class here
+    initialize: function() {}
+  });
+
+  // Fiber Model
+  Fiber.Model = extend.call(Backbone.Model, Fiber.getExtension(['NsEvents', 'Mixin', 'Extendable', {
+
+    // Hidden fields.
+    // toJSON method will omit this fields.
+    hidden: [],
+
+    // Validation rules
+    rules: {},
+
+    // Events namespace
+    eventsNs: 'model',
+
+    // Events catalog
+    eventsCatalog: {
+      fetchSuccess: 'fetch:success',
+      fetchError: 'fetch:error'
+    },
+
+    // Properties keys that will be auto extended from initialize object
+    extendable: ['collection', 'url', 'hidden', 'rules', 'eventsNs', 'eventsCatalog'],
+
+    // Model constructor
+    constructor: function(attributes, options) {
+      this.resetView();
+      var attrs = attributes || {};
+      options || (options = {});
+      this.cid = _.uniqueId(this.cidPrefix);
+      this.attributes = {};
+      this.applyExtendable(options);
+      if (options.parse) attrs = this.parse(attrs, options) || {};
+      attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
+      this.listenTo(this, 'invalid', this.whenValidationError.bind(this));
+      this.set(attrs, options);
+      this.changed = {};
+      this.initialize.apply(this, arguments);
+    },
+
+    /**
+     * Fetch model data
+     * @param {Object} options
+     * @returns {*}
+     */
+    fetch: function(options) {
+      return Fiber.fn.protoApply(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
+        success: this.__whenSuccess.bind(this),
+        error: this.__whenError.bind(this)
+      })]);
+    },
+
+    // Fetch success handler
+    whenSuccess: function(model, response, options) {},
+
+    // Fetch error handler
+    whenError: function(model, response, options) {},
+
+    // Validation error handler
+    whenValidationError: function(model, errors, options) {},
+
+    // Sends request using jQuery `ajax` method with the given `options`
+    request: function(options) {
+      return Fiber.$.ajax(options);
+    },
+
+    // Checks if Model is fetchable
+    isFetchable: function() {
+      if  (this.url &&
+           (this.url !== Backbone.Model.prototype.url) &&
+           (_.isFunction(this.url) || _.isString(this.url))) return true;
+      return false;
+    },
+
+    // Validates `attributes` of Model against `rules`
+    validate: function(attrs, options) {
+      return Fiber.fn.validate(this, attrs, options);
+    },
+
+    // Converts Model to JSON
+    toJSON: function() {
+      return _.omit(Fiber.fn.protoApply(Backbone.Model, 'toJSON'), this.hidden);
+    },
+
+    // Returns validation `rules`
+    getRules: function(defaults) {
+      return _.result(this, 'rules', defaults);
+    },
+
+    // Sets validation `rules`
+    setRules: function(rules) {
+      this.rules = rules;
+      return this;
+    },
+
+    // Returns next model.
+    next: function(options) {
+      return this.sibling(_.extend({direction: 'next'}, options || {}));
+    },
+
+    // Returns previous model.
+    prev: function(options) {
+      return this.sibling(_.extend({direction: 'prev'}, options || {}));
+    },
+
+    // Returns Sibling Model.
+    // Options:
+    //  direction: 'next', - direction to search, can be 'next' or 'prev'
+    //  where: null, - options object to find model by, will be passed to the `collection.where`
+    //  cid: null - if no model cid found will be used as default Model cid
+    sibling: function(options) {
+      if (! this.collection) return this;
+
+      options = _.defaults(options || {}, {
+        direction: 'next',
+        where: null,
+        cid: null
+      });
+
+      var cid = this.cid,
+          models = options.where ? this.collection.where(options.where) : this.collection.models,
+          dirCid;
+
+      if (models.length) dirCid = _.first(models).cid;
+      else dirCid = options.cid;
+
+      for (var key = 0; key < models.length; key ++) {
+        var model = models[key];
+        if (model.cid !== cid) continue;
+
+        if (options.direction === 'next') {
+          if (key + 1 >= models.length) dirCid = _.first(models).cid;
+          else dirCid = models[key + 1].cid; break;
+        }
+        else if (options.direction === 'prev') {
+          if (key - 1 < 0) dirCid = _.last(models).cid;
+          else dirCid = models[key - 1].cid; break;
+        }
+      }
+
+      return dirCid != null ? this.collection.get(dirCid) : null;
+    },
+
+    // Sets model view
+    setView: function(view) {
+      this.__view = view;
+    },
+
+    // Gets model view
+    getView: function() {
+      return this.__view;
+    },
+
+    // Checks if has view
+    hasView: function() {
+      return ! _.isEmpty(this.__view);
+    },
+
+    // Resets view reference
+    resetView: function() {
+      this.__view = null;
+      return this;
+    },
+
+    // Destroys model and also reset view reference
+    destroy: function() {
+      this.resetView();
+      return Fiber.fn.protoApply(Backbone.Model, 'destroy', arguments);
+    },
+
+    // Private success handler
+    __whenSuccess: function(model, response, options) {
+      this.whenSuccess.apply(this, arguments);
+      this.fire('fetchSuccess', {
+        model: model,
+        response: response,
+        options: options
+      });
+    },
+
+    // Private error handler
+    __whenError: function(model, response, options) {
+      this.whenError.apply(this, arguments);
+      this.fire('fetchError', {
+        model: model,
+        response: response,
+        options: options
+      });
+    }
+
+  }]));
+
+  // Add extend function to each Class
+  Fiber.Class.extend = Fiber.Model.extend = Fiber.fn.extend;
 
   return Fiber;
 });
