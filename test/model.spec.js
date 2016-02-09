@@ -4,7 +4,7 @@ var Backbone = require('backbone');
 var expect = require('chai').expect;
 
 describe('Fiber.Model', function() {
-  "use strict";
+  'use strict';
 
   it('should initialize', function() {
     var model = new Fiber.Model();

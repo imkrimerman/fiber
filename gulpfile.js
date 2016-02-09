@@ -39,6 +39,7 @@ gulp.task('test', Test);
 function Build() {
   gulp.src(config.input)
     .pipe(inject(gulp.src(config.files, {read: false}), {
+      removeTags: true,
       transform: function(filepath) {
         if (filepath.slice(-3) === '.js') {
           var contents = fs.readFileSync(path.join(__dirname, filepath)).toString().split("\n");
@@ -51,7 +52,7 @@ function Build() {
         // Use the default transform as fallback:
         return inject.transform.apply(inject.transform, arguments);
       }
-    }, {removeTags: true}))
+    }))
     .pipe(gulp.dest(config.output));
 }
 
