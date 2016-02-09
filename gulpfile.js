@@ -4,10 +4,12 @@ var gulp = require('gulp')
   , fs = require('fs')
   , path = require('path')
   , shell = require('shelljs')
+  , mocha = require('gulp-mocha')
 
   , config = {
     input: './fiber.js',
     output: './build',
+    test: 'test/*.spec.js',
     files: [
       './src/fn.js',
       './src/Extensions.js',
@@ -26,15 +28,13 @@ var gulp = require('gulp')
     ]
   };
 
-
 gulp.task('default', ['compileTest', 'watch']);
 gulp.task('compile', ['build', 'minify']);
 gulp.task('compileTest', ['compile', 'test']);
 gulp.task('build', Build);
 gulp.task('minify', Minify);
 gulp.task('watch', Watch);
-gulp.task('test', Test);
-
+gulp.task('test', InjectTest);
 
 function Build() {
   gulp.src(config.input)
@@ -66,5 +66,21 @@ function Minify() {
 }
 
 function Test() {
-  shell.exec('npm run test');
+  gulp.src(config.test, {read: false})
+    .pipe(mocha({
+      ui: 'bdd',
+      reporter: 'spec'
+    }))
+    .once('error', function(data) {
+        console.log('Error in test: ' + data.message);
+    });
+}
+
+function InjectTest() {
+  gulp.src('./test/runner.html')
+    .pipe(inject(gulp.src(config.test, {read: false}), {
+      relative: true,
+      addPrefix: '.'
+    }))
+    .pipe(gulp.dest('./test'));
 }

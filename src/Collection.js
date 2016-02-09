@@ -35,7 +35,7 @@ Fiber.Collection = Fiber.make(Backbone.Collection, ['NsEvents', 'Mixin', 'Extand
     return Fiber.fn.apply(Backbone.Collection, 'fetch', [_.extend({}, options || {}, {
       success: this.__whenSuccess.bind(this),
       error: this.__whenError.bind(this)
-    })]);
+    })], this);
   },
 
   // Fetch success handler

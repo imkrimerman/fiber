@@ -1,7 +1,3 @@
-var Fiber = require('../build/fiber');
-var Backbone = require('backbone');
-var expect = require('chai').expect;
-
 describe('Fiber.Class', function() {
   'use strict';
 

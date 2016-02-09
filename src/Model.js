@@ -43,7 +43,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
     return Fiber.fn.apply(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
       success: this.__whenSuccess.bind(this),
       error: this.__whenError.bind(this)
-    })]);
+    })], this);
   },
 
   // Fetch success handler
@@ -63,8 +63,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
   // Checks if Model is fetchable
   isFetchable: function() {
     try {
-      var url = this.url();
-      return _.isString(url);
+      return _.isString(_.result(this, 'url'));
     } catch (e) {
       return false;
     }
@@ -77,7 +76,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
 
   // Converts Model to JSON
   toJSON: function() {
-    return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON'), this.hidden);
+    return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON', [], this), this.hidden);
   },
 
   // Returns validation `rules`
@@ -163,7 +162,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
   // Destroys model and also reset view reference
   destroy: function() {
     this.resetView();
-    return Fiber.fn.apply(Backbone.Model, 'destroy', arguments);
+    return Fiber.fn.apply(Backbone.Model, 'destroy', arguments, this);
   },
 
   // Private success handler

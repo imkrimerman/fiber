@@ -1,9 +1,3 @@
-var Fiber = require('../build/fiber');
-var val = Fiber.fn.val;
-var Backbone = require('backbone');
-var expect = require('chai').expect;
-var assert = require('chai').assert;
-
 describe('Fiber.fn', function() {
   'use strict';
   it('Fiber should have fn object', function() {

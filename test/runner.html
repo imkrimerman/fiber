@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mocha Runner</title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+</head>
+<body>
+  <div id="mocha"></div>
+  <script src="../node_modules/jquery/dist/jquery.js"></script>
+  <script src="../node_modules/lodash/lodash.js"></script>
+  <script src="../node_modules/backbone/backbone.js"></script>
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/chai/chai.js"></script>
+  <script src="../node_modules/sinon/pkg/sinon.js"></script>
+  <script src="../build/fiber.js"></script>
+  <script src="./utils.js"></script>
+  <!-- inject:js -->
+  <script src="./class.spec.js"></script>
+  <script src="./fn.spec.js"></script>
+  <script src="./model.spec.js"></script>
+  <!-- endinject -->
+  <script>
+    $(function() {
+      mocha.run();
+    });
+  </script>
+</body>
+</html>

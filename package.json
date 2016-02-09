@@ -20,8 +20,10 @@
     "eslint": "^1.10.3",
     "gulp": "^3.9.0",
     "gulp-inject": "^3.0.0",
+    "gulp-mocha": "^2.2.0",
     "mocha": "^2.4.5",
     "shelljs": "^0.6.0",
+    "sinon": "^1.17.3",
     "uglify-js": "^2.6.1"
   },
   "dependencies": {

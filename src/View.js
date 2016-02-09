@@ -161,7 +161,7 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extendable', 'OwnP
     this.linkedViews.reset([]);
     this.$parent = null;
     this.$ui = {};
-    Fiber.fn.apply(Backbone.View, 'remove');
+    Fiber.fn.apply(Backbone.View, 'remove', [], this);
     this.fire('removed', this);
   },
 
