@@ -41,7 +41,7 @@
   // Also we'll create object to hold all global variables
   Fiber.globals = {
     version: '0.0.5',
-    deepExtendProperties: ['extendable', 'ownProps', 'extensions', 'events', 'eventsCatalog'],
+    deepExtendProperties: ['hidden', 'extendable', 'ownProps', 'extensions', 'events', 'eventsCatalog'],
     templateFunction: _.template
   };
 
@@ -61,4 +61,6 @@
 
   <!-- inject:js -->
   <!-- endinject -->
+
+  return Fiber;
 });

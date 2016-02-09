@@ -195,5 +195,4 @@ Fiber.Model = Fiber.make(Backbone.Model, {
       options: options
     });
   }
-
-});
+}, {extend: extend});

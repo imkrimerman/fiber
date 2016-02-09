@@ -9,7 +9,7 @@ var extend = Fiber.fn.extend = function(proto, statics) {
     if (proto.hasOwnProperty(one)) {
       switch (true) {
         case _.isArray(proto[one]):
-          proto[one] = proto[one].concat(this.prototype[one]);
+          proto[one] = this.prototype[one].concat(proto[one]);
           break;
         case _.isPlainObject(proto[one]):
           _.extend(proto[one], this.prototype[one]);
@@ -61,7 +61,8 @@ Fiber.fn.assignApply = function(args) {
 
 // Template string
 Fiber.fn.template = function() {
-  return Fiber.globals.templateFunction.apply(arguments);
+  var renderFn = Fiber.globals.templateFunction;
+  return renderFn.apply(renderFn, arguments);
 };
 
 // Validates model

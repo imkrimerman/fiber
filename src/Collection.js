@@ -63,4 +63,4 @@ Fiber.Collection = Fiber.make(Backbone.Collection, ['NsEvents', 'Mixin', 'Extand
       options: options
     });
   }
-}]);
+}], {extend: extend});

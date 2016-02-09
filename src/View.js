@@ -195,4 +195,4 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extendable', 'OwnP
     if (this.__origRender) this.render = this.__origRender;
     return this;
   }
-}]);
+}], {extend: extend});

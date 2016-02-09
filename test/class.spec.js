@@ -1,4 +1,4 @@
-var Fiber = require('../fiber');
+var Fiber = require('../build/fiber');
 var expect = require('chai').expect;
 
 describe('Fiber.Class', function() {

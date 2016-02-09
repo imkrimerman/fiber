@@ -17,3 +17,5 @@ _.extend(Fiber.Class.prototype, Backbone.Events, {
     Fiber.applyExtension(alias, this, override);
   }
 });
+
+Fiber.Class.extend = extend;
