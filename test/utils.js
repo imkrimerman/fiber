@@ -27,7 +27,7 @@ var addSpy = function() {
   var withSpy = sinon.spy.apply(sinon, arguments);
   this.spies.push(withSpy);
   return withSpy;
-}
+};
 
 /**
  * Removes all set spies
@@ -40,4 +40,8 @@ var clearSpies = function() {
     }
   }
   this.spies = [];
-}
+};
+
+var expectCalled = function(spy) {
+  expect(spy.called).to.be.true;
+};

@@ -5,6 +5,7 @@ var gulp = require('gulp')
   , path = require('path')
   , shell = require('shelljs')
   , mocha = require('gulp-mocha')
+  , eslint = require('gulp-eslint')
 
   , config = {
     input: './fiber.js',
@@ -28,13 +29,14 @@ var gulp = require('gulp')
     ]
   };
 
-gulp.task('default', ['compileTest', 'watch']);
+gulp.task('default', ['compileTest', 'lint', 'watch']);
 gulp.task('compile', ['build', 'minify']);
 gulp.task('compileTest', ['compile', 'test']);
 gulp.task('build', Build);
 gulp.task('minify', Minify);
 gulp.task('watch', Watch);
 gulp.task('test', InjectTest);
+gulp.task('lint', Lint);
 
 function Build() {
   gulp.src(config.input)
@@ -58,6 +60,7 @@ function Build() {
 
 function Watch() {
   gulp.watch(config.files, ['compile']);
+  gulp.watch(config.files, ['lint']);
   gulp.watch(config.files.concat(['test/*.spec.js']), ['compileTest']);
 }
 
@@ -83,4 +86,20 @@ function InjectTest() {
       addPrefix: '.'
     }))
     .pipe(gulp.dest('./test'));
+}
+
+
+function Lint() {
+  gulp.src(config.files)
+    // eslint() attaches the lint output to the "eslint" property
+    // of the file object so it can be used by other modules.
+    .pipe(eslint({
+      configFile: './.eslintrc'
+    }))
+    // eslint.format() outputs the lint results to the console.
+    // Alternatively use eslint.formatEach() (see Docs).
+    .pipe(eslint.format())
+    // To have the process exit with an error code (1) on
+    // lint error, return the stream and pipe to failAfterError last.
+    .pipe(eslint.failAfterError());
 }
