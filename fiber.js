@@ -56,9 +56,6 @@
   // Add `lodash` to the Fiber
   Fiber._ = _;
 
-  // Class extend function grabbed from the Backbone.
-  var classExtend = Backbone.Model.extend;
-
   <!-- inject:js -->
   <!-- endinject -->
 

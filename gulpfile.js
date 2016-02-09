@@ -27,8 +27,11 @@ var gulp = require('gulp')
   };
 
 
-gulp.task('default', ['build', 'watch']);
+gulp.task('default', ['compileTest', 'watch']);
+gulp.task('compile', ['build', 'minify']);
+gulp.task('compileTest', ['compile', 'test']);
 gulp.task('build', Build);
+gulp.task('minify', Minify);
 gulp.task('watch', Watch);
 gulp.task('test', Test);
 
@@ -48,14 +51,18 @@ function Build() {
         // Use the default transform as fallback:
         return inject.transform.apply(inject.transform, arguments);
       }
-    }, {removeTags: true})).pipe(gulp.dest(config.output));
+    }, {removeTags: true}))
+    .pipe(gulp.dest(config.output));
 }
 
 function Watch() {
-  gulp.watch(config.files, ['build']);
-  gulp.watch(config.files.concat(['test/*.spec.js']), ['test']);
+  gulp.watch(config.files, ['compile']);
+  gulp.watch(config.files.concat(['test/*.spec.js']), ['compileTest']);
 }
 
+function Minify() {
+  shell.exec('npm run min');
+}
 
 function Test() {
   shell.exec('npm run test');

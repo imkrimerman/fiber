@@ -30,7 +30,8 @@
     "lodash": "^4.2.1"
   },
   "scripts": {
-    "build": "gulp && uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
+    "build": "gulp && npm run min",
+    "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
     "doc": "docco ./build/fiber.js && open -a \"Google Chrome\"  docs/fiber.html",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha"

@@ -16,7 +16,7 @@ var extend = Fiber.fn.extend = function(proto, statics) {
       }
     }
   }.bind(this));
-  return classExtend.call(this, proto, statics);
+  return Backbone.Model.extend.call(this, proto, statics);
 };
 
 // Extends `parent` using extender and statics with resolving extensions by `alias`
