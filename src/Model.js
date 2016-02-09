@@ -1,6 +1,5 @@
-'use strict';
 // Fiber Model
-var Model = {
+Fiber.Model = Fiber.make(Backbone.Model, {
 
   // Hidden fields.
   // toJSON method will omit this fields.
@@ -117,8 +116,8 @@ var Model = {
     });
 
     var cid = this.cid,
-      models = options.where ? this.collection.where(options.where) : this.collection.models,
-      dirCid;
+        models = options.where ? this.collection.where(options.where) : this.collection.models,
+        dirCid;
 
     if (models.length) dirCid = _.first(models).cid;
     else dirCid = options.cid;
@@ -197,4 +196,4 @@ var Model = {
     });
   }
 
-};
+});

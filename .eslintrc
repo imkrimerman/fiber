@@ -6,7 +6,13 @@
   },
   "globals": {
     "describe": true,
-    "it": true
+    "it": true,
+    "Fiber": true,
+    "Backbone": true,
+    "_": true,
+    "$": true,
+    "classExtend": true,
+    "val": true
   },
   "rules": {
     "array-bracket-spacing": [2],
