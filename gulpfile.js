@@ -6,6 +6,7 @@ var gulp = require('gulp')
   , shell = require('shelljs')
   , mocha = require('gulp-mocha')
   , eslint = require('gulp-eslint')
+  , connect = require('gulp-connect')
 
   , config = {
     input: './fiber.js',
@@ -29,7 +30,7 @@ var gulp = require('gulp')
     ]
   };
 
-gulp.task('default', ['compileTest', 'lint', 'watch']);
+gulp.task('default', ['compileTest', 'serve', 'lint', 'watch']);
 gulp.task('compile', ['build', 'minify']);
 gulp.task('compileTest', ['compile', 'test']);
 gulp.task('build', Build);
@@ -37,6 +38,8 @@ gulp.task('minify', Minify);
 gulp.task('watch', Watch);
 gulp.task('test', InjectTest);
 gulp.task('lint', Lint);
+gulp.task('serve', Serve);
+gulp.task('serverReload', Reload);
 
 function Build() {
   gulp.src(config.input)
@@ -55,13 +58,15 @@ function Build() {
         return inject.transform.apply(inject.transform, arguments);
       }
     }))
-    .pipe(gulp.dest(config.output));
+    .pipe(gulp.dest(config.output))
+    .pipe(connect.reload());
 }
 
 function Watch() {
   gulp.watch(config.files, ['compile']);
   gulp.watch(config.files, ['lint']);
-  gulp.watch(config.files.concat(['test/*.spec.js']), ['compileTest']);
+  gulp.watch(config.files.concat([config.test]), ['compileTest']);
+  gulp.watch(config.files.concat([config.test]), ['serverReload']);
 }
 
 function Minify() {
@@ -85,7 +90,8 @@ function InjectTest() {
       relative: true,
       addPrefix: '.'
     }))
-    .pipe(gulp.dest('./test'));
+    .pipe(gulp.dest('./test'))
+    .pipe(connect.reload());
 }
 
 
@@ -102,4 +108,18 @@ function Lint() {
     // To have the process exit with an error code (1) on
     // lint error, return the stream and pipe to failAfterError last.
     .pipe(eslint.failAfterError());
+}
+
+function Serve() {
+  connect.server({
+    root: './',
+    port: 3030,
+    livereload: true,
+  });
+  shell.exec('open -a "Google Chrome" http://localhost:3030/test/runner.html');
+}
+
+function Reload() {
+  gulp.src(config.test.concat([config.output + '/*.js']))
+    .pipe(connect.reload());
 }

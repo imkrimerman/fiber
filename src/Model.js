@@ -71,12 +71,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
 
   // Validates `attributes` of Model against `rules`
   validate: function(attrs, options) {
-    return Fiber.fn.validate(this, attrs, options);
-  },
-
-  // Converts Model to JSON
-  toJSON: function() {
-    return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON', [], this), this.hidden);
+    return Fiber.fn.validate(this, val(attrs, this.attributes), options);
   },
 
   // Returns validation `rules`
@@ -88,6 +83,16 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
   setRules: function(rules) {
     this.rules = rules;
     return this;
+  },
+
+  // Checks if `rules` is not empty
+  hasRules: function() {
+    return ! _.isEmpty(this.rules);
+  },
+
+  // Converts Model to JSON
+  toJSON: function() {
+    return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON', [], this), this.hidden);
   },
 
   // Returns next model.
@@ -111,7 +116,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
     options = _.defaults(options || {}, {
       direction: 'next',
       where: null,
-      cid: null
+      defaultCid: null
     });
 
     var cid = this.cid,
@@ -119,7 +124,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
         dirCid;
 
     if (models.length) dirCid = _.first(models).cid;
-    else dirCid = options.cid;
+    else dirCid = options.defaultCid;
 
     for (var key = 0; key < models.length; key ++) {
       var model = models[key];
