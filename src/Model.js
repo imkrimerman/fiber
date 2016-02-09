@@ -1,5 +1,5 @@
 // Fiber Model
-Fiber.Model = Fiber.make(Backbone.Model, {
+Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'OwnProperties', {
 
   // Hidden fields.
   // toJSON method will omit this fields.
@@ -40,7 +40,7 @@ Fiber.Model = Fiber.make(Backbone.Model, {
 
   // Fetch model data
   fetch: function(options) {
-    return Fiber.fn.superCall(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
+    return Fiber.fn.apply(Backbone.Model, 'fetch', [_.extend({}, options || {}, {
       success: this.__whenSuccess.bind(this),
       error: this.__whenError.bind(this)
     })]);
@@ -77,7 +77,7 @@ Fiber.Model = Fiber.make(Backbone.Model, {
 
   // Converts Model to JSON
   toJSON: function() {
-    return _.omit(Fiber.fn.superCall(Backbone.Model, 'toJSON'), this.hidden);
+    return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON'), this.hidden);
   },
 
   // Returns validation `rules`
@@ -163,7 +163,7 @@ Fiber.Model = Fiber.make(Backbone.Model, {
   // Destroys model and also reset view reference
   destroy: function() {
     this.resetView();
-    return Fiber.fn.superCall(Backbone.Model, 'destroy', arguments);
+    return Fiber.fn.apply(Backbone.Model, 'destroy', arguments);
   },
 
   // Private success handler
@@ -195,4 +195,4 @@ Fiber.Model = Fiber.make(Backbone.Model, {
       options: options
     });
   }
-}, {extend: extend});
+}], {extend: extend});

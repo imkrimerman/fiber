@@ -11,7 +11,7 @@
     "Backbone": true,
     "_": true,
     "$": true,
-    "classExtend": true,
+    "extend": true,
     "val": true
   },
   "rules": {

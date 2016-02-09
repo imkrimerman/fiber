@@ -1,10 +1,33 @@
 var Fiber = require('../build/fiber');
+var Backbone = require('backbone');
 var expect = require('chai').expect;
 
 describe('Fiber.Class', function() {
   'use strict';
+
+  beforeEach(function() {
+    this.base = new Fiber.Class();
+  });
+
   it('should initialize', function() {
-    var FiberClass = new Fiber.Class();
-    expect(FiberClass).to.be.an.instanceof(Fiber.Class);
+    expect(this.base).to.be.an.instanceof(Fiber.Class);
+  });
+
+  it('should have Backbone.Events', function() {
+    for (var key in Backbone.Events) {
+      expect(this.base).to.have.property(key);
+    }
+  });
+
+  it('should apply extensions', function() {
+    this.base.applyExtension('Access');
+    for (var key in Fiber.getExtension('Access')) {
+      expect(this.base).to.have.property(key);
+    }
+
+    this.base.applyExtension(['NsEvents', 'Extendable']);
+    for (var key in Fiber.fn.assignApply(Fiber.getExtension(['NsEvents', 'Extendable']))) {
+      expect(this.base).to.have.property(key);
+    }
   });
 });

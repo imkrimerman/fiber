@@ -30,6 +30,6 @@ Fiber.removeExtension = function(alias) {
 // Applies extension by `alias` to the given `object`.
 // Also you can provide `override` boolean to force override properties.
 Fiber.applyExtension = function(alias, object, override) {
-  this.getExtension('Mixin').include(this.getExtension(alias), object, override);
+  Fiber.fn.include(object, this.getExtension(alias), override);
   return this;
 };

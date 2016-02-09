@@ -6,7 +6,7 @@ var extend = Fiber.fn.extend = function(proto, statics) {
   proto = Fiber.fn.assignApply(proto);
   statics = Fiber.fn.assignApply(statics);
   _.each(Fiber.globals.deepExtendProperties, function(one) {
-    if (proto.hasOwnProperty(one)) {
+    if (proto.hasOwnProperty(one) && this.prototype[one]) {
       switch (true) {
         case _.isArray(proto[one]):
           proto[one] = this.prototype[one].concat(proto[one]);
@@ -19,7 +19,7 @@ var extend = Fiber.fn.extend = function(proto, statics) {
   return classExtend.call(this, proto, statics);
 };
 
-// Extends `parent` with extender and statics with resolving extensions by `alias`
+// Extends `parent` using extender and statics with resolving extensions by `alias`
 Fiber.make = function(parent, extender, statics) {
   return extend.call(
     val(parent, Fiber.Class),
@@ -47,9 +47,11 @@ var val = Fiber.fn.val = function(value, defaults, checker) {
 val.notDefined = '$__NULL__$';
 
 // Apply `object` prototype `function` with given `args` and `context`
-Fiber.fn.superCall = function(object, fn, args, context) {
-  if (! object || ! object.prototype[fn] || ! _.isFunction(object[fn])) return;
-  return object[fn].apply(context, args);
+Fiber.fn.apply = function(object, fn, args, context) {
+  if (! object || ! object.prototype[fn] || ! _.isFunction(object.prototype[fn]))
+    return;
+  context = context || this;
+  return object.prototype[fn].apply(context, args);
 };
 
 // Applies `assign` function with given `args`
@@ -62,6 +64,7 @@ Fiber.fn.assignApply = function(args) {
 // Template string
 Fiber.fn.template = function() {
   var renderFn = Fiber.globals.templateFunction;
+  if (! renderFn) return _.constant(arguments[0]);
   return renderFn.apply(renderFn, arguments);
 };
 
@@ -123,4 +126,29 @@ Fiber.fn.validate = function(model, attributes, options) {
   }
 
   if (! _.isEmpty(errors)) return errors;
+};
+
+// Adds given `mixin` to the `object`. Mixin can be object or function.
+// Also you can provide `override` boolean to force override properties.
+Fiber.fn.mix = function(object, mixin, override) {
+  override = val(override, false);
+  // If function is given then it will be called with current Class.
+  if (_.isFunction(mixin)) {
+    mixin(object);
+    return this;
+  }
+  var method = 'defaultsDeep';
+  if (override) method = 'assign';
+  _[method](object, mixin);
+  return object;
+};
+
+// Includes `mixin` or array of mixins to the `object`.
+// Also you can provide `override` boolean to force override properties.
+Fiber.fn.include = function(object, mixin, override) {
+  if (! _.isArray(mixin) && _.isPlainObject(mixin))
+    Fiber.fn.mix(object, mixin, override);
+  else for (var i = 0; i < mixin.length; i ++)
+    Fiber.fn.mix(object, mixin[i], override);
+  return this;
 };

@@ -3,6 +3,7 @@ var gulp = require('gulp')
   , inject = require('gulp-inject')
   , fs = require('fs')
   , path = require('path')
+  , shell = require('shelljs')
 
   , config = {
     input: './fiber.js',
@@ -26,7 +27,13 @@ var gulp = require('gulp')
   };
 
 
-gulp.task('default', function() {
+gulp.task('default', ['build', 'watch']);
+gulp.task('build', Build);
+gulp.task('watch', Watch);
+gulp.task('test', Test);
+
+
+function Build() {
   gulp.src(config.input)
     .pipe(inject(gulp.src(config.files, {read: false}), {
       transform: function(filepath) {
@@ -42,4 +49,14 @@ gulp.task('default', function() {
         return inject.transform.apply(inject.transform, arguments);
       }
     }, {removeTags: true})).pipe(gulp.dest(config.output));
-});
+}
+
+function Watch() {
+  gulp.watch(config.files, ['build']);
+  gulp.watch(config.files.concat(['test/*.spec.js']), ['test']);
+}
+
+
+function Test() {
+  shell.exec('npm run test');
+}

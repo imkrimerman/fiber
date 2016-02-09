@@ -32,7 +32,7 @@ Fiber.Collection = Fiber.make(Backbone.Collection, ['NsEvents', 'Mixin', 'Extand
 
   // Fetch model data
   fetch: function(options) {
-    return Fiber.fn.superCall(Backbone.Collection, 'fetch', [_.extend({}, options || {}, {
+    return Fiber.fn.apply(Backbone.Collection, 'fetch', [_.extend({}, options || {}, {
       success: this.__whenSuccess.bind(this),
       error: this.__whenError.bind(this)
     })]);
