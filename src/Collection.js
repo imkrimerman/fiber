@@ -20,7 +20,7 @@ Fiber.Collection = Fiber.make(Backbone.Collection, ['NsEvents', 'Mixin', 'Extand
   },
 
   constructor: function(models, options) {
-    this.applyExtend(val(options, {}));
+    this.applyExtend(options);
     this.applyOwnProps();
     Backbone.Collection.apply(this, arguments);
   },

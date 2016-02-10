@@ -12,8 +12,8 @@ describe('Fiber.Model', function() {
   });
 
   beforeEach(function() {
-    if (window.__karma__) this.url = './base/test/model.json';
-    else this.url = './model.json';
+    if (window.__karma__) this.url = './base/test/mocks/model.json';
+    else this.url = './mocks/model.json';
     this.baseModel = new Fiber.Model();
     this.urlModel = new Fiber.Model({}, {url: this.url});
   });

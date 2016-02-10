@@ -18,7 +18,7 @@ module.exports = function(config) {
       'node_modules/jquery/dist/jquery.js',
       'node_modules/lodash/lodash.js',
       'node_modules/backbone/backbone.js',
-      {pattern: 'test/*.json', included: false},
+      {pattern: 'test/mocks/*.json', included: false},
       'build/fiber.js',
       'test/utils.js',
       'test/**/*spec.js'

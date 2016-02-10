@@ -6,6 +6,7 @@ Fiber.setExtension('Extend', {
 
   // Extends options object. Only options from `extendable` keys array will be extended.
   applyExtend: function(options) {
+    options = val(options, {});
     var extendable = _.extend(_.result(this, 'extendable'), options.extendable || {});
     return _.extend(this, _.pick(options, extendable));
   }

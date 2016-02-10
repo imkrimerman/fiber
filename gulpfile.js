@@ -25,7 +25,7 @@ var gulp = require('gulp')
       './src/Extensions/Mixin.js',
       './src/Extensions/NsEvents.js',
       './src/Extensions/OwnProperties.js',
-      './src/BaseClass.js',
+      './src/Class.js',
       './src/Model.js',
       './src/Collection.js',
       './src/LinkedViews.js',

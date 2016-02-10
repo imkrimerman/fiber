@@ -22,6 +22,9 @@ Fiber.setExtension = function(alias, extension, override) {
 
 // Checks if Fiber has extension by given `alias`
 Fiber.hasExtension = function(alias) {
+  if (_.isArray(alias)) return _.every(alias, function(one) {
+    return Fiber.hasExtension(one);
+  });
   return this.Extension.hasOwnProperty(alias);
 };
 

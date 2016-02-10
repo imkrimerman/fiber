@@ -43,6 +43,8 @@ describe('Fiber.Extensions', function() {
   it('should check if Fiber `has` extension by given alias', function() {
     expect(Fiber.hasExtension('Access')).to.be.true;
     expect(Fiber.hasExtension('Unknown')).to.be.false;
+    expect(Fiber.hasExtension(['Extend', 'Access'])).to.be.true;
+    expect(Fiber.hasExtension(['Unknown', 'Access'])).to.be.false;
   });
 
   it('should `remove` extension by alias', function() {

@@ -52,6 +52,13 @@ describe('Fiber.Extension.NsEvents', function() {
     expect(cb).to.be.calledOnce;
   });
 
+  it('should get/set/has events namespace', function() {
+    expect(this.Class.hasNs()).to.be.false;
+    this.Class.setNs('ns');
+    expect(this.Class.getNs()).to.eql(this.Class.eventsNs);
+    expect(this.Class.hasNs()).to.be.true;
+  });
+
   it('should return namespaced event or if `!` - event without ns, if `!@` - event without ns and catalog', function() {
     this.Class.eventsNs = 'class';
     this.Class.eventsCatalog = {

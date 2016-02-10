@@ -60,8 +60,9 @@ Fiber.setExtension('NsEvents', {
     return val(this.eventsCatalog[event], event);
   },
 
+  // Checks if event is catalog
   hasCatalogEvent: function(event) {
-    //TODO implement;
+    return this.eventsCatalog.hasOwnProperty(event);
   },
 
   // Sets `event` to the catalog by `alias`
