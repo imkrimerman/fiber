@@ -21,7 +21,7 @@ module.exports = function(config) {
       {pattern: 'test/*.json', included: false},
       'build/fiber.js',
       'test/utils.js',
-      'test/*spec.js'
+      'test/**/*spec.js'
     ],
 
 
@@ -38,7 +38,7 @@ module.exports = function(config) {
     // Coverage config
     coverageReporter: {
       type : 'html',
-      dir : 'test/coverage/'
+      dir : 'coverage'
     },
 
     // test results reporter to use

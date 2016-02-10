@@ -10,9 +10,10 @@ var gulp = require('gulp')
   , karma = require('karma')
 
   , config = {
-    input: './fiber.js',
-    output: './build',
-    test: 'test/*.spec.js',
+    input: 'fiber.js',
+    output: 'build',
+    test: 'test/**/*.spec.js',
+    testDir: 'test',
     karma: {
       configFile: __dirname + '/karma.conf.js'
     },
@@ -34,14 +35,15 @@ var gulp = require('gulp')
     ]
   };
 
-gulp.task('default', ['compile', 'injectTest', 'serve', 'lint', 'watch']);
-gulp.task('compile', ['build', 'minify']);
+gulp.task('default', ['compile', 'tdd', 'serve', 'lint', 'watch']);
+gulp.task('compile', ['build', 'buildTest', 'minify']);
+gulp.task('test', ['compile', 'tdd']);
 gulp.task('build', Build);
 gulp.task('minify', Minify);
 gulp.task('watch', Watch);
-gulp.task('injectTest', InjectTest);
-gulp.task('karma', Karma(true));
-gulp.task('tdd', Karma(false));
+gulp.task('buildTest', BuildTest);
+gulp.task('karma', CreateKarmaServer(true));
+gulp.task('tdd', CreateKarmaServer(false));
 gulp.task('lint', Lint);
 gulp.task('serve', Serve);
 gulp.task('serverReload', Reload);
@@ -67,31 +69,19 @@ function Build() {
     .pipe(connect.reload());
 }
 
-function Watch() {
-  gulp.watch(config.files, ['lint']);
-  gulp.watch(config.files.concat([config.test]), ['compile']);
-  gulp.watch(config.files.concat([config.test]), ['serverReload']);
-}
-
-function Minify() {
-  shell.exec('npm run min');
-}
-
-function InjectTest() {
-  gulp.src('./test/runner.html')
+function BuildTest() {
+  gulp.src(config.testDir + '/runner.html')
     .pipe(inject(gulp.src(config.test, {read: false}), {
       relative: true,
       addPrefix: '.'
     }))
-    .pipe(gulp.dest('./test'))
+    .pipe(gulp.dest(config.testDir))
     .pipe(connect.reload());
 }
 
-function Karma(tdd) {
-  return function(done) {
-    config.karma.singleRun = tdd;
-    new karma.Server(config.karma, done).start();
-  };
+function Watch() {
+  gulp.watch(config.files, ['lint']);
+  gulp.watch(config.files.concat([config.test]), ['test']);
 }
 
 function Lint() {
@@ -118,7 +108,18 @@ function Serve() {
   shell.exec('open -a "Google Chrome" http://localhost:3030/test/runner.html');
 }
 
+function CreateKarmaServer(tdd) {
+  return function(done) {
+    config.karma.singleRun = tdd;
+    new karma.Server(config.karma, done).start();
+  };
+}
+
 function Reload() {
-  gulp.src(config.test.concat([config.output + '/*.js']))
+  gulp.src(config.test.concat([config.output + '/*.js', config.input]))
     .pipe(connect.reload());
+}
+
+function Minify() {
+  shell.exec('npm run min');
 }
