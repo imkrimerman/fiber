@@ -21,7 +21,7 @@ var gulp = require('gulp')
       './src/fn.js',
       './src/Extensions.js',
       './src/Extensions/Access.js',
-      './src/Extensions/Extendable.js',
+      './src/Extensions/Extend.js',
       './src/Extensions/Mixin.js',
       './src/Extensions/NsEvents.js',
       './src/Extensions/OwnProperties.js',

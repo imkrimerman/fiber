@@ -7,17 +7,22 @@ Fiber.getExtension = function(alias) {
 };
 
 // Adds extension
-Fiber.addExtension = function(alias, extension, override) {
+Fiber.setExtension = function(alias, extension, override) {
   // Allow passing multiple extensions `{'name': extension}`,
   // `override` will go next instead of `extension` argument
   if (_.isPlainObject(alias)) _.each(alias, function(one, oneAlias) {
-    Fiber.addExtension(oneAlias, one, extension);
+    Fiber.setExtension(oneAlias, one, extension);
   }, this);
   else {
     if (this.Extension.hasOwnProperty(alias) && ! val(override, false)) return;
     this.Extension[alias] = extension;
   }
   return this;
+};
+
+// Checks if Fiber has extension by given `alias`
+Fiber.hasExtension = function(alias) {
+  return this.Extension.hasOwnProperty(alias);
 };
 
 // Removes extension

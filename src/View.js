@@ -1,5 +1,5 @@
 // Fiber View
-Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extendable', 'OwnProperties', 'Access', {
+Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', {
 
   // Parent View
   $parent: null,
@@ -41,7 +41,7 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extendable', 'OwnP
   constructor: function(options) {
     this.cid = _.uniqueId('view-');
     this.linkedViews = new Fiber.LinkedViews();
-    this.applyExtendable(options);
+    this.applyExtend(options);
     this.applyOwnProps();
     this.resolveListenable();
     this.__handleEventsUi();

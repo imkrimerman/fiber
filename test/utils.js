@@ -11,8 +11,9 @@ mocha.setup('bdd');
 var makeSpyable = function(obj) {
   _.extend(obj, {
     spies: [],
-    addSpy: this.addSpy.bind(obj),
-    clearSpies: this.clearSpies.bind(obj)
+    addSpy: addSpy.bind(obj),
+    clearSpies: clearSpies.bind(obj),
+    expectCalled: expectCalled.bind(obj)
   });
   return obj;
 };
@@ -30,7 +31,7 @@ var addSpy = function() {
 };
 
 /**
- * Removes all set spies
+ * Removes all spies
  */
 var clearSpies = function() {
   if (! this.spies) return;
@@ -42,6 +43,24 @@ var clearSpies = function() {
   this.spies = [];
 };
 
+/**
+ * Expect that spy is called
+ * @param spy
+ */
 var expectCalled = function(spy) {
   expect(spy.called).to.be.true;
+};
+
+/**
+ * Expect that object has all given properties
+ * @param {Object} obj
+ * @param {Array|Object} props
+ * @param [{boolean}] isObject - default to `true`
+ */
+var expectHasAllProps = function(obj, props) {
+  var isObject = _.isArray(props) ? false : true;
+  for (var key in props) {
+    var prop = isObject ? key : props[key];
+    expect(obj).to.have.property(prop);
+  }
 };

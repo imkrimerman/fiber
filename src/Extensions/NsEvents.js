@@ -1,6 +1,6 @@
 // Namespace Events extension brings namespaces to the event and also
 // provides catalog to simplify registered events.
-Fiber.addExtension('NsEvents', {
+Fiber.setExtension('NsEvents', {
 
   // Events namespace
   eventsNs: '',
@@ -10,30 +10,58 @@ Fiber.addExtension('NsEvents', {
 
   // Fire `event` with namespace, `catalog` look up and given `payload`
   fire: function(event) {
-    return this.trigger.apply(this, [this.getNsEvent(event)].concat(_.drop(_.toArray(arguments))));
+    return this.trigger.apply(this, [this.nsEvent(event)].concat(_.drop(_.toArray(arguments))));
   },
 
   // Every time namespaced `event` is fired invoke `action`. You can provide listenable
   // to control object to listen to.
   when: function(event, action, listenable) {
-    return this.listenTo(val(listenable, this), this.getNsEvent(event), action);
+    return this.listenTo(val(listenable, this), this.nsEvent(event), action);
   },
 
   // After first namespaced `event` is fired invoke `action` and remove action.
   // You can provide listenable to control object to listen to.
   after: function(event, action, listenable) {
-    return this.listenToOnce(val(listenable, this), this.getNsEvent(event), action);
+    return this.listenToOnce(val(listenable, this), this.nsEvent(event), action);
+  },
+
+  // Sets events namespace
+  setNs: function(eventsNs) {
+    this.eventsNs = eventsNs;
+    return this;
+  },
+
+  // Returns events namespace
+  getNs: function() {
+    return this.eventsNs;
+  },
+
+  // Checks if has valid (not empty) events namespace
+  hasNs: function() {
+    return ! _.isEmpty(this.eventsNs);
   },
 
   // Returns namespaced `event` with `catalog` look up.
-  getNsEvent: function(event) {
+  nsEvent: function(event) {
+    var checkCatalog = true
+      , ns = this.eventsNs ? this.eventsNs + ':' : '';
+    // return passed event as is if first char is `@`, used to support native backbone events
     if (event[0] === '@') return event.slice(1);
-    return this.eventsNs + ':' + this.getCatalogEvent(event);
+    // remove `!` if first char is `!`
+    else if (event[0] === '!') {
+      event = event.slice(1);
+      checkCatalog = false;
+    }
+    return ns + (checkCatalog ? this.getCatalogEvent(event) : event);
   },
 
   // Returns event from catalog using alias. If not found will return `event` as is.
   getCatalogEvent: function(event) {
     return val(this.eventsCatalog[event], event);
+  },
+
+  hasCatalogEvent: function(event) {
+    //TODO implement;
   },
 
   // Sets `event` to the catalog by `alias`

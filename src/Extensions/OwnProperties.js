@@ -1,5 +1,5 @@
 // Own Properties extension.
-Fiber.addExtension('OwnProperties', {
+Fiber.setExtension('OwnProperties', {
 
   // Properties keys that will be owned by the instance
   ownProps: [],

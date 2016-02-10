@@ -1,13 +1,7 @@
 // Mixin extension.
 // Functions that provides including and mixining objects and array of objects
 
-Fiber.addExtension('Mixin', {
-
-  // Includes `mixin` or array of mixins to Fiber Class.
-  // Also you can provide `override` boolean to force override properties.
-  include: function(mixin, override) {
-    return Fiber.fn.include(this, mixin, override);
-  },
+Fiber.setExtension('Mixin', {
 
   // Adds given `mixin` to Fiber Class. Mixin can be object or function.
   // Also you can provide `override` boolean to force override properties.
@@ -19,6 +13,12 @@ Fiber.addExtension('Mixin', {
   // Also you can provide `override` boolean to force override properties.
   mixTo: function(object, override) {
     Fiber.fn.mix(object, this, override);
+  },
+
+  // Includes `mixin` or array of mixins to Fiber Class.
+  // Also you can provide `override` boolean to force override properties.
+  include: function(mixin, override) {
+    return Fiber.fn.include(this, mixin, override);
   },
 
   // Applies Fiber extension to the Class to provide more flexibility

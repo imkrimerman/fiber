@@ -1,5 +1,5 @@
 // Fiber Model
-Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'OwnProperties', {
+Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extend', 'Mixin', 'OwnProperties', {
 
   // Hidden fields.
   // toJSON method will omit this fields.
@@ -28,7 +28,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
     options || (options = {});
     this.cid = _.uniqueId(this.cidPrefix + '-');
     this.attributes = {};
-    this.applyExtendable(options);
+    this.applyExtend(options);
     this.applyOwnProps();
     if (options.parse) attrs = this.parse(attrs, options) || {};
     attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
