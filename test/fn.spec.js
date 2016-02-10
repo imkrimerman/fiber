@@ -42,6 +42,7 @@ describe('Fiber.fn', function() {
     var FiberModel = new Fiber.Model();
     Fiber.fn.apply(Fiber.Model, 'set', [{'test': 'var'}], FiberModel);
     expect(FiberModel.attributes).to.have.property('test');
+    Fiber.fn.apply(Fiber, 'set', [{'test': 'var'}], FiberModel);
   });
 
   it('should merge objects into one if array is given', function() {

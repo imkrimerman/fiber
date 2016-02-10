@@ -48,7 +48,7 @@ val.notDefined = '$__NULL__$';
 
 // Apply `object` prototype `function` with given `args` and `context`
 Fiber.fn.apply = function(object, fn, args, context) {
-  if (! object || ! object.prototype[fn] || ! _.isFunction(object.prototype[fn]))
+  if (! object || ! object.prototype || ! object.prototype[fn] || ! _.isFunction(object.prototype[fn]))
     return;
   context = context || this;
   return object.prototype[fn].apply(context, args);
@@ -70,6 +70,7 @@ Fiber.fn.template = function() {
 
 // Validates model
 Fiber.fn.validate = function(model, attributes, options) {
+  options = val(options, {});
   var rules = model.getRules(),
       errors = {},
       setError = function(key, err) {
@@ -120,7 +121,6 @@ Fiber.fn.validate = function(model, attributes, options) {
           return validator;
         return false;
       });
-
       if (! matchEvery) setError(key, rule.message ? rule.message : '[' + key + '] is not valid');
     }
   }

@@ -32,7 +32,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
     this.applyOwnProps();
     if (options.parse) attrs = this.parse(attrs, options) || {};
     attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
-    this.when('invalid', this.__whenInvalid.bind(this));
+    this.listenTo(this, 'invalid', this.__whenInvalid.bind(this));
     this.set(attrs, options);
     this.changed = {};
     this.initialize.apply(this, arguments);
@@ -140,8 +140,9 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extendable', 'Mixin', 'Ow
       }
     }
 
-    return dirCid != null ? this.collection.get(dirCid) : null;
+    return dirCid != null ? this.collection.get(dirCid) : this;
   },
+
 
   // Sets model view
   setView: function(view) {

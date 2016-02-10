@@ -8,9 +8,9 @@ Fiber.addExtension('NsEvents', {
   // Events catalog to hold the events
   eventsCatalog: {},
 
-  // Fire `event` with namespace and `catalog` look up with given `payload`
-  fire: function(event, payload) {
-    return this.trigger(this.getNsEvent(event), payload);
+  // Fire `event` with namespace, `catalog` look up and given `payload`
+  fire: function(event) {
+    return this.trigger.apply(this, [this.getNsEvent(event)].concat(_.drop(_.toArray(arguments))));
   },
 
   // Every time namespaced `event` is fired invoke `action`. You can provide listenable
@@ -27,6 +27,7 @@ Fiber.addExtension('NsEvents', {
 
   // Returns namespaced `event` with `catalog` look up.
   getNsEvent: function(event) {
+    if (event[0] === '@') return event.slice(1);
     return this.eventsNs + ':' + this.getCatalogEvent(event);
   },
 

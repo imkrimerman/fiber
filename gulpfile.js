@@ -7,11 +7,15 @@ var gulp = require('gulp')
   , mocha = require('gulp-mocha')
   , eslint = require('gulp-eslint')
   , connect = require('gulp-connect')
+  , karma = require('karma')
 
   , config = {
     input: './fiber.js',
     output: './build',
     test: 'test/*.spec.js',
+    karma: {
+      configFile: __dirname + '/karma.conf.js'
+    },
     files: [
       './src/fn.js',
       './src/Extensions.js',
@@ -30,13 +34,14 @@ var gulp = require('gulp')
     ]
   };
 
-gulp.task('default', ['compileTest', 'serve', 'lint', 'watch']);
+gulp.task('default', ['compile', 'serve', 'lint', 'watch']);
 gulp.task('compile', ['build', 'minify']);
-gulp.task('compileTest', ['compile', 'test']);
 gulp.task('build', Build);
 gulp.task('minify', Minify);
 gulp.task('watch', Watch);
-gulp.task('test', InjectTest);
+gulp.task('injectTest', InjectTest);
+gulp.task('karma', Karma(true));
+gulp.task('tdd', Karma(false));
 gulp.task('lint', Lint);
 gulp.task('serve', Serve);
 gulp.task('serverReload', Reload);
@@ -63,25 +68,13 @@ function Build() {
 }
 
 function Watch() {
-  gulp.watch(config.files, ['compile']);
   gulp.watch(config.files, ['lint']);
-  gulp.watch(config.files.concat([config.test]), ['compileTest']);
+  gulp.watch(config.files.concat([config.test]), ['compile']);
   gulp.watch(config.files.concat([config.test]), ['serverReload']);
 }
 
 function Minify() {
   shell.exec('npm run min');
-}
-
-function Test() {
-  gulp.src(config.test, {read: false})
-    .pipe(mocha({
-      ui: 'bdd',
-      reporter: 'spec'
-    }))
-    .once('error', function(data) {
-        console.log('Error in test: ' + data.message);
-    });
 }
 
 function InjectTest() {
@@ -90,10 +83,16 @@ function InjectTest() {
       relative: true,
       addPrefix: '.'
     }))
-    .pipe(gulp.dest('./test'))
+    .pipe(gulp.dest('./'))
     .pipe(connect.reload());
 }
 
+function Karma(tdd) {
+  return function(done) {
+    config.karma.singleRun = tdd;
+    new karma.Server(config.karma, done).start();
+  };
+}
 
 function Lint() {
   gulp.src(config.files)
