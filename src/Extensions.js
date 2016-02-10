@@ -8,8 +8,10 @@ Fiber.getExtension = function(alias) {
 
 // Adds extension
 Fiber.addExtension = function(alias, extension, override) {
-  if (_.isArray(alias)) _.each(alias, function(one) {
-    Fiber.addExtension(one);
+  // Allow passing multiple extensions `{'name': extension}`,
+  // `override` will go next instead of `extension` argument
+  if (_.isPlainObject(alias)) _.each(alias, function(one, oneAlias) {
+    Fiber.addExtension(oneAlias, one, extension);
   }, this);
   else {
     if (this.Extension.hasOwnProperty(alias) && ! val(override, false)) return;

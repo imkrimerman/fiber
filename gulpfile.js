@@ -34,7 +34,7 @@ var gulp = require('gulp')
     ]
   };
 
-gulp.task('default', ['compile', 'serve', 'lint', 'watch']);
+gulp.task('default', ['compile', 'injectTest', 'serve', 'lint', 'watch']);
 gulp.task('compile', ['build', 'minify']);
 gulp.task('build', Build);
 gulp.task('minify', Minify);
@@ -83,7 +83,7 @@ function InjectTest() {
       relative: true,
       addPrefix: '.'
     }))
-    .pipe(gulp.dest('./'))
+    .pipe(gulp.dest('./test'))
     .pipe(connect.reload());
 }
 

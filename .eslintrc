@@ -5,8 +5,6 @@
     "amd": true
   },
   "globals": {
-    "describe": true,
-    "it": true,
     "Fiber": true,
     "Backbone": true,
     "_": true,
