@@ -21,10 +21,26 @@ Fiber.Listeners = Fiber.Collection.extend({
   },
 
   // Returns listener event handler
-  getEventHandler: function(event) {
+  getHandler: function(event) {
     var listener = this.getByEvent(event);
     if (_.isArray(listener))
       return _.pluck(listener, 'attributes.handler');
     return listener.get('handler');
-  }
+  },
+
+  // Invokes event handlers
+  applyHandler: function(ctx, event, args) {
+    if (! this.listeners.hasEvent(event)) return;
+    var handler = this.getHandler(event);
+    if (_.isArray(handler)) _.each(handler, function(oneHandler) {
+      this.callHandler(ctx, oneHandler, args);
+    }.bind(this));
+    this.callHandler(ctx, handler, args);
+  },
+
+  // Calls handler
+  callHandler: function(ctx, handler, args) {
+    if (_.isString(handler)) handler = ctx[handler];
+    if (_.isFunction(handler)) return handler.apply(ctx, args);
+  },
 });

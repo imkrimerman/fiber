@@ -17,10 +17,13 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
   listens: 'model',
 
   // Events listeners
-  listeners: [{
-    events: ['sync', 'change'],
-    handler: 'render'
-  }],
+  listeners: {
+    'sync change': 'render'
+  },
+
+  proxy: {
+    // TODO implement
+  },
 
   // Events namespace
   eventsNs: 'view',
@@ -50,7 +53,6 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
     this.initialize.apply(this, arguments);
   },
 
-
   // Before render hook
   beforeRender: function() {},
 
@@ -68,8 +70,8 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
 
   // Attaches View to parent element
   attachToParent: function($parent) {
-    if (_.isString($parent)) $parent = $($parent);
-    if ($parent instanceof $) $parent.html(this.$el);
+    if (_.isString($parent)) $parent = Fiber.$($parent);
+    if ($parent instanceof Fiber.$) $parent.html(this.$el);
     return this;
   },
 
@@ -111,36 +113,33 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
   // Resolves listenable instance and starts listening
   resolveListenable: function() {
     this.prepareListeners(this.result('listeners'));
-    if (! _.isString(this.listens) || ! this.has(this.listens)) return this;
-    this.listenTo(this.result(this.listens), 'all', this.allEventsHandler.bind(this));
+    var listenable = null;
+
+    if (_.isString(this.listens) && this.has(this.listens))
+      listenable = this.result(this.listens);
+    else if (_.isFunction(this.listens)) listenable = this.listens;
+
+    if (listenable) this.listenTo(listenable, 'all', this.allEventsHandler.bind(this));
     return this;
   },
 
   // Creates listeners collection from given `listeners`
   prepareListeners: function(listeners) {
-    if (! _.isArray(listeners))
-      if (_.isPlainObject(listeners)) listeners = [listeners];
-      else listeners = [];
-    return this.listeners = new Fiber.Listeners(listeners);
+    var prepared = [];
+    for (var key in listeners) {
+      prepared.push({
+        events: key.split(' '),
+        handlers: listeners.split(' ')
+      });
+    }
+    return this.listeners = new Fiber.Listeners(prepared);
   },
 
   // All events handler
   allEventsHandler: function(event, listenable) {
-    var args = _.toArray(arguments).slice(1);
+    var args = _.tail(arguments);
+    this.listeners.applyHandler(this, event, args);
     this.fire(event, args);
-    if (this.listeners.hasEvent(event)) {
-      var handler = this.listeners.getEventHandler(event);
-      if (_.isArray(handler)) _.each(handler, function(oneHandler) {
-        this.applyEventHandler(oneHandler, args);
-      }, this);
-      this.applyEventHandler(handler, args);
-    }
-  },
-
-  // Applies event handler
-  applyEventHandler: function(handler, args) {
-    if (_.isString(handler)) handler = this[handler];
-    if (_.isFunction(handler)) return handler.apply(this, args);
   },
 
   // Real render function
@@ -156,13 +155,21 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
   // Removes view
   remove: function() {
     this.fire('remove', this);
-    this.unbind();
-    this.linkedViews.parentView = null;
-    this.linkedViews.reset([]);
-    this.$parent = null;
-    this.$ui = {};
     Fiber.fn.apply(Backbone.View, 'remove', [], this);
     this.fire('removed', this);
+  },
+
+  // Destroys View
+  destroy: function() {
+    this.remove();
+    this.__reset();
+  },
+
+  // Resets View
+  __reset: function() {
+    this.$ui = {};
+    this.$parent = null;
+    this.linkedViews.reset([]);
   },
 
   // Handles events with @ui

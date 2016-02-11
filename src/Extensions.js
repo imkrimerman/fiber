@@ -43,3 +43,8 @@ Fiber.applyExtension = function(alias, object, override) {
   Fiber.fn.include(object, this.getExtension(alias), override);
   return this;
 };
+
+// Returns all extensions
+Fiber.allExtensions = function() {
+  return this.Extension;
+};

@@ -22,7 +22,7 @@ describe('Fiber.Class', function() {
     }
 
     this.base.applyExtension(['NsEvents', 'Extendable']);
-    for (var key in Fiber.fn.assignApply(Fiber.getExtension(['NsEvents', 'Extendable']))) {
+    for (var key in Fiber.fn.mergeObjects(Fiber.getExtension(['NsEvents', 'Extendable']))) {
       expect(this.base).to.have.property(key);
     }
   });

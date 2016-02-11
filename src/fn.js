@@ -3,8 +3,8 @@
 // search for them in given `proto` object and if one is found then we'll merge it with
 // object `prototype` value
 var extend = Fiber.fn.extend = function(proto, statics) {
-  proto = Fiber.fn.assignApply(proto);
-  statics = Fiber.fn.assignApply(statics);
+  proto = Fiber.fn.mergeObjects(proto);
+  statics = Fiber.fn.mergeObjects(statics);
   _.each(Fiber.globals.deepExtendProperties, function(one) {
     if (proto.hasOwnProperty(one) && this.prototype[one]) {
       switch (true) {
@@ -54,10 +54,10 @@ Fiber.fn.apply = function(object, fn, args, context) {
   return object.prototype[fn].apply(context, args);
 };
 
-// Applies `assign` function with given `args`
-Fiber.fn.assignApply = function(args) {
+// Merges array of objects
+Fiber.fn.mergeObjects = function(args) {
   if (_.isArray(args))
-    return _.assign.apply(_, [{}].concat(args));
+    return _.extend.apply(_, [{}].concat(args));
   return args;
 };
 

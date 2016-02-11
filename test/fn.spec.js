@@ -46,7 +46,7 @@ describe('Fiber.fn', function() {
   });
 
   it('should merge objects into one if array is given', function() {
-    var obj = Fiber.fn.assignApply([{test1: ''}, {test2: ''}]);
+    var obj = Fiber.fn.mergeObjects([{test1: ''}, {test2: ''}]);
     expect(obj).to.eql({test1: '', test2: ''});
   });
 

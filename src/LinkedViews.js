@@ -11,20 +11,39 @@ Fiber.LinkedViews = Fiber.make(Fiber.Collection, {
   ownProp: ['parentView'],
 
   // Events namespace
-  eventsNs: 'childViews',
+  eventsNs: 'linked',
+
+  // Listen to views and propagate events
+  listenViews: true,
 
   // Adds `view` to child views
   addView: function(view) {
-    return this.add({id: view.cid, view: view});
+    var model = this.add({id: view.cid, view: view});
+    if (this.listenViews)
+      this.when('all', this.allEventsHandler.bind(this), model.get('view'));
+    return model;
   },
 
   // Removes `view` from child views
   removeView: function(view) {
-    return this.remove(view.cid);
+    var removed = this.remove(view.cid);
+    if (this.listenViews) this.stopListening(removed.get('view'));
   },
 
   // Checks if child views has given `view`
   hasView: function(view) {
     return ! _.isEmpty(this.get(view.cid));
+  },
+
+  // Resets linked views
+  reset: function() {
+    this.parentView = null;
+    this.stopListening();
+    Fiber.fn.apply(Backbone.View, 'reset', arguments, this);
+  },
+
+  // All event handler
+  allEventsHandler: function(event, model, options) {
+    this.fire(event, model, options);
   }
 });
