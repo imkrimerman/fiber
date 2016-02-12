@@ -42,5 +42,5 @@ Fiber.Listeners = Fiber.Collection.extend({
   callHandler: function(ctx, handler, args) {
     if (_.isString(handler)) handler = ctx[handler];
     if (_.isFunction(handler)) return handler.apply(ctx, args);
-  },
+  }
 });

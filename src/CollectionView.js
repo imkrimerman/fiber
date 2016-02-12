@@ -23,10 +23,9 @@ Fiber.CollectionView = Fiber.View.extend({
   listens: 'collection',
 
   // Events listeners
-  listeners: [{
-    events: ['sync', 'update', 'clear'],
-    handler: 'render'
-  }],
+  listeners: {
+    'sync update clear': 'render'
+  },
 
   // Events namespace
   eventsNs: 'collectionView',
