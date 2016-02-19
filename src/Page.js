@@ -3,7 +3,7 @@
  * @type {Function}
  * @constructor
  */
-Fiber.Page = Fiber.make(Fiber.Class, [
+Fiber.Page = Fiber.fn.class.make(Fiber.Class, [
   'NsEvents', 'Access', {
 
     /**
@@ -34,6 +34,10 @@ Fiber.Page = Fiber.make(Fiber.Class, [
      */
     eventsNs: 'page',
 
+    /**
+     * Events catalog
+     * @type {Object}
+     */
     eventsCatalog: {
       bootstrap: 'bootstrap',
       bootstrapped: 'bootstrapped',

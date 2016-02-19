@@ -8,7 +8,7 @@ Fiber.setExtension('OwnProperties', {
   applyOwnProps: function() {
     for (var i = 0; i < this.ownProps.length; i ++) {
       var prop = this.ownProps[i];
-      if (this.hasOwnProperty(prop)) continue;
+      if (_.has(this, prop)) continue;
       this[prop] = _.cloneDeep(this[prop], function(value) {
         if (_.isFunction(value)) return value;
         return _.clone(value, true);

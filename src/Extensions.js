@@ -1,9 +1,11 @@
 // Returns extension if one is found or empty object otherwise
-Fiber.getExtension = function(alias) {
+Fiber.getExtension = function(alias, bindTo) {
   if (_.isArray(alias)) return _.map(alias, function(one) {
-    return Fiber.getExtension(one);
+    return Fiber.getExtension(one, bindTo);
   });
-  return _.isString(alias) ? val(this.Extension[alias], {}) : alias;
+  var extension = _.isString(alias) ? val(this.Extension[alias], {}) : alias;
+  if (bindTo) extension = Fiber.fn.bind(extension, bindTo);
+  return extension;
 };
 
 // Adds extension
@@ -25,7 +27,7 @@ Fiber.hasExtension = function(alias) {
   if (_.isArray(alias)) return _.every(alias, function(one) {
     return Fiber.hasExtension(one);
   });
-  return this.Extension.hasOwnProperty(alias);
+  return _.has(this.Extension, alias);
 };
 
 // Removes extension
@@ -40,7 +42,7 @@ Fiber.removeExtension = function(alias) {
 // Applies extension by `alias` to the given `object`.
 // Also you can provide `override` boolean to force override properties.
 Fiber.applyExtension = function(alias, object, override) {
-  Fiber.fn.include(object, this.getExtension(alias), override);
+  Fiber.fn.class.include(object, this.getExtension(alias), override);
   return this;
 };
 

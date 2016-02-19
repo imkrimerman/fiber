@@ -28,7 +28,7 @@ Fiber.setExtension('Access', {
   },
 
   // Removes `value` by given `property` key
-  unset: function(property) {
+  forget: function(property) {
     _.unset(this, property);
     return this;
   }

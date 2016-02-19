@@ -10,7 +10,8 @@ Fiber.setExtension('NsEvents', {
 
   // Fire `event` with namespace, `catalog` look up and given `payload`
   fire: function(event) {
-    return this.trigger.apply(this, [this.nsEvent(event)].concat(_.drop(_.toArray(arguments))));
+    var args = _.drop(_.toArray(arguments));
+    return this.trigger.apply(this, [this.nsEvent(event)].concat(args));
   },
 
   // Every time namespaced `event` is fired invoke `action`. You can provide listenable
@@ -62,7 +63,7 @@ Fiber.setExtension('NsEvents', {
 
   // Checks if event is catalog
   hasCatalogEvent: function(event) {
-    return this.eventsCatalog.hasOwnProperty(event);
+    return _.has(this.eventsCatalog, event);
   },
 
   // Sets `event` to the catalog by `alias`

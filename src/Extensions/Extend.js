@@ -8,11 +8,9 @@ Fiber.setExtension('Extend', {
   applyExtend: function(options) {
     options = val(options, {});
     var extendable = _.result(this, 'extendable');
-    if (_.isString(extendable) && extendable === 'all')
-      return _.extend(this, options);
+    if (_.isString(extendable) && extendable === 'all') return _.extend(this, options);
     else if (_.isArray(extendable)) {
-      if (_.isArray(options.extendable))
-        extendable = extendable.concat(options.extendable);
+      if (_.isArray(options.extendable)) extendable = extendable.concat(options.extendable);
       return _.extend(this, _.pick(options, _.compact(extendable)));
     }
     return this;

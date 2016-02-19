@@ -19,29 +19,48 @@ var gulp = require('gulp')
     },
     files: [
       './src/fn.js',
+      './src/Support/Class.js',
+      './src/Support/String.js',
+      './src/Support/Template.js',
+      './src/Support/Validation.js',
+
       './src/Extensions.js',
       './src/Extensions/Access.js',
       './src/Extensions/Extend.js',
       './src/Extensions/Mixin.js',
       './src/Extensions/NsEvents.js',
       './src/Extensions/OwnProperties.js',
+
       './src/Class.js',
+      './src/Bag.js',
+      './src/ErrorBag.js',
+      './src/Ioc.js',
       './src/Model.js',
       './src/Collection.js',
       './src/LinkedViews.js',
       './src/Listeners.js',
       './src/View.js',
-      './src/CollectionView.js'
+      './src/CollectionView.js',
     ]
   };
 
 gulp.task('default', ['compile', 'tdd', 'serve', 'lint', 'watch']);
 gulp.task('compile', ['build', 'buildTest', 'minify']);
 gulp.task('test', ['compile', 'tdd']);
+
+gulp.task('dev', ['build', 'watch-dev']);
+gulp.task('dev-doc', ['build', 'watch-dev-doc']);
+
+gulp.task('watch-dev', WatchDev);
+gulp.task('watch-dev-doc', ['buildDocs', 'watch-dev']);
+
+
+
 gulp.task('build', Build);
 gulp.task('minify', Minify);
 gulp.task('watch', Watch);
 gulp.task('buildTest', BuildTest);
+gulp.task('buildDocs', BuildDocs);
 gulp.task('karma', CreateKarmaServer(true));
 gulp.task('tdd', CreateKarmaServer(false));
 gulp.task('lint', Lint);
@@ -84,6 +103,10 @@ function Watch() {
   gulp.watch(config.files.concat([config.test]), ['test']);
 }
 
+function WatchDev() {
+  gulp.watch(config.files, ['build', 'buildDocs']);
+}
+
 function Lint() {
   gulp.src(config.files)
     // eslint() attaches the lint output to the "eslint" property
@@ -122,4 +145,8 @@ function Reload() {
 
 function Minify() {
   shell.exec('npm run min');
+}
+
+function BuildDocs() {
+  shell.exec('npm run jsdoc');
 }

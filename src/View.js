@@ -1,5 +1,6 @@
 // Fiber View
-Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', {
+Fiber.View = Fiber.fn.class.make(Backbone.View, [
+  'NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', Fiber.fn.proto(), {
 
   // Parent View
   $parent: null,
@@ -126,12 +127,10 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
   // Creates listeners collection from given `listeners`
   prepareListeners: function(listeners) {
     var prepared = [];
-    for (var key in listeners) {
-      prepared.push({
-        events: key.split(' '),
-        handlers: listeners.split(' ')
-      });
-    }
+    for (var key in listeners) prepared.push({
+      events: key.split(' '),
+      handlers: listeners.split(' ')
+    });
     return this.listeners = new Fiber.Listeners(prepared);
   },
 
@@ -155,7 +154,7 @@ Fiber.View = Fiber.make(Backbone.View, ['NsEvents', 'Mixin', 'Extend', 'OwnPrope
   // Removes view
   remove: function() {
     this.fire('remove', this);
-    Fiber.fn.apply(Backbone.View, 'remove', [], this);
+    this.fn.apply(Backbone.View, 'remove');
     this.fire('removed', this);
   },
 

@@ -1,5 +1,6 @@
 // Fiber Model
-Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extend', 'Mixin', 'OwnProperties', {
+Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
+  'NsEvents', 'Extend', 'Mixin', 'OwnProperties', Fiber.fn.proto(), {
 
   // Hidden fields.
   // toJSON method will omit this fields.
@@ -7,6 +8,12 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extend', 'Mixin', 'OwnPro
 
   // Validation rules
   rules: {},
+
+  /**
+   * Error bag
+   * @type {Object.<Fiber.ErrorBag>}
+   */
+  errorBag: null,
 
   // Events namespace
   eventsNs: 'model',
@@ -23,6 +30,7 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extend', 'Mixin', 'OwnPro
 
   // Model constructor
   constructor: function(attributes, options) {
+    this.errorBag = new Fiber.ErrorBag();
     this.resetView();
     var attrs = attributes || {};
     options || (options = {});
@@ -71,7 +79,8 @@ Fiber.Model = Fiber.make(Backbone.Model, ['NsEvents', 'Extend', 'Mixin', 'OwnPro
 
   // Validates `attributes` of Model against `rules`
   validate: function(attrs, options) {
-    return Fiber.fn.validate(this, val(attrs, this.attributes), options);
+    Fiber.fn.validation.validate(this, val(attrs, this.attributes), options);
+    return this.errorBag.getErrors();
   },
 
   // Returns validation `rules`

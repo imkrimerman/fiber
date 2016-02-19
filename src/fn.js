@@ -1,154 +1,161 @@
-// Fiber Class extend method.
-// Some properties should not be overridden by extend, they should be merge, so we will
-// search for them in given `proto` object and if one is found then we'll merge it with
-// object `prototype` value
-var extend = Fiber.fn.extend = function(proto, statics) {
-  proto = Fiber.fn.mergeObjects(proto);
-  statics = Fiber.fn.mergeObjects(statics);
-  _.each(Fiber.globals.deepExtendProperties, function(one) {
-    if (proto.hasOwnProperty(one) && this.prototype[one]) {
-      switch (true) {
-        case _.isArray(proto[one]):
-          proto[one] = this.prototype[one].concat(proto[one]);
-          break;
-        case _.isPlainObject(proto[one]):
-          _.extend(proto[one], this.prototype[one]);
-      }
-    }
-  }.bind(this));
-  return Backbone.Model.extend.call(this, proto, statics);
-};
+/**
+ * Fiber support function
+ * @type {Object}
+ * @memberof Fiber#
+ */
+Fiber.fn = {
 
-// Extends `parent` using extender and statics with resolving extensions by `alias`
-Fiber.make = function(parent, extender, statics) {
-  return extend.call(
-    val(parent, Fiber.Class),
-    Fiber.getExtension(val(extender, {})),
-    Fiber.getExtension(val(statics, {}))
-  );
-};
-
-// Returns `value` if `value` is not undefined or null, otherwise returns defaults or `notDefined` value
-var val = Fiber.fn.val = function(value, defaults, checker) {
-  // if defaults not specified then assign notDefined `$__NULL__$` value
-  defaults = arguments.length > 1 ? defaults : val.notDefined;
-  // if value and checker is specified then use it to additionally check value
-  if (_.isFunction(checker) && value != null) {
-    // if checker returns true then we are good
-    if (checker(value)) return value;
-    // otherwise return defaults
-    return defaults;
-  }
-  // if value not specified return defaults, otherwise return value;
-  return value != null ? value : defaults;
-};
-
-// Value that can represent not defined state.
-val.notDefined = '$__NULL__$';
-
-// Apply `object` prototype `function` with given `args` and `context`
-Fiber.fn.apply = function(object, fn, args, context) {
-  if (! object || ! object.prototype || ! object.prototype[fn] || ! _.isFunction(object.prototype[fn]))
-    return;
-  context = context || this;
-  return object.prototype[fn].apply(context, args);
-};
-
-// Merges array of objects
-Fiber.fn.mergeObjects = function(args) {
-  if (_.isArray(args))
-    return _.extend.apply(_, [{}].concat(args));
-  return args;
-};
-
-// Template string
-Fiber.fn.template = function() {
-  var renderFn = Fiber.globals.templateFunction;
-  if (! renderFn) return _.constant(arguments[0]);
-  return renderFn.apply(renderFn, arguments);
-};
-
-// Validates model
-Fiber.fn.validate = function(model, attributes, options) {
-  options = val(options, {});
-  var rules = model.getRules(),
-      errors = {},
-      setError = function(key, err) {
-        if (! errors[key]) errors[key] = [];
-        errors[key].push(err);
-      };
-
-  attributes = attributes || model.attributes;
-
-  if (_.isEmpty(rules)) return;
-
-  for (var key in attributes) {
-    var attribute = attributes[key],
-        rule = rules[key],
-        applyRule = true;
-
-    if (! rule) continue;
-
-    _.defaults(rule, {
-      required: false,
-      validators: [],
-      when: null,
-      message: null
+  /**
+   * Extend this Class to create a new one inherithing this one.
+   * Also add a helper __super__ object poiting to the parent prototypes methods.
+   * {@link https://github.com/sboudrias/class-extend|Check original version of class extend method on Github}
+   * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
+   * @param  {?Object} [staticProps] - Static properties (available on the contructor)
+   * @return {Function}
+   * @memberof Fiber.fn#
+   */
+  nativeExtend: function(parent, protoProps, staticProps) {
+    if (! parent) return parent;
+    var child;
+    // The constructor function for the new subclass is either defined by you
+    // (the "constructor" property in your `extend` definition), or defaulted
+    // by us to simply call the parent's constructor.
+    if (! protoProps || ! _.has(protoProps, 'constructor'))
+      child = function() { return parent.apply(this, arguments); };
+    else child = protoProps.constructor;
+    // Add static properties to the constructor function, if supplied.
+    _.extend(child, parent, staticProps);
+    // Set the prototype chain to inherit from `parent`
+    child.prototype = Object.create(parent.prototype, {
+      constructor: { value: child, enumerable: false, writable: true, configurable: true }
     });
+    // Add prototype properties (instance properties) to the subclass, if supplied.
+    if (protoProps) _.extend(child.prototype, protoProps);
+    // Set a convenience property in case the parent's prototype is needed later.
+    child.__super__ = parent.prototype;
+    // and finally return child
+    return child;
+  },
 
-    if (_.isFunction(rule.when))
-      applyRule = rule.when(model, attributes, options);
-    else if (_.isBoolean(rule.when))
-      applyRule = rule.when;
-
-    if (! applyRule) continue;
-
-    if (rule.required && (! _.isNumber(attribute) && _.isEmpty(attribute)))
-      setError(key, 'Required attribute [' + key + '] is missing.');
-
-    if (rule.validators) {
-      var validators = [];
-
-      if (_.isFunction(rule.validators)) validators.push(rule.validators);
-      else if (_.isArray(rule.validators)) validators = rule.validators;
-      else if (_.isString(rule.validators) && model[rule.validators])
-        validators.push(model[rule.validators]);
-
-      var matchEvery = _.every(validators, function(validator) {
-        if (_.isFunction(validator))
-          return validator(attribute, rule, options);
-        else if (_.isBoolean(validator))
-          return validator;
-        return false;
-      });
-      if (! matchEvery) setError(key, rule.message ? rule.message : '[' + key + '] is not valid');
+  /**
+   * Returns value if not undefined or null,
+   * otherwise returns defaults or $__NULL__$ value
+   * @see https://github.com/imkrimerman/im.val (npm version)
+   * @param {*} value - value to check
+   * @param {*} defaults - default value to use
+   * @param {?Function} [checker] - function to call to check validity
+   * @returns {*}
+   * @memberof Fiber.fn#
+   */
+  val: function(value, defaults, checker) {
+    // if defaults not specified then assign notDefined `$__NULL__$` value
+    defaults = arguments.length > 1 ? defaults : val.notDefined;
+    // if value and checker is specified then use it to additionally check value
+    if (_.isFunction(checker) && value != null) {
+      // if checker returns true then we are good
+      if (checker(value)) return value;
+      // otherwise return defaults
+      return defaults;
     }
-  }
+    // if value not specified return defaults, otherwise return value;
+    return value != null ? value : defaults;
+  },
 
-  if (! _.isEmpty(errors)) return errors;
+  /**
+   * Merges array of objects/arrays
+   * @param {Array} args - Array of objects/arrays to merge
+   * @returns {Array|Object}
+   * @memberof Fiber.fn#
+   */
+  merge: function(array) {
+    if (! _.isArray(array)) return array;
+    if (Fiber.fn.isArrayOf(array, 'object'))
+      return _.extend.apply(_, [{}].concat(array));
+    else if (Fiber.fn.isArrayOf(array, 'array'))
+      return _.flattenDeep(array);
+    return array;
+  },
+
+  /**
+   * Applies `method` on given `Class` with `context` and passing `args`
+   * @param {Function|Object} Class - Class to call
+   * @param {String} method - method to call
+   * @param {?Array} [args] - arguments to pass
+   * @param {?Object|Array} [context] - context to apply to
+   * @returns {*}
+   * @memberof Fiber.fn#
+   */
+  apply: function(Class, method, args, context) {
+    context = val(context, Class);
+    args = val(args, []);
+
+    if (! _.isArray(args) && _.isObject(args))
+      args = _.values(args);
+
+    var proto = Class.prototype
+      , method = proto[method];
+
+    if (_.isFunction(method)) return method.apply(context, args);
+  },
+
+  /**
+   * Binds array/object or one `mixin` to the given `object`
+   * @param mixin
+   * @param object
+   * @returns {Array}
+   */
+  bind: function(mixin, object) {
+    if (! _.isArray(mixin) && ! _.isObject(mixin)) mixin = [mixin];
+    return _.map(mixin, function(one) {
+      if (_.isFunction(one)) return one.bind(object);
+      return one;
+    });
+  },
+
+  /**
+   * Checks if given array is array with objects
+   * @param {Array} array - Array to check
+   * @param {string} of - String of type (object, string, array ...etc)
+   * @returns {boolean}
+   * @memberof Fiber.fn#
+   */
+  isArrayOf: function(array, of) {
+    return _.isArray(array) && _.every(array, _['is' + Fiber.fn.string.capitalize(of)]);
+  },
+
+  /**
+   * Returns object for Class prototype. Integrates support helpers to Fiber Classes
+   * @returns {Object}
+   * @memberof Fiber.fn#
+   */
+  proto: function() {
+    var self = this;
+
+    return {
+
+      fn: {
+        val: self.val,
+        apply: self.apply,
+        bind: self.bind,
+        merge: self.merge,
+        isArrayOf: self.isArrayOf,
+      }
+
+    };
+  },
+
 };
 
-// Adds given `mixin` to the `object`. Mixin can be object or function.
-// Also you can provide `override` boolean to force override properties.
-Fiber.fn.mix = function(object, mixin, override) {
-  override = val(override, false);
-  // If function is given then it will be called with current Class.
-  if (_.isFunction(mixin)) {
-    mixin(object);
-    return this;
-  }
-  var method = 'defaultsDeep';
-  if (override) method = 'assign';
-  _[method](object, mixin);
-  return object;
-};
+/**
+ * Globally exposed `val` function
+ * @var {Function}
+ * @global
+ */
+var val = Fiber.fn.val;
 
-// Includes `mixin` or array of mixins to the `object`.
-// Also you can provide `override` boolean to force override properties.
-Fiber.fn.include = function(object, mixin, override) {
-  if (! _.isArray(mixin) && _.isPlainObject(mixin))
-    Fiber.fn.mix(object, mixin, override);
-  else for (var i = 0; i < mixin.length; i ++)
-    Fiber.fn.mix(object, mixin[i], override);
-  return this;
-};
+/**
+ * Value that can represent not defined state.
+ * @type {string}
+ * @memberof Fiber.fn.val
+ */
+val.notDefined = '$__NULL__$';

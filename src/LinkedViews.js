@@ -1,5 +1,5 @@
 // Fiber Linked Views Collection
-Fiber.LinkedViews = Fiber.make(Fiber.Collection, {
+Fiber.LinkedViews = Fiber.Collection.extend({
 
   // Parent View
   parentView: null,
@@ -39,7 +39,7 @@ Fiber.LinkedViews = Fiber.make(Fiber.Collection, {
   reset: function() {
     this.parentView = null;
     this.stopListening();
-    Fiber.fn.apply(Backbone.View, 'reset', arguments, this);
+    this.fn.apply(Backbone.View, 'reset', arguments);
   },
 
   // All event handler

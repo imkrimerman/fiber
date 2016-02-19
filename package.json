@@ -33,6 +33,7 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
     "mocha": "^2.4.5",
+    "mr-doc-theme-cayman": "^1.0.3",
     "shelljs": "^0.6.0",
     "sinon": "^1.17.3",
     "uglify-js": "^2.6.1"
@@ -41,14 +42,17 @@
     "backbone": "^1.2.3",
     "combyne": "^0.8.1",
     "jquery": "^2.2.0",
-    "lodash": "^4.2.1"
+    "lodash": "^4.5.0"
   },
   "scripts": {
     "build": "gulp compile",
     "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
-    "doc": "docco ./build/fiber.js && open -a \"Google Chrome\"  docs/fiber.html",
     "lint": "eslint fiber.js",
-    "test": "./node_modules/mocha/bin/mocha"
+    "test": "./node_modules/mocha/bin/mocha",
+    "doc": "npm run clearDocs && docco ./build/fiber.js -o ./docs/docco && open -a \"Google Chrome\"  docs/docco/fiber.html",
+    "jsdoc": "npm run clearDocs && jsdoc build/fiber.js -c ./jsdoc.conf.json -d docs/jsdoc --verbose",
+    "jsdocAll": "npm run clearDocs && jsdoc build/fiber.js -c ./jsdoc.conf.json -P ./package.json -R ./README.md -d docs/jsdoc --verbose",
+    "clearDocs": "rm -rf ./docs"
   },
   "main": "fiber.js",
   "version": "0.0.5",
