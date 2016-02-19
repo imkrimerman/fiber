@@ -26,16 +26,9 @@
   // Finally, as a browser global.
   else root.Fiber = factory(root, {}, root.Backbone, root._);
 
-})(function(root, exports, Backbone, _) {
+})(function(root, Fiber, Backbone, _) {
   'use strict';
-
-  /** @namespace Fiber **/
-  /**
-   * Fiber Framework
-   * @type {Object}
-   * @global
-   */
-  var Fiber = exports;
+  /*eslint valid-jsdoc: 2*/
 
   /**
    * Save the previous value of the `Fiber` variable, so that it can be

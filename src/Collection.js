@@ -133,13 +133,11 @@ Fiber.Collection = Fiber.fn.class.make(Backbone.Collection, [
       });
     }
   }
-], {
+]);
 
-  /**
-   * Extend method
-   * @var {Function}
-   * @memberof Fiber.Collection#
-   * @static
-   */
-  extend: Fiber.fn.class.extend
-});
+/**
+ * Extend method
+ * @var {Function}
+ * @static
+ */
+Fiber.Collection.extend = Fiber.fn.proxy(Fiber.fn.class.extend);

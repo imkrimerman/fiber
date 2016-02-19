@@ -209,4 +209,11 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       options: options
     });
   }
-}], {extend: extend});
+}]);
+
+/**
+ * Extend method
+ * @var {Function}
+ * @static
+ */
+Fiber.Model.extend = Fiber.fn.proxy(Fiber.fn.class.extend);

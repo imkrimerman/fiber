@@ -3,7 +3,6 @@
  * @class
  * @type {Function}
  * @extends {Fiber.Class}
- * @memberof Fiber#
  */
 Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
 

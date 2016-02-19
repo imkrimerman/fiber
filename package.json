@@ -33,6 +33,7 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
     "mocha": "^2.4.5",
+    "mr-doc": "^3.1.2",
     "mr-doc-theme-cayman": "^1.0.3",
     "shelljs": "^0.6.0",
     "sinon": "^1.17.3",
@@ -49,10 +50,10 @@
     "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha",
-    "doc": "npm run clearDocs && docco ./build/fiber.js -o ./docs/docco && open -a \"Google Chrome\"  docs/docco/fiber.html",
-    "jsdoc": "npm run clearDocs && jsdoc build/fiber.js -c ./jsdoc.conf.json -d docs/jsdoc --verbose",
-    "jsdocAll": "npm run clearDocs && jsdoc build/fiber.js -c ./jsdoc.conf.json -P ./package.json -R ./README.md -d docs/jsdoc --verbose",
-    "clearDocs": "rm -rf ./docs"
+    "doc": "rm -rf ./docs/doc && mr-doc -s ./src -o ./docs/doc -n 'Fiber' -t 'cayman'",
+    "open-doc": "open -a \"Google Chrome\" docs/doc/index.html",
+    "anotate": "rm -rf ./docs/anotate && docco ./build/fiber.js -o ./docs/anotate",
+    "open-anotate": "open -a \"Google Chrome\" docs/anotate/fiber.html"
   },
   "main": "fiber.js",
   "version": "0.0.5",

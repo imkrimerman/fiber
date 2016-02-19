@@ -34,38 +34,37 @@ var gulp = require('gulp')
       './src/Class.js',
       './src/Bag.js',
       './src/ErrorBag.js',
-      './src/Ioc.js',
       './src/Model.js',
       './src/Collection.js',
       './src/LinkedViews.js',
       './src/Listeners.js',
       './src/View.js',
       './src/CollectionView.js',
+      './src/Ioc.js',
     ]
   };
 
 gulp.task('default', ['compile', 'tdd', 'serve', 'lint', 'watch']);
-gulp.task('compile', ['build', 'buildTest', 'minify']);
-gulp.task('test', ['compile', 'tdd']);
+gulp.task('compile', ['build', 'build-test', 'build-doc', 'minify']);
 
 gulp.task('dev', ['build', 'watch-dev']);
-gulp.task('dev-doc', ['build', 'watch-dev-doc']);
-
-gulp.task('watch-dev', WatchDev);
-gulp.task('watch-dev-doc', ['buildDocs', 'watch-dev']);
-
-
+gulp.task('dev-doc', ['build', 'build-doc', 'watch-dev']);
+gulp.task('dev-test', ['build', 'tdd']);
 
 gulp.task('build', Build);
+gulp.task('build-doc', BuildDocs);
+gulp.task('build-test', BuildTest);
 gulp.task('minify', Minify);
-gulp.task('watch', Watch);
-gulp.task('buildTest', BuildTest);
-gulp.task('buildDocs', BuildDocs);
+
+gulp.task('watch-dev', WatchDev);
+gulp.task('watch-lint', WatchLint);
+
 gulp.task('karma', CreateKarmaServer(true));
 gulp.task('tdd', CreateKarmaServer(false));
+
 gulp.task('lint', Lint);
 gulp.task('serve', Serve);
-gulp.task('serverReload', Reload);
+
 
 function Build() {
   gulp.src(config.input)
@@ -98,28 +97,21 @@ function BuildTest() {
     .pipe(connect.reload());
 }
 
-function Watch() {
+function WatchLint() {
   gulp.watch(config.files, ['lint']);
   gulp.watch(config.files.concat([config.test]), ['test']);
 }
 
 function WatchDev() {
-  gulp.watch(config.files, ['build', 'buildDocs']);
+  gulp.watch(config.files, ['build', 'build-doc']);
 }
 
 function Lint() {
   gulp.src(config.files)
-    // eslint() attaches the lint output to the "eslint" property
-    // of the file object so it can be used by other modules.
     .pipe(eslint({
       configFile: './.eslintrc'
     }))
-    // eslint.format() outputs the lint results to the console.
-    // Alternatively use eslint.formatEach() (see Docs).
     .pipe(eslint.format());
-    // To have the process exit with an error code (1) on
-    // lint error, return the stream and pipe to failAfterError last.
-//    .pipe();
 }
 
 function Serve() {
@@ -138,15 +130,10 @@ function CreateKarmaServer(tdd) {
   };
 }
 
-function Reload() {
-  gulp.src(config.test.concat([config.output + '/*.js', config.input]))
-    .pipe(connect.reload());
-}
-
 function Minify() {
   shell.exec('npm run min');
 }
 
 function BuildDocs() {
-  shell.exec('npm run jsdoc');
+  shell.exec('npm run doc');
 }

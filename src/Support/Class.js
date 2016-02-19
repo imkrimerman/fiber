@@ -24,7 +24,7 @@ Fiber.fn.class = {
    * @memberof Fiber.fn.class#
    */
   extend: function(parent, proto, statics) {
-    return Fiber.nativeExtend(
+    return Fiber.fn.nativeExtend(
       parent,
       Fiber.fn.class.deepExtendProperties(Fiber.fn.merge(proto), this),
       Fiber.fn.merge(statics)
@@ -45,7 +45,7 @@ Fiber.fn.class = {
     // If parent is string, then try to resolve Class from dependency injection container
     if (_.isString(parent) && Fiber.Ioc.has(parent)) parent = Fiber.Ioc.get(parent);
     // Finally call extend method with right parent, proto and statics
-    return Fiber.fn.class.extend.call(
+    return Fiber.fn.class.extend(
       parent,
       Fiber.getExtension(val(extender, {})),
       Fiber.getExtension(val(statics, {}))
@@ -146,5 +146,5 @@ Fiber.fn.class = {
       return bind ? resolved.bind(object) : resolved;
     }
     return null;
-  },
+  }
 };

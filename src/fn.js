@@ -113,6 +113,18 @@ Fiber.fn = {
   },
 
   /**
+   * Proxies function
+   * @param {Function} fn
+   * @returns {Function}
+   */
+  proxy: function(fn) {
+    return function() {
+      var args = _.toArray(arguments);
+      return fn.apply(fn, [this].concat(args));
+    };
+  },
+
+  /**
    * Checks if given array is array with objects
    * @param {Array} array - Array to check
    * @param {string} of - String of type (object, string, array ...etc)
