@@ -1,0 +1,13 @@
+[include]
+build/fiber.js
+
+[ignore]
+.*/coverage/.*
+.*/docs/.*
+.*/node_modules/.*
+.*/src/**/.*
+.*/tmp/.*
+.*/test/.*
+.*gulpfile.js
+.*karma.conf.js
+.*package.js

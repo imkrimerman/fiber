@@ -4,4 +4,8 @@ docs
 node_modules
 index.html
 build
+dist
 coverage
+flow.log
+npm-debug.log
+tmp

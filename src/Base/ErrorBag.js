@@ -1,26 +1,22 @@
 /**
  * Fiber Error Bag
  * @class
- * @type {Function}
- * @memberof Fiber#
  */
 Fiber.ErrorBag = Fiber.Bag.extend({
 
   /**
    * Returns errors object if not empty and undefined otherwise
    * @returns {Object|undefined}
-   * @memberof Fiber.ErrorBag#
    */
-  getErrors: function() {
+  getErrors: function(): object | undefined {
     return _.isEmpty(this.items) ? undefined : this.items;
   },
 
   /**
    * Checks if error bag has errors
    * @returns {boolean}
-   * @memberof Fiber.ErrorBag#
    */
-  hasErrors: function() {
+  hasErrors: function(): boolean {
     return this.getErrors() !== undefined;
   },
 
@@ -29,9 +25,8 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * @param {string} key - Key to push error to
    * @param {string} error - Error to push
    * @return {Fiber.ErrorBag}
-   * @memberof Fiber.ErrorBag#
    */
-  push: function(key, error) {
+  push: function(key: string, error: string): Fiber.ErrorBag {
     var check = this.get(key);
     if (! _.isArray(check)) this.set(key, []);
     var one = this.get(key);
@@ -44,9 +39,8 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * Removes item from the end
    * @param {string} key - Key to look up value
    * @returns {*}
-   * @memberof Fiber.ErrorBag#
    */
-  pop: function(key) {
+  pop: function(key: string) {
     var check = this.get(key);
     if (! _.isArray(check)) return null;
     return check.pop();

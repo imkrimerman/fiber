@@ -15,14 +15,18 @@
   ],
   "author": "Igor Krimerman",
   "devDependencies": {
+    "babel-plugin-transform-flow-comments": "^6.5.0",
+    "babel-plugin-transform-flow-strip-types": "^6.5.0",
     "chai": "^3.5.0",
     "docco": "^0.7.0",
     "eslint": "^1.10.3",
+    "flow-bin": "^0.21.0",
     "gulp": "^3.9.0",
     "gulp-connect": "^2.3.1",
     "gulp-eslint": "^1.1.1",
     "gulp-inject": "^3.0.0",
     "gulp-mocha": "^2.2.0",
+    "gulp-notify": "^2.2.0",
     "karma": "^0.13.19",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.2.2",
@@ -46,7 +50,8 @@
     "lodash": "^4.5.0"
   },
   "scripts": {
-    "build": "gulp compile",
+    "build": "gulp build",
+    "flow": "flow run && flow check",
     "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha",

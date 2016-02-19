@@ -28,8 +28,7 @@
 
 })(function(root, Fiber, Backbone, _) {
   'use strict';
-  /*eslint valid-jsdoc: 2*/
-
+  /* @flow */
   /**
    * Save the previous value of the `Fiber` variable, so that it can be
    * restored later on, if `noConflict` is used.

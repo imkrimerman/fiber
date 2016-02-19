@@ -1,7 +1,8 @@
 /**
- * @class Fiber Base Class
+ * Fiber Base Class
+ * @class
  */
-Fiber.Class = function(options, extensions) {
+Fiber.Class = function(options: object, extensions?: array | string) {
   if (extensions) Fiber.applyExtension(extensions, this, true);
   this.initialize.apply(this, arguments);
 };
@@ -20,8 +21,9 @@ _.extend(Fiber.Class.prototype, Backbone.Events, Fiber.fn.proto(), {
    * Applies Fiber extension to the Class
    * @param {string} alias - Extension alias
    * @param {?boolean} [override] - Force override properties.
+   * @return {Fiber.Class}
    */
-  applyExtension: function(alias, override) {
+  applyExtension: function(alias: string, override?: boolean): Fiber.Class {
     Fiber.applyExtension(alias, this, override);
     return this;
   }

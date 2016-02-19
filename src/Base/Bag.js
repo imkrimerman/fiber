@@ -1,34 +1,33 @@
 /**
  * Fiber Bag Class
  * @class
- * @type {Function}
  * @extends {Fiber.Class}
  */
 Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
 
   /**
    * Events namespace
-   * @member {string}
+   * @var {string}
    */
   eventsNs: 'bag',
 
   /**
    * Bag items
-   * @member {Object}
+   * @var {Object}
    */
   items: {},
 
   /**
    * Access extension to provide get/set to items
-   * @member {Fiber.Extensions.Access}
+   * @var {Fiber.Extensions.Access}
    */
-  access: null,
+  access: {},
 
   /**
    * Initializes bag
    * @param {?Object} [items] - Items to set to the Bag
    */
-  initialize: function(items) {
+  initialize: function(items?: object) {
     this.items = val(items, {}, _.isPlainObject);
     this.access = Fiber.getExtension('Access', this.items);
   },
@@ -39,7 +38,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @param {*} [value] - Value to set
    * @returns {Fiber.Bag}
    */
-  set: function(key, value) {
+  set: function(key: string, value): Fiber.Bag {
     this.access.set(key, value);
     return this;
   },
@@ -50,7 +49,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @param {?*} [defaults] - Default value will be returned if `key` is not found
    * @returns {*}
    */
-  get: function(key, defaults) {
+  get: function(key: string, defaults) {
     return this.access.get(key, defaults);
   },
 
@@ -59,7 +58,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @param {string} key - Key to check existence of value in items bag
    * @returns {boolean}
    */
-  has: function(key) {
+  has: function(key: string): boolean {
     return this.access.has(key);
   },
 
@@ -68,7 +67,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @param {string} key - Key to remove value by
    * @return {Fiber.Bag}
    */
-  forget: function(key) {
+  forget: function(key: string): Fiber.Bag {
     this.access.forget(key);
     return this;
   },
@@ -77,7 +76,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * Clears bag items
    * @return {Fiber.Bag}
    */
-  clear: function() {
+  clear: function(): Fiber.Bag {
     this.items = {};
     return this;
   }

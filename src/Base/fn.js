@@ -1,7 +1,6 @@
 /**
  * Fiber support function
  * @type {Object}
- * @memberof Fiber#
  */
 Fiber.fn = {
 
@@ -9,12 +8,12 @@ Fiber.fn = {
    * Extend this Class to create a new one inherithing this one.
    * Also add a helper __super__ object poiting to the parent prototypes methods.
    * {@link https://github.com/sboudrias/class-extend|Check original version of class extend method on Github}
-   * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
-   * @param  {?Object} [staticProps] - Static properties (available on the contructor)
+   * @param {Function} parent - Parent to extend
+   * @param {?Object} [protoProps] - Prototype properties (available on the instances)
+   * @param {?Object} [staticProps] - Static properties (available on the contructor)
    * @return {Function}
-   * @memberof Fiber.fn#
    */
-  nativeExtend: function(parent, protoProps, staticProps) {
+  nativeExtend: function(parent?: Function | object, protoProps?: object, staticProps?: object): Function {
     if (! parent) return parent;
     var child;
     // The constructor function for the new subclass is either defined by you
@@ -45,9 +44,8 @@ Fiber.fn = {
    * @param {*} defaults - default value to use
    * @param {?Function} [checker] - function to call to check validity
    * @returns {*}
-   * @memberof Fiber.fn#
    */
-  val: function(value, defaults, checker) {
+  val: function(value, defaults, checker?: Function) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
     defaults = arguments.length > 1 ? defaults : val.notDefined;
     // if value and checker is specified then use it to additionally check value
@@ -65,9 +63,8 @@ Fiber.fn = {
    * Merges array of objects/arrays
    * @param {Array} args - Array of objects/arrays to merge
    * @returns {Array|Object}
-   * @memberof Fiber.fn#
    */
-  merge: function(array) {
+  merge: function(array: array): array | object {
     if (! _.isArray(array)) return array;
     if (Fiber.fn.isArrayOf(array, 'object'))
       return _.extend.apply(_, [{}].concat(array));
@@ -85,7 +82,7 @@ Fiber.fn = {
    * @returns {*}
    * @memberof Fiber.fn#
    */
-  apply: function(Class, method, args, context) {
+  apply: function(Class: Function | object, method: string, args?: array, context?: array | object) {
     context = val(context, Class);
     args = val(args, []);
 
@@ -142,9 +139,7 @@ Fiber.fn = {
    */
   proto: function() {
     var self = this;
-
     return {
-
       fn: {
         val: self.val,
         apply: self.apply,
@@ -152,7 +147,6 @@ Fiber.fn = {
         merge: self.merge,
         isArrayOf: self.isArrayOf,
       }
-
     };
   },
 
