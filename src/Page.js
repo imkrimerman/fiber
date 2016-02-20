@@ -1,26 +1,25 @@
 /**
  * Page
- * @type {Function}
- * @constructor
+ * @class
  */
 Fiber.Page = Fiber.fn.class.make(Fiber.Class, [
   'NsEvents', 'Access', {
 
     /**
-     * Is page bootstrapped
-     * @type {boolean}
+     * Bootstrapped flag
+     * @var {boolean}
      */
     bootstrapped: false,
 
     /**
      * Class options to auto merge
-     * @type {Object}
+     * @var {Object}
      */
     extendable: ['view', 'model', 'collection', 'load', 'bootstrap', 'options'],
 
     /**
      * Page instances
-     * @type {Object}
+     * @var {Object}
      */
     instances: {
       view: null,
@@ -30,13 +29,13 @@ Fiber.Page = Fiber.fn.class.make(Fiber.Class, [
 
     /**
      * Events configuration object
-     * @type {Object}
+     * @var {Object}
      */
     eventsNs: 'page',
 
     /**
      * Events catalog
-     * @type {Object}
+     * @var {Object}
      */
     eventsCatalog: {
       bootstrap: 'bootstrap',
@@ -47,7 +46,7 @@ Fiber.Page = Fiber.fn.class.make(Fiber.Class, [
 
     /**
      * Options
-     * @type {Object}
+     * @var {Object}
      */
     options: {
       model: {},

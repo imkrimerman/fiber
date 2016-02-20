@@ -1,4 +1,4 @@
-describe('Fiber.Extension.NsEvents', function() {
+describe('Fiber.Extensions.NsEvents', function() {
 
   before(function() {
     makeSpyable(this);

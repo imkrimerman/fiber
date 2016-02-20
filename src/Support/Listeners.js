@@ -1,9 +1,19 @@
-// Fiber Listeners Collection
-Fiber.Listeners = Fiber.Collection.extend({
+/**
+ * Fiber Listeners
+ * @class
+ * @extends {Fiber.BaseCollection}
+ */
+Fiber.Listeners = Fiber.BaseCollection.extend({
+
+  /**
+   * Events namespace
+   * @var {string}
+   */
+  eventsNs: 'listeners',
 
   // Checks if event has listeners
   hasEvent: function(event) {
-    return !! this.filterByEvent(event).length;
+    return ! ! this.filterByEvent(event).length;
   },
 
   // Returns listeners for provided `events`

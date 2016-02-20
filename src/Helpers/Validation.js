@@ -1,14 +1,12 @@
 /**
  * Fiber Validation support
- * @type {Object}
- * @memeberOf Fiber.fn#
+ * @var {Object}
  */
 Fiber.fn.validation = {
 
   /**
    * Rule defaults
    * @var {Object}
-   * @memberof Fiber.fn.validation#
    */
   ruleDefaults: {
     required: false,
@@ -19,13 +17,14 @@ Fiber.fn.validation = {
 
   /**
    * Validates model
-   * @param {Object} model - Model to validate/use
-   * @param {Object} [attributes] - Attributes to validate (default: Model attributes)
+   * @param {Object.<Fiber.Model>} model - Model to validate/use
+   * @param {?Object} [attributes] - Attributes to validate (default: Model attributes)
    * @param {?Object} [options] - Options object {showErrors: {boolean}}
    * @returns {void|Object}
-   * @memberof Fiber.fn.validation#
    */
   validate: function(model, attributes, options) {
+    // clear error bag after last validation
+    model.errorBag.clear();
     var rules = model.getRules();
     // if model doesn't have any rules, then we are okey to return true
     if (_.isEmpty(rules)) return true;
@@ -38,7 +37,7 @@ Fiber.fn.validation = {
     // traverse through attributes
     for (var key in attributes) {
       var attribute = attributes[key]
-        , rule = rules[attribute]
+        , rule = rules[key]
         , applyRule = true;
 
       // no rule for current attribute, then we are okey to return true

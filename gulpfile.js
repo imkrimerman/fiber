@@ -18,31 +18,37 @@ var gulp = require('gulp')
       configFile: __dirname + '/karma.conf.js'
     },
     files: [
-      './src/fn.js',
-      './src/Support/Class.js',
-      './src/Support/String.js',
-      './src/Support/Template.js',
-      './src/Support/Validation.js',
+      './src/Helpers/fn.js',
+      './src/Helpers/Class.js',
+      './src/Helpers/String.js',
+      './src/Helpers/Template.js',
+      './src/Helpers/Validation.js',
 
-      './src/Extensions.js',
+      './src/Extensions/Extensions.js',
       './src/Extensions/Access.js',
       './src/Extensions/Extend.js',
       './src/Extensions/Mixin.js',
       './src/Extensions/NsEvents.js',
       './src/Extensions/OwnProperties.js',
 
-      './src/Class.js',
-      './src/Bag.js',
-      './src/ErrorBag.js',
+      './src/Base/Class.js',
+      './src/Base/Bag.js',
+      './src/Base/Collection.js',
+
+      './src/Support/ErrorBag.js',
+      './src/Support/LinkedViews.js',
+      './src/Support/Listeners.js',
+
       './src/Model.js',
       './src/Collection.js',
-      './src/LinkedViews.js',
-      './src/Listeners.js',
       './src/View.js',
       './src/CollectionView.js',
-      './src/Ioc.js',
+
+      './src/Services/Ioc.js',
     ]
   };
+
+config.allFiles = config.files.concat([config.test]);
 
 gulp.task('default', ['compile', 'tdd', 'serve', 'lint', 'watch']);
 gulp.task('compile', ['build', 'build-test', 'build-doc', 'minify']);
@@ -67,8 +73,7 @@ gulp.task('lint', Lint);
 gulp.task('mocha', Mocha);
 
 gulp.task('reload', function() {
-//  gulp.src()
-//    .pipe(connect.reload());
+  gulp.src(config.allFiles).pipe(connect.reload());
 });
 
 function Build() {
@@ -104,7 +109,7 @@ function BuildTest() {
 
 function WatchLint() {
   gulp.watch(config.files, ['lint']);
-  gulp.watch(config.files.concat([config.test]), ['test']);
+  gulp.watch(config.allFiles, ['test']);
 }
 
 function WatchDev() {
@@ -116,7 +121,7 @@ function WatchDevDocs() {
 }
 
 function WatchDevTest() {
-  gulp.watch(config.files.concat([config.test + '/**/*spec.js']), ['build']);
+  gulp.watch(config.allFiles, ['build', 'reload']);
 }
 
 function Lint() {

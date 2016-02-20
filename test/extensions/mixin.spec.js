@@ -1,4 +1,4 @@
-describe('Fiber.Extension.Mixin', function() {
+describe('Fiber.Extensions.Mixin', function() {
 
   before(function() {
     makeSpyable(this);

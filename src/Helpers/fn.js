@@ -1,18 +1,59 @@
 /**
  * Fiber support function
- * @type {Object}
- * @memberof Fiber#
+ * @var {Object}
  */
 Fiber.fn = {
 
   /**
-   * Extend this Class to create a new one inherithing this one.
-   * Also add a helper __super__ object poiting to the parent prototypes methods.
+   * List of properties to exclude when mixin functions to Class prototype
+   * @type {Array}
+   */
+  protoExclude: ['proto'],
+
+  /**
+   * Value that represents not defined state.
+   * @type {string}
+   */
+  notDefined: '$__NULL__$',
+
+  // Gets value by given `property` key. You can provide `defaults` value that
+  // will be returned if value is not found by the given key. If `defaults` is
+  // not provided that defaults will be set to `null`
+  get: function(object, property, defaults) {
+    return _.get(object, property, val(defaults, null));
+  },
+
+  // Sets `value` by given `property` key
+  set: function(object, property, value) {
+    _.set(object, property, value);
+    return object;
+  },
+
+  // Checks if Class has given `property`
+  has: function(object, property) {
+    return _.has(object, property);
+  },
+
+  // Gets value by given `property` key, if `property` value is function then it will be called.
+  // You can provide `defaults` value that will be returned if value is not found
+  // by the given key. If `defaults` is not provided that defaults will be set to `null`
+  result: function(object, property, defaults) {
+    return _.result(object, property, val(defaults, null));
+  },
+
+  // Removes `value` by given `property` key
+  forget: function(object, property) {
+    _.unset(object, property);
+    return object;
+  },
+
+  /**
+   * Extend this Class to create a new one inheriting this one.
+   * Also add a helper __super__ object pointing to the parent prototypes methods.
    * {@link https://github.com/sboudrias/class-extend|Check original version of class extend method on Github}
    * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
-   * @param  {?Object} [staticProps] - Static properties (available on the contructor)
+   * @param  {?Object} [staticProps] - Static properties (available on the constructor)
    * @return {Function}
-   * @memberof Fiber.fn#
    */
   nativeExtend: function(parent, protoProps, staticProps) {
     if (! parent) return parent;
@@ -45,11 +86,12 @@ Fiber.fn = {
    * @param {*} defaults - default value to use
    * @param {?Function} [checker] - function to call to check validity
    * @returns {*}
-   * @memberof Fiber.fn#
    */
   val: function(value, defaults, checker) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
-    defaults = arguments.length > 1 ? defaults : val.notDefined;
+    defaults = arguments.length > 1 ? defaults : Fiber.fn.notDefined;
+    // if we don't have any `value` then return `defaults`
+    if (! arguments.length) return defaults;
     // if value and checker is specified then use it to additionally check value
     if (_.isFunction(checker) && value != null) {
       // if checker returns true then we are good
@@ -62,12 +104,12 @@ Fiber.fn = {
   },
 
   /**
-   * Merges array of objects/arrays
+   * Merges multiple objects or arrays into one.
    * @param {Array} args - Array of objects/arrays to merge
    * @returns {Array|Object}
-   * @memberof Fiber.fn#
    */
   merge: function(array) {
+    if (arguments.length > 1) array = _.toArray(arguments);
     if (! _.isArray(array)) return array;
     if (Fiber.fn.isArrayOf(array, 'object'))
       return _.extend.apply(_, [{}].concat(array));
@@ -83,33 +125,37 @@ Fiber.fn = {
    * @param {?Array} [args] - arguments to pass
    * @param {?Object|Array} [context] - context to apply to
    * @returns {*}
-   * @memberof Fiber.fn#
    */
   apply: function(Class, method, args, context) {
     context = val(context, Class);
     args = val(args, []);
 
-    if (! _.isArray(args) && _.isObject(args))
-      args = _.values(args);
-
     var proto = Class.prototype
-      , method = proto[method];
+      , method = proto && proto[method];
 
-    if (_.isFunction(method)) return method.apply(context, args);
+    if (_.isFunction(method)) return method.apply(context, _.castArray(args));
   },
 
   /**
-   * Binds array/object or one `mixin` to the given `object`
-   * @param mixin
-   * @param object
-   * @returns {Array}
+   * Binds array of `mixins`, object or function to the given object `context`,
+   * also you can bind each methods context too by providing the `innerApply` with true
+   * @param {Array|Object|Function} mixins
+   * @param {Object} ctx
+   * @param {?boolean} [innerApply=false]
+   * @returns {Array|Object|Function}
    */
-  bind: function(mixin, object) {
-    if (! _.isArray(mixin) && ! _.isObject(mixin)) mixin = [mixin];
-    return _.map(mixin, function(one) {
-      if (_.isFunction(one)) return one.bind(object);
-      return one;
-    });
+  bind: function(mixins, ctx, innerApply) {
+    var wasArray = _.isArray(mixins);
+
+    innerApply = val(innerApply, false, _.isBoolean);
+    mixins = _.castArray(mixins);
+
+    for (var i = 0; i < mixins.length; i ++)
+      if (innerApply && (_.isPlainObject(mixins[i]) || _.isArray(mixins[i])))
+        mixins[i] = Fiber.fn.bind(mixins[i], ctx, innerApply);
+      else mixins[i] = _.bind(mixins[i], ctx);
+
+    return wasArray ? mixins : _.first(mixins);
   },
 
   /**
@@ -129,45 +175,57 @@ Fiber.fn = {
    * @param {Array} array - Array to check
    * @param {string} of - String of type (object, string, array ...etc)
    * @returns {boolean}
-   * @memberof Fiber.fn#
    */
   isArrayOf: function(array, of) {
     return _.isArray(array) && _.every(array, _['is' + Fiber.fn.string.capitalize(of)]);
   },
 
   /**
-   * Returns object for Class prototype. Integrates support helpers to Fiber Classes
-   * @returns {Object}
-   * @memberof Fiber.fn#
+   * Checks if `array` contains given `value`
+   * @param {Array} array - Array to check
+   * @param {*} value - Value to search in array
+   * @returns {boolean}
    */
-  proto: function() {
-    var self = this;
+  inArray: function(array, value) {
+    if (! _.isArray(array)) return false;
+    var i = array.length;
+    while (i--) if (array[i] === value) return true;
+    return false;
+  },
 
+  /**
+   * Returns object for Class prototype. Integrates support helpers to Fiber Classes
+   * @param {?Array} [exclude] - Array of properties to exclude from functions object
+   * @returns {Object}
+   */
+  proto: function(exclude) {
     return {
-
-      fn: {
-        val: self.val,
-        apply: self.apply,
-        bind: self.bind,
-        merge: self.merge,
-        isArrayOf: self.isArrayOf,
-      }
-
+      fn: _.omit(Fiber.fn, Fiber.fn.protoExclude.concat(val(exclude, [], _.isArray)))
     };
   },
 
 };
 
 /**
- * Globally exposed `val` function
- * @var {Function}
- * @global
+ * Adds not defined value to the statics of `val` function.
+ * @type {string}
+ * @static
  */
-var val = Fiber.fn.val;
+Fiber.fn.val.notDefined = Fiber.fn.notDefined;
 
 /**
- * Value that can represent not defined state.
- * @type {string}
- * @memberof Fiber.fn.val
+ * Checks if value is defined
+ * @param {*} value - Value to check
+ * @returns {boolean}
+ * @static
  */
-val.notDefined = '$__NULL__$';
+Fiber.fn.val.isDef = function(value) {
+  if (! arguments.length) return false;
+  return val(value) !== Fiber.fn.notDefined;
+};
+
+/**
+ * Globally exposed `val` function
+ * @type {Function}
+ */
+var val = Fiber.fn.val;

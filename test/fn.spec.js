@@ -5,13 +5,13 @@ describe('Fiber.fn', function() {
   });
 
   it('should `extend` object with one or with array of prototypes, ' +
-     'same is for statics and deep extend `Fiber.globals.deepExtendProperties`', function() {
-    var ModelClass = Fiber.fn.extend.call(Backbone.Model, { test: 'var' });
+     'same is for statics and deep extend `Fiber.fn.class.deepProperties`', function() {
+    var ModelClass = Fiber.fn.class.extend(Backbone.Model, { test: 'var' });
     var model = new ModelClass();
     expect(model).to.be.an.instanceof(Backbone.Model);
     expect(ModelClass.prototype).to.have.property('test');
 
-    var ModelClass2 = Fiber.fn.extend.call(Backbone.Model, [{ test: 'var' }, { test2: 'var' }]);
+    var ModelClass2 = Fiber.fn.class.extend(Backbone.Model, [{ test: 'var' }, { test2: 'var' }]);
     var model2 = new ModelClass();
     expect(model2).to.be.an.instanceof(Backbone.Model);
     expect(ModelClass2.prototype).to.have.property('test');
@@ -30,7 +30,7 @@ describe('Fiber.fn', function() {
   });
 
   it('should `make` child class using extender and statics with resolving extensions by `alias`', function() {
-    var Component = Fiber.make(Fiber.Class, ['Access', { testKey: 'value' }]);
+    var Component = Fiber.fn.class.make(Fiber.Class, ['Access', { testKey: 'value' }]);
 
     expect(Component.prototype).to.have.property('testKey');
     for (var key in Fiber.getExtension('Access')) {
@@ -46,18 +46,18 @@ describe('Fiber.fn', function() {
   });
 
   it('should merge objects into one if array is given', function() {
-    var obj = Fiber.fn.mergeObjects([{test1: ''}, {test2: ''}]);
+    var obj = Fiber.fn.merge([{test1: ''}, {test2: ''}]);
     expect(obj).to.eql({test1: '', test2: ''});
   });
 
-  it('should create template function using `Fiber.global.templateFunction`', function() {
-    var template = Fiber.fn.template('String <%= one %>');
+  it('should create template function using `Fiber.fn.template.engine`', function() {
+    var template = Fiber.fn.template.wrap('String <%= one %>');
     expect(template).to.be.a('function');
     expect(template({one: 'Test'})).to.eql('String Test');
 
-    Fiber.globals.templateFunction = null;
+    Fiber.fn.template.engine = null;
 
-    var template2 = Fiber.fn.template('one');
+    var template2 = Fiber.fn.template.wrap('one');
     expect(template2).to.be.a('function');
     expect(template2()).to.eql('one');
   });
@@ -65,17 +65,17 @@ describe('Fiber.fn', function() {
   it('should `mix` object', function() {
     var obj = {test: 'value'};
 
-    Fiber.fn.mix(obj, {mixed: 'val'});
+    Fiber.fn.class.mix(obj, {mixed: 'val'});
     expect(obj).to.have.property('mixed');
     expect(obj.mixed).to.eql('val');
 
-    Fiber.fn.mix(obj, {test: 'new'});
+    Fiber.fn.class.mix(obj, {test: 'new'});
     expect(obj.test).to.eql('value');
 
-    Fiber.fn.mix(obj, {test: 'new'}, true);
+    Fiber.fn.class.mix(obj, {test: 'new'}, true);
     expect(obj.test).to.eql('new');
 
-    Fiber.fn.mix(obj, function(object) {
+    Fiber.fn.class.mix(obj, function(object) {
       object.method = function() {};
     });
     expect(obj.method).to.be.a('function');
@@ -84,11 +84,11 @@ describe('Fiber.fn', function() {
   it('should `include` one mixin or array of mixins', function() {
     var obj = {test: 'value'};
 
-    Fiber.fn.include(obj, [{mixed: 'val'}, {test: 'new'}]);
+    Fiber.fn.class.include(obj, [{mixed: 'val'}, {test: 'new'}]);
     expect(obj.test).to.eql('value');
     expect(obj.mixed).to.eql('val');
 
-    Fiber.fn.include(obj, [{mixed: 'val'}, {test: 'new'}], true);
+    Fiber.fn.class.include(obj, [{mixed: 'val'}, {test: 'new'}], true);
     expect(obj.test).to.eql('new');
     expect(obj.mixed).to.eql('val');
   });
@@ -125,6 +125,12 @@ describe('Fiber.fn', function() {
       assert.equal(val.notDefined, val());
       assert.equal(null, val(undefined, null));
       assert.equal(undefined, val(null, undefined));
+    });
+
+    it('Should check if variable is defined', function() {
+      assert.equal(val.isDef(), false);
+      assert.equal(val.isDef(undefined), false);
+      assert.equal(val.isDef({}), true);
     });
   });
 });

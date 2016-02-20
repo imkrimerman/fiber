@@ -82,7 +82,7 @@
    * share over the Instances.
    * @type {Object}
    */
-  Fiber.Extension = {};
+  Fiber.Extensions = {};
 
   <!-- inject:js -->
   <!-- endinject -->

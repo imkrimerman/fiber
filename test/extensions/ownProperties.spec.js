@@ -1,4 +1,4 @@
-describe('Fiber.Extension.OwnProperties', function() {
+describe('Fiber.Extensions.OwnProperties', function() {
 
   beforeEach(function() {
     this.obj = {};

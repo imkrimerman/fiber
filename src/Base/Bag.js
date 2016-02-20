@@ -1,26 +1,25 @@
 /**
  * Fiber Bag Class
  * @class
- * @type {Function}
  * @extends {Fiber.Class}
  */
 Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
 
   /**
    * Events namespace
-   * @member {string}
+   * @var {string}
    */
   eventsNs: 'bag',
 
   /**
    * Bag items
-   * @member {Object}
+   * @var {Object}
    */
   items: {},
 
   /**
    * Access extension to provide get/set to items
-   * @member {Fiber.Extensions.Access}
+   * @var {Fiber.Extensions.Access}
    */
   access: null,
 
@@ -30,7 +29,6 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    */
   initialize: function(items) {
     this.items = val(items, {}, _.isPlainObject);
-    this.access = Fiber.getExtension('Access', this.items);
   },
 
   /**
@@ -40,7 +38,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @returns {Fiber.Bag}
    */
   set: function(key, value) {
-    this.access.set(key, value);
+    Fiber.fn.set(this.items, key, value);
     return this;
   },
 
@@ -51,7 +49,18 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @returns {*}
    */
   get: function(key, defaults) {
-    return this.access.get(key, defaults);
+    return Fiber.fn.get(this.items, key, defaults);
+  },
+
+  /**
+   * Gets value by given `property` key, if `property` value is function then it will be called.
+   * You can provide `defaults` value that will be returned if value is not found
+   * by the given key. If `defaults` is not provided that defaults will be set to `null`
+   * @param {string} key - Key to remove value by
+   * @return {*}
+   */
+  result: function(key) {
+    return Fiber.fn.result(this.items, key);
   },
 
   /**
@@ -60,7 +69,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @returns {boolean}
    */
   has: function(key) {
-    return this.access.has(key);
+    return Fiber.fn.has(this.items, key);
   },
 
   /**
@@ -69,7 +78,7 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
    * @return {Fiber.Bag}
    */
   forget: function(key) {
-    this.access.forget(key);
+    Fiber.fn.forget(this.items, key);
     return this;
   },
 

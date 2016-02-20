@@ -1,6 +1,6 @@
 /**
  * Fiber String support
- * @type {Object}
+ * @var {Object}
  * @memberof Fiber.fn#
  */
 Fiber.fn.string = {
@@ -404,6 +404,6 @@ var boolMatch = function(str, matchers) {
 
 /**
  * JS native trim function
- * @type {Function}
+ * @var {Function}
  */
 var nativeTrim = String.prototype.trim;

@@ -1,4 +1,4 @@
-describe('Fiber.Extension.Access', function() {
+describe('Fiber.Extensions.Access', function() {
 
   before(function() {
     makeSpyable(this);
@@ -12,7 +12,7 @@ describe('Fiber.Extension.Access', function() {
   });
 
   it('should have `Access` extension', function() {
-    expect(Fiber.Extension).to.have.property('Access');
+    expect(Fiber.Extensions).to.have.property('Access');
     expect(Fiber.getExtension('Access')).not.to.be.null;
   });
 
@@ -51,12 +51,12 @@ describe('Fiber.Extension.Access', function() {
     expect(this.obj.result('container.end')).to.be.true;
   });
 
-  it('should unset property', function() {
+  it('should forget property', function() {
     this.container.key = true;
-    this.obj.unset('container.key');
+    this.obj.forget('container.key');
     expect(this.obj.container).to.eql({});
 
-    this.obj.unset('container');
+    this.obj.forget('container');
     expect(this.obj.container).to.be.undefined;
   });
 

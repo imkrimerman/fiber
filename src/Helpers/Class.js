@@ -1,53 +1,55 @@
 /**
  * Fiber Class support
- * @type {Object}
- * @memberof Fiber.fn#
+ * @var {Object}
  */
 Fiber.fn.class = {
 
   /**
    * List of deep extend properties
    * @var {Array}
-   * @memberof Fiber.fn.class#
    */
   deepProperties: ['hidden', 'extendable', 'ownProps', 'extensions', 'events', 'eventsCatalog'],
+
+  /**
+   * Extend mixin
+   * @var {Object}
+   */
+  extendMixin: function () {
+    return { extend: Fiber.fn.proxy(Fiber.fn.class.extend) };
+  },
 
   /**
    * Fiber Class extend method.
    * Some properties should not be overridden by extend, they should be merge, so we will
    * search for them in given `proto` object and if one is found then we'll merge it with
    * object `prototype` value
-   * @param {Function|Object} parent - Parent to extend from
+   * @param {Function|Object} Parent - Parent to extend from
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
-   * @memberof Fiber.fn.class#
    */
-  extend: function(parent, proto, statics) {
-    return Fiber.fn.nativeExtend(
-      parent,
-      Fiber.fn.class.deepExtendProperties(Fiber.fn.merge(proto), this),
-      Fiber.fn.merge(statics)
-    );
+  extend: function(Parent, proto, statics) {
+    proto = Fiber.fn.merge(Fiber.fn.class.mixProto(proto));
+    statics = Fiber.fn.merge(Fiber.fn.class.mixExtend(statics));
+    return Fiber.fn.nativeExtend(Parent, Fiber.fn.class.deepExtendProperties(proto, Parent), statics);
   },
 
   /**
-   * Makes new class from `parent` using extender, statics and extensions.
-   * You can provide a string in `extender` or `statics` to auto resolve and inject extensions
-   * @param {?Function|Object} [parent] - Parent to extend from, default: {@link Fiber.Class}
-   * @param {?Array|Object} [extender] - Prototype properties (available on the instances)
+   * Makes new class from `Parent` using extender, statics and extensions.
+   * You can provide a string in `proto` or `statics` to auto resolve and inject extensions
+   * @param {?Function|Object} [Parent] - Parent to extend from, default: {@link Fiber.Class}
+   * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
-   * @memberof Fiber.fn.class#
    */
-  make: function(parent, extender, statics) {
-    parent = val(parent, Fiber.Class);
-    // If parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(parent) && Fiber.Ioc.has(parent)) parent = Fiber.Ioc.get(parent);
-    // Finally call extend method with right parent, proto and statics
+  make: function(Parent, proto, statics) {
+    Parent = val(Parent, Fiber.Class);
+    // If Parent is string, then try to resolve Class from dependency injection container
+    if (_.isString(Parent) && Fiber.Ioc.has(Parent)) Parent = Fiber.Ioc.get(Parent);
+    // Finally call extend method with right Parent, proto and statics
     return Fiber.fn.class.extend(
-      parent,
-      Fiber.getExtension(val(extender, {})),
+      Parent,
+      Fiber.getExtension(val(proto, {})),
       Fiber.getExtension(val(statics, {}))
     );
   },
@@ -59,7 +61,6 @@ Fiber.fn.class = {
    * @param {Object|Function} mixin
    * @param {?boolean} [override]
    * @returns {Object|Function}
-   * @memberof Fiber.fn.class#
    */
   mix: function(object, mixin, override) {
     override = val(override, false);
@@ -78,7 +79,6 @@ Fiber.fn.class = {
    * @param {Object|Object[]|Function[]} mixin
    * @param {?boolean} [override]
    * @returns {Fiber.fn.class}
-   * @memberof Fiber.fn.class#
    */
   include: function(object, mixin, override) {
     if (! _.isArray(mixin) && _.isPlainObject(mixin))
@@ -92,9 +92,9 @@ Fiber.fn.class = {
    * Deeply extends properties to the given `child` object
    * @param {Object} child - Child hash object to apply deep extend
    * @param {Object|Function} [parent = {}] - Class or instance to extend from
-   * @param {?Array} [properties] - Properties to extend (optional), default: {@link Fiber.global.deepExtendProperties}
+   * @param {?Array} [properties] - Properties to extend (optional), default: {@link
+   *   Fiber.fn.class.deepExtendProperties}
    * @returns {Object|Array|*}
-   * @memberof Fiber.fn.class#
    */
   deepExtendProperties: function(child, parent, properties) {
     if (! child) return child;
@@ -118,14 +118,13 @@ Fiber.fn.class = {
 
   /**
    * Makes new `Class` instance.
-   * @param {Function} parent - Class to create new instance from
+   * @param {Function} Parent - Class to create new instance from
    * @param {?Array} [args] - Arguments to pass to Class constructor
    * @returns {Object}
-   * @memberof Fiber.fn.class#
    */
-  makeInstance: function(parent, args) {
-    var Class = function() { return parent.apply(this, args || []); };
-    Class.prototype = parent.prototype;
+  makeInstance: function(Parent, args) {
+    var Class = function() { return Parent.apply(this, args || []); };
+    Class.prototype = Parent.prototype;
     return new Class();
   },
 
@@ -137,7 +136,6 @@ Fiber.fn.class = {
    * @param {string} method - Method key (string) to resolve
    * @param {?boolean} [bind] - Flag to auto bind object context to method
    * @returns {Function|null}
-   * @memberof Fiber.fn.class#
    */
   resolveMethod: function(object, method, bind) {
     bind = val(bind, true, _.isBoolean);
@@ -146,5 +144,60 @@ Fiber.fn.class = {
       return bind ? resolved.bind(object) : resolved;
     }
     return null;
-  }
+  },
+
+  /**
+   * Extends Backbone Class with all available extensions
+   * @param {string} backboneClass - Backbone class to extend (Model, Collection, View, Router)
+   * @param {?Array} [proto] - Additional list of prototypes to mix to child Class
+   * @returns {Function|null}
+   */
+  makeExtended: function(backboneClass, proto) {
+    backboneClass = Fiber.fn.string.capitalize(backboneClass, true)
+
+    var Parent = Backbone[backboneClass]
+      , excludeAccessFrom = ['Model', 'Collection']
+      , excludedExtensions = [];
+
+    if (Fiber.fn.inArray(backboneClass, excludeAccessFrom))
+      excludedExtensions.push('Access');
+
+    if (! Parent) return null;
+
+    var extender = Fiber.getExtensionsList(excludedExtensions);
+    return Fiber.fn.class.make(Parent, extender.concat(_.castArray(proto)));
+  },
+
+  /**
+   * Adds function helpers to the given `object`
+   * @param {Object} object - Object to add helpers mixin
+   * @param {?Array} [exclude] - Array of properties to exclude from functions object
+   * @returns {Object}
+   */
+  mixProto: function(object, exclude) {
+    object = val(object, {});
+    var proto = Fiber.fn.proto(exclude);
+    switch (true) {
+      case _.isArray(object): return object.concat(proto);
+      case _.isPlainObject(object) || _.isFunction(object): return _.extend(object, proto);
+      default: return object;
+    }
+  },
+
+  /**
+   * Adds extend function to the given `statics`
+   * @param {Array|Object|Function} statics
+   * @returns {Array|Object|Function|*}
+   */
+  mixExtend: function(statics) {
+    statics = val(statics, {});
+    var mixin = Fiber.fn.class.extendMixin();
+    switch (true) {
+      case _.isArray(statics):
+        return statics.concat(mixin);
+      case _.isPlainObject(statics) || _.isFunction(statics):
+        return _.extend(statics, mixin);
+      default: return statics;
+    }
+  },
 };
