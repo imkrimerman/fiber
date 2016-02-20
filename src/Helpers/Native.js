@@ -19,7 +19,7 @@ var proxyfy = function(owner, length, method, attribute) {
       };
     default:
       return function() {
-        var args = slice.call(arguments);
+        var args = _.toArray(arguments);
         args.unshift(attribute);
         return owner[method].apply(owner, args);
       };
@@ -30,7 +30,7 @@ var proxyOwnerMethods = function(Class, methods, attribute, owner) {
   owner = owner || _;
   _.each(methods, function(length, method) {
     var destruct = {name: method, len: length};
-    if (_.isArray(length)) destruct = _.zipObject(length, ['name', 'len']);
+    if (_.isArray(length)) destruct = _.zipObject(['name', 'len'], length);
     if (owner[method]) Class.prototype[destruct.name] = proxyfy(owner, destruct.len, method, attribute);
   });
 };
@@ -57,3 +57,5 @@ nativeMixins.Object = {
 nativeMixins.String = {};
 nativeMixins.Number = {};
 nativeMixins.Function = {};
+
+proxyOwnerMethods(Object, nativeMixins.Object);
