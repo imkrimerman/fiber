@@ -137,23 +137,22 @@ Fiber.fn = {
   },
 
   /**
-   * Binds array of `mixins`, object or function to the given object `context`,
-   * also you can bind each methods context too by providing the `innerApply` with true
+   * Binds array of `mixins` or mixin to the given object `context`, also you can bind
+   * each method of object mixin to context by providing the `innerApply` with true
    * @param {Array|Object|Function} mixins
    * @param {Object} ctx
-   * @param {?boolean} [innerApply=false]
+   * @param {...*} partials
    * @returns {Array|Object|Function}
    */
-  bind: function(mixins, ctx, innerApply) {
-    var wasArray = _.isArray(mixins);
-
-    innerApply = val(innerApply, false, _.isBoolean);
+  bind: function(mixins, ctx) {
+    var wasArray = _.isArray(mixins)
+      , args = _.drop(arguments, 2);
     mixins = _.castArray(mixins);
 
     for (var i = 0; i < mixins.length; i ++)
-      if (innerApply && (_.isPlainObject(mixins[i]) || _.isArray(mixins[i])))
-        mixins[i] = Fiber.fn.bind(mixins[i], ctx, innerApply);
-      else mixins[i] = _.bind(mixins[i], ctx);
+      if (_.isPlainObject(mixins[i]) || _.isArray(mixins[i]))
+        mixins[i] = Fiber.fn.bind.apply(null, [mixins[i], ctx].concat(args));
+      else mixins[i] = _.bind(mixins[i], ctx, args);
 
     return wasArray ? mixins : _.first(mixins);
   },

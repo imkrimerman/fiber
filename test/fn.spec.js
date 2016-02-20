@@ -93,6 +93,12 @@ describe('Fiber.fn', function() {
     expect(obj.mixed).to.eql('val');
   });
 
+  it('should `bind` array of mixins or mixin to the given context', function() {
+    this.TEST = true;
+    var bound = Fiber.fn.bind(Fiber.getExtension('Access'), this);
+    expect(bound.get('TEST')).to.eql(true);
+  });
+
   describe('val', function() {
     it('Should set default value if undefined or null is given', function() {
       assert.equal('default', val(undefined, 'default'));
