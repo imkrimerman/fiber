@@ -26,14 +26,19 @@
   // Finally, as a browser global.
   else root.Fiber = factory(root, {}, root.Backbone, root._);
 
-})(function(root, Fiber, Backbone, _) {
+})(function(root, exports, Backbone, _) {
   'use strict';
   /*eslint valid-jsdoc: 2*/
 
   /**
+   * Fiber main object
+   * @type {Object}
+   */
+  var Fiber = exports;
+
+  /**
    * Save the previous value of the `Fiber` variable, so that it can be
    * restored later on, if `noConflict` is used.
-   * global
    */
   var prevFiber = root.Fiber;
 
@@ -41,8 +46,6 @@
    * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
    * to its previous owner. Returns a reference to this Fiber object.
    * @returns {Fiber}
-   * @alias Fiber.noConflict
-   * @memberof! Fiber#
    */
   Fiber.noConflict = function() {
     root.Fiber = prevFiber;
@@ -52,29 +55,24 @@
   /**
    * Exposed jQuery (or similar) from Backbone
    * @type {Function}
-   * @memberof Fiber#
-   * @global
    */
   var $ = Fiber.$ = Backbone.$;
 
   /**
    * Add `lodash` to the Fiber
    * @type {Function}
-   * @memberof Fiber#
    */
   Fiber._ = _;
 
   /**
    * Fiber Version
    * @type {string}
-   * @memberof Fiber#
    */
   Fiber.VERSION = '0.0.5';
 
   /**
    * Fiber global variables
    * @type {Object}
-   * @memberof Fiber#
    */
   Fiber.globals = {};
 
@@ -83,7 +81,6 @@
    * Extensions in Fiber are like mixins or common code that you can
    * share over the Instances.
    * @type {Object}
-   * @memberof Fiber#
    */
   Fiber.Extension = {};
 

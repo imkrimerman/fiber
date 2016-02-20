@@ -49,7 +49,7 @@ gulp.task('compile', ['build', 'build-test', 'build-doc', 'minify']);
 
 gulp.task('dev', ['build', 'watch-dev']);
 gulp.task('dev-doc', ['build', 'build-doc', 'watch-dev']);
-gulp.task('dev-test', ['build', 'tdd']);
+gulp.task('dev-test', ['build', 'mocha', 'watch-dev-test']);
 
 gulp.task('build', Build);
 gulp.task('build-doc', BuildDocs);
@@ -57,17 +57,22 @@ gulp.task('build-test', BuildTest);
 gulp.task('minify', Minify);
 
 gulp.task('watch-dev', WatchDev);
+gulp.task('watch-dev-test', WatchDevTest);
 gulp.task('watch-lint', WatchLint);
 
 gulp.task('karma', CreateKarmaServer(true));
 gulp.task('tdd', CreateKarmaServer(false));
 
 gulp.task('lint', Lint);
-gulp.task('serve', Serve);
+gulp.task('mocha', Mocha);
 
+gulp.task('reload', function() {
+//  gulp.src()
+//    .pipe(connect.reload());
+});
 
 function Build() {
-  gulp.src(config.input)
+  return gulp.src(config.input)
     .pipe(inject(gulp.src(config.files, {read: false}), {
       removeTags: true,
       transform: function(filepath) {
@@ -88,7 +93,7 @@ function Build() {
 }
 
 function BuildTest() {
-  gulp.src(config.testDir + '/runner.html')
+  return gulp.src(config.testDir + '/runner.html')
     .pipe(inject(gulp.src(config.test, {read: false}), {
       relative: true,
       addPrefix: '.'
@@ -103,24 +108,31 @@ function WatchLint() {
 }
 
 function WatchDev() {
+  gulp.watch(config.files, ['build']);
+}
+
+function WatchDevDocs() {
   gulp.watch(config.files, ['build', 'build-doc']);
 }
 
+function WatchDevTest() {
+  gulp.watch(config.files.concat([config.test + '/**/*spec.js']), ['build']);
+}
+
 function Lint() {
-  gulp.src(config.files)
+  return gulp.src(config.files)
     .pipe(eslint({
       configFile: './.eslintrc'
     }))
     .pipe(eslint.format());
 }
 
-function Serve() {
+function Mocha() {
   connect.server({
     root: './',
     port: 3030,
     livereload: true,
   });
-  shell.exec('open -a "Google Chrome" http://localhost:3030/test/runner.html');
 }
 
 function CreateKarmaServer(tdd) {

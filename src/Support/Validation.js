@@ -26,8 +26,9 @@ Fiber.fn.validation = {
    * @memberof Fiber.fn.validation#
    */
   validate: function(model, attributes, options) {
+    var rules = model.getRules();
     // if model doesn't have any rules, then we are okey to return true
-    if (_.isEmpty(model.getRules())) return true;
+    if (_.isEmpty(rules)) return true;
     // otherwise ensure arguments have default values
     options = val(options, {});
     attributes = val(attributes, model.attributes);
