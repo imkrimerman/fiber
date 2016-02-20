@@ -159,7 +159,7 @@ Fiber.fn.class = {
       , excludeAccessFrom = ['Model', 'Collection']
       , excludedExtensions = [];
 
-    if (Fiber.fn.inArray(backboneClass, excludeAccessFrom))
+    if (_.includes(excludeAccessFrom, backboneClass))
       excludedExtensions.push('Access');
 
     if (! Parent) return null;

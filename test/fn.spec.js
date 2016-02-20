@@ -93,10 +93,10 @@ describe('Fiber.fn', function() {
     expect(obj.mixed).to.eql('val');
   });
 
-  it('should `bind` array of mixins or mixin to the given context', function() {
-    this.TEST = true;
+  it('should `bind` array/object of mixins or mixin to the given context (can be recursive)', function() {
+    this.BIND_TEST = true;
     var bound = Fiber.fn.bind(Fiber.getExtension('Access'), this);
-    expect(bound.get('TEST')).to.eql(true);
+    expect(bound.get('BIND_TEST')).to.eql(true);
   });
 
   describe('val', function() {

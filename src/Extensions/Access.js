@@ -24,7 +24,7 @@ Fiber.setExtension('Access', {
   // You can provide `defaults` value that will be returned if value is not found
   // by the given key. If `defaults` is not provided that defaults will be set to `null`
   result: function(property, defaults) {
-    return Fiber.fn.result(this, property, val(defaults, null));
+    return Fiber.fn.result(this, property, defaults);
   },
 
   // Removes `value` by given `property` key

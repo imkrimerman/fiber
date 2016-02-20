@@ -18,7 +18,7 @@ describe('Fiber.Extensions.Access', function() {
 
   it('should `get` property by alias with defaults', function() {
     expect(this.obj.get('container')).to.eql(this.container);
-    expect(this.obj.get('notExist')).to.be.null;
+    expect(this.obj.get('notExist')).to.be.undefined;
     expect(this.obj.get('notExist', 'NOT_EXIST')).to.eql('NOT_EXIST');
 
     this.container.key = true;

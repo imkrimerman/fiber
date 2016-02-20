@@ -23,6 +23,7 @@ var gulp = require('gulp')
       './src/Helpers/String.js',
       './src/Helpers/Template.js',
       './src/Helpers/Validation.js',
+      './src/Helpers/Native.js',
 
       './src/Extensions/Extensions.js',
       './src/Extensions/Access.js',

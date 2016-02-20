@@ -20,7 +20,7 @@ Fiber.fn = {
   // will be returned if value is not found by the given key. If `defaults` is
   // not provided that defaults will be set to `null`
   get: function(object, property, defaults) {
-    return _.get(object, property, val(defaults, null));
+    return _.get(object, property, defaults);
   },
 
   // Sets `value` by given `property` key
@@ -38,7 +38,7 @@ Fiber.fn = {
   // You can provide `defaults` value that will be returned if value is not found
   // by the given key. If `defaults` is not provided that defaults will be set to `null`
   result: function(object, property, defaults) {
-    return _.result(object, property, val(defaults, null));
+    return _.result(object, property, defaults);
   },
 
   // Removes `value` by given `property` key
@@ -140,21 +140,40 @@ Fiber.fn = {
    * Binds array of `mixins` or mixin to the given object `context`, also you can bind
    * each method of object mixin to context by providing the `innerApply` with true
    * @param {Array|Object|Function} mixins
-   * @param {Object} ctx
-   * @param {...*} partials
+   * @param {Object} thisArg
+   * @param {?Array} [partials=[]]
    * @returns {Array|Object|Function}
    */
-  bind: function(mixins, ctx) {
-    var wasArray = _.isArray(mixins)
-      , args = _.drop(arguments, 2);
+  bind: function(mixins, thisArg, partials) {
+    var wasArray = _.isArray(mixins);
+
+    function bindFn(mixin) {
+      if (! _.isFunction(mixin)) return mixin;
+      return _.bind.apply(_, [mixin, thisArg].concat(val(partials, [])));
+    };
+
     mixins = _.castArray(mixins);
 
-    for (var i = 0; i < mixins.length; i ++)
+    for (var i = 0; i < mixins.length; i ++) {
       if (_.isPlainObject(mixins[i]) || _.isArray(mixins[i]))
-        mixins[i] = Fiber.fn.bind.apply(null, [mixins[i], ctx].concat(args));
-      else mixins[i] = _.bind(mixins[i], ctx, args);
+        mixins[i] = Fiber.fn.transform(_.clone(mixins[i]), bindFn);
+      else mixins[i] = bindFn(mixins[i]);
+    }
 
     return wasArray ? mixins : _.first(mixins);
+  },
+
+  /**
+   * Transforms object
+   * @param {Object} object
+   * @param {Function} iteratee
+   * @returns {Object}
+   */
+  transform: function(object, iteratee, thisArg) {
+    thisArg = val(thisArg, this);
+    for (var key in object)
+      object[key] = iteratee.call(thisArg, object[key], key, object);
+    return object;
   },
 
   /**
@@ -173,23 +192,12 @@ Fiber.fn = {
    * Checks if given array is array with objects
    * @param {Array} array - Array to check
    * @param {string} of - String of type (object, string, array ...etc)
-   * @returns {boolean}
+   * @param {?string} [method=every] Method to use to check if `every`, `any` or `some` conditions worked
+   * @returns {*|boolean}
    */
-  isArrayOf: function(array, of) {
-    return _.isArray(array) && _.every(array, _['is' + Fiber.fn.string.capitalize(of)]);
-  },
-
-  /**
-   * Checks if `array` contains given `value`
-   * @param {Array} array - Array to check
-   * @param {*} value - Value to search in array
-   * @returns {boolean}
-   */
-  inArray: function(array, value) {
-    if (! _.isArray(array)) return false;
-    var i = array.length;
-    while (i--) if (array[i] === value) return true;
-    return false;
+  isArrayOf: function(array, of, method) {
+    method = val(method, 'every', _.isString);
+    return _.isArray(array) && _[method](array, _['is' + Fiber.fn.string.capitalize(of)]);
   },
 
   /**
@@ -224,7 +232,6 @@ Fiber.fn.val.isDef = function(value) {
 };
 
 /**
- * Globally exposed `val` function
- * @type {Function}
+ * @inheritDoc
  */
 var val = Fiber.fn.val;
