@@ -5,7 +5,7 @@ var gulp = require('gulp')
   , mocha = require('gulp-mocha')
   , eslint = require('gulp-eslint')
   , connect = require('gulp-connect')
-  , notify = require('gulp-notify')
+  , gulpNotify = require('gulp-notify')
   , flow = require('flow-bin')
 
   , fs = require('fs')
@@ -55,35 +55,33 @@ var gulp = require('gulp')
 
 gulp.task('default', ['build', 'uglify']);
 gulp.task('dev', ['build', 'watch']);
-gulp.task('build', ['template', 'flow']);
 gulp.task('template', ['template-code', 'template-test']);
 gulp.task('flow', ['flow-check', 'flow-remove']);
+
+gulp.task('build', function() {
+  shell.exec('gulp template && gulp flow');
+});
 
 gulp.task('watch', function() {
   gulp.watch(config.files.concat(config.input), ['build']);
 });
 
-gulp.task('flow-remove', function Flow() {
-  gulp.src(config.tmp + '/fiber.js')
+gulp.task('flow-remove', function FlowRemove() {
+  return gulp.src(config.tmp + '/fiber.js')
     .pipe(babel({
       plugins: ["transform-flow-strip-types"]
     }))
     .pipe(gulp.dest(config.output));
 });
 
-shell.exec('flow run');
 gulp.task('flow-check', function FlowCheck() {
-  var log = shell.exec('flow check', {silent:true}).stdout;
-  gulp.src(config.input, {read: false})
-    .pipe(notify({
-      title: 'Fiber Framework: Flow check',
-      message: log,
-      icon: path.join(__dirname, 'notify.png'),
-    }));
+  var log = shell.exec('flow check --debug').stdout;
+  if (log !== 'Found 0 errors') log = 'Found Errors!'
+  notify('Flow check: ' + log);
 });
 
 gulp.task('template-code', function Template() {
-  gulp.src(config.input)
+  return gulp.src(config.input)
     .pipe(inject(gulp.src(config.files, {read: false}), {
       removeTags: true,
       transform: function(filepath) {
@@ -105,7 +103,7 @@ gulp.task('template-code', function Template() {
 
 
 gulp.task('template-test', function TemplateTest() {
-  gulp.src(config.testDir + '/runner.html')
+  return gulp.src(config.testDir + '/runner.html')
     .pipe(inject(gulp.src(config.test, {read: false}), {
       relative: true,
       addPrefix: '.'
@@ -116,7 +114,7 @@ gulp.task('template-test', function TemplateTest() {
 
 
 gulp.task('lint', function Lint() {
-  gulp.src(config.files)
+  return gulp.src(config.files)
     .pipe(eslint({
       configFile: './.eslintrc'
     }))
@@ -125,7 +123,7 @@ gulp.task('lint', function Lint() {
 
 
 gulp.task('serve', function Serve() {
-  connect.server({
+  return connect.server({
     root: './',
     port: 3030,
     livereload: true,
@@ -134,12 +132,12 @@ gulp.task('serve', function Serve() {
 
 
 gulp.task('uglify', function Minify() {
-  shell.exec('npm run min');
+  return shell.exec('npm run min');
 });
 
 
 gulp.task('docs', function BuildDocs() {
-  shell.exec('npm run doc');
+  return shell.exec('npm run doc');
 });
 
 
@@ -151,4 +149,14 @@ function CreateKarmaServer(tdd) {
     config.karma.singleRun = tdd;
     new karma.Server(config.karma, done).start();
   };
+}
+
+function notify(message) {
+  return gulp.src(config.input, {read: false}).pipe(
+    gulpNotify({
+      title: 'Fiber Framework',
+      message: message,
+      icon: path.join(__dirname, 'notify.png'),
+    })
+  );
 }

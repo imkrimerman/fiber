@@ -80,7 +80,6 @@ Fiber.fn = {
    * @param {?Array} [args] - arguments to pass
    * @param {?Object|Array} [context] - context to apply to
    * @returns {*}
-   * @memberof Fiber.fn#
    */
   apply: function(Class: Function | object, method: string, args?: array, context?: array | object) {
     context = val(context, Class);
@@ -96,12 +95,12 @@ Fiber.fn = {
   },
 
   /**
-   * Binds array/object or one `mixin` to the given `object`
-   * @param mixin
-   * @param object
+   * Binds array/hash or one `mixin` to the given `object`
+   * @param {Array|Object|Function} mixin
+   * @param {Object} object
    * @returns {Array}
    */
-  bind: function(mixin, object) {
+  bind: function(mixin: object, object: string) {
     if (! _.isArray(mixin) && ! _.isObject(mixin)) mixin = [mixin];
     return _.map(mixin, function(one) {
       if (_.isFunction(one)) return one.bind(object);

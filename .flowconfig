@@ -1,13 +1,13 @@
-[include]
-build/fiber.js
-
 [ignore]
+.*/build/.*
 .*/coverage/.*
 .*/docs/.*
 .*/node_modules/.*
-.*/src/**/.*
-.*/tmp/.*
+.*/src/.*
 .*/test/.*
 .*gulpfile.js
 .*karma.conf.js
-.*package.js
+.*package.json
+
+[options]
+suppress_comment= \\(.\\|\n\\)*\\$FlowIgnore
