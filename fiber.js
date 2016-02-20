@@ -28,7 +28,7 @@
 
 })(function(root, exports, Backbone, _) {
   'use strict';
-  /*eslint valid-jsdoc: 2*/
+  /*eslint valid-jsdoc: 1*/
 
   /**
    * Fiber main object
@@ -68,11 +68,11 @@
    * Fiber Version
    * @type {string}
    */
-  Fiber.VERSION = '0.0.5';
+  Fiber.VERSION = '0.0.10';
 
   /**
    * Fiber global variables
-   * @type {Object}
+   * @var {Object}
    */
   Fiber.globals = {};
 
@@ -80,7 +80,7 @@
    * Fiber extensions holder.
    * Extensions in Fiber are like mixins or common code that you can
    * share over the Instances.
-   * @type {Object}
+   * @var {Object}
    */
   Fiber.Extensions = {};
 

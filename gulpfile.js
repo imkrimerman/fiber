@@ -46,6 +46,9 @@ var gulp = require('gulp')
       './src/CollectionView.js',
 
       './src/Services/Ioc.js',
+
+      // After load scripts
+      './src/Helpers/AfterLoad.js'
     ]
   };
 
