@@ -47,6 +47,13 @@ var gulp = require('gulp')
 
       './src/Services/Ioc.js',
 
+//      './src/Middleware.js',
+//      './src/Route.js',
+//      './src/Router.js',
+//      './src/Page.js',
+//      './src/Layout.js',
+//      './src/Viewport.js',
+
       // After load scripts
       './src/Helpers/AfterLoad.js'
     ]

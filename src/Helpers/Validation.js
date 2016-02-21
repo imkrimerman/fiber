@@ -10,6 +10,7 @@ Fiber.fn.validation = {
    */
   ruleDefaults: {
     required: false,
+    match: 'every',
     validators: [],
     when: null,
     message: null
@@ -66,19 +67,24 @@ Fiber.fn.validation = {
         else if (_.isString(rule.validators) && model[rule.validators])
           validators.push(Fiber.fn.class.resolveMethod(model, rule.validators));
 
+        // validation runner to support recursive validators grouping
+        var runValidation = function(validators) {
+          return _[rule.match](validators, function(validator) {
+            if (_.isString(validator)) validator = Fiber.fn.class.resolveMethod(model, validator);
+            if (_.isFunction(validator)) return validator(attribute, rule, model, options);
+            if (_.isArray(validator)) return runValidation(validator);
+            return false;
+          });
+        };
+
         // After validators are prepared lets traverse them and call each with attribute.
-        var matchEvery = _.every(validators, function(validator) {
-          if (_.isString(validator)) validator = Fiber.fn.class.resolveMethod(model, validator);
-          if (_.isFunction(validator)) return validator(attribute, rule, options);
-          return false;
-        });
+        var matched = runValidation(validators);
 
         // If true is returned from each validator, then we can say that attribute is valid.
         // Otherwise add errors to the models error bag.
-        if (! matchEvery) model.errorBag.push(key, rule.message ? rule.message : '[' + key + '] is not valid');
+        if (! matched) model.errorBag.push(key, rule.message ? rule.message : '[' + key + '] is not valid');
       }
     }
-
     // if showErrors is enabled then let's return them
     if (options.showErrors) return model.errorBag.getErrors();
     // otherwise lets return boolean result of validation

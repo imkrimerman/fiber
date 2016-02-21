@@ -58,4 +58,4 @@ nativeMixins.String = {};
 nativeMixins.Number = {};
 nativeMixins.Function = {};
 
-proxyOwnerMethods(Object, nativeMixins.Object);
+//proxyOwnerMethods(Object, nativeMixins.Object);
