@@ -69,7 +69,7 @@ Fiber.Router = Fiber.fn.class.make(Backbone.Router, ['NsEvents', {
    */
   constructor: function(options) {
     this.state = false;
-    this.viewport = new Viewport();
+    this.viewport = new Fiber.Viewport();
     _.defaults(options, {routes: [], middleware: []});
     _.assign(this, _.pick(options, routerOptions));
     this.createRouteCollection(options.routes);
