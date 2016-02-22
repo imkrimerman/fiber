@@ -118,7 +118,26 @@ Fiber.Container = Fiber.fn.class.make(Fiber.Class, [
       if (this.isRetrievable(abstract)) return this.retrieve(abstract);
       var concrete = this.bindings.get(abstract);
       if (! concrete) throw new Error('Resolution Exception with ' + abstract);
-      return concrete.apply(val(scope, this), val(parameters, [], _.isArray).concat(this));
+      return concrete.apply(val(scope, this), this.resolve(parameters).concat([this]));
+    },
+
+    /**
+     * Resolves dependencies from container
+     * @param {Array} dependencies
+     * @returns {Array}
+     */
+    resolve: function(dependencies) {
+      var resolved = [];
+      dependencies = _.castArray(dependencies);
+      for (var i = 0; i < dependencies.length; i++) {
+        var dep = dependencies[i];
+        if (_.isString(dep)) {
+          var retrieved = this.make(dep);
+          if (retrieved) dep = retrieved;
+        }
+        resolved.push(dep);
+      }
+      return resolved;
     },
 
     /**
