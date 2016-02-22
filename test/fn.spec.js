@@ -97,6 +97,8 @@ describe('Fiber.fn', function() {
     this.BIND_TEST = true;
     var bound = Fiber.fn.bind(Fiber.getExtension('Access'), this);
     expect(bound.get('BIND_TEST')).to.eql(true);
+    bound.set('BIND_TEST', 'TRUE')
+    expect(bound.get('BIND_TEST')).to.eql('TRUE');
   });
 
   describe('val', function() {

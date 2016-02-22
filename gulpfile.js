@@ -45,7 +45,7 @@ var gulp = require('gulp')
       './src/View.js',
       './src/CollectionView.js',
 
-      './src/Services/Ioc.js',
+      './src/Services/Container.js',
 
 //      './src/Middleware.js',
 //      './src/Route.js',
