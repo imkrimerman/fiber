@@ -12,7 +12,7 @@ describe('Fiber.Extensions.Access', function() {
   });
 
   it('should have `Access` extension', function() {
-    expect(Fiber.Extensions).to.have.property('Access');
+    expect(Fiber.ioc.extensions.items).to.have.property('Access');
     expect(Fiber.getExtension('Access')).not.to.be.null;
   });
 

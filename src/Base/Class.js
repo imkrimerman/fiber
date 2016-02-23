@@ -2,15 +2,17 @@
  * Fiber Base Class
  * @class
  */
-Fiber.Class = function(options, extensions) {
-  if (val.isDef(extensions)) Fiber.applyExtension(extensions, this, true);
-  this.initialize.apply(this, arguments);
-};
+Fiber.Class = Fiber.fn.class.createClass([Backbone.Events, {
 
-/**
- * Extends Fiber Class prototype with Backbone.Events and support helpers
- */
-_.extend(Fiber.Class.prototype, Backbone.Events, Fiber.fn.proto(), {
+  /**
+   * Constructs simple class
+   * @param {?Object} [options]
+   * @param {?Array|string} [extensions]
+   */
+  constructor: function(options, extensions) {
+    if (extensions) Fiber.applyExtension(extensions, this, true);
+    this.initialize.apply(this, arguments);
+  },
 
   /**
    * Initializes class
@@ -26,9 +28,5 @@ _.extend(Fiber.Class.prototype, Backbone.Events, Fiber.fn.proto(), {
     Fiber.applyExtension(alias, this, override);
     return this;
   }
-});
 
-/**
- * Mixes extend method
- */
-Fiber.fn.class.mixExtend(Fiber.Class);
+}]);

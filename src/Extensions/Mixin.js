@@ -1,7 +1,7 @@
 // Mixin extension.
 // Functions that provides including and mixining objects and array of objects
 
-Fiber.setExtension('Mixin', {
+Fiber.Extensions.Mixin = {
 
   // Adds given `mixin` to Fiber Class. Mixin can be object or function.
   // Also you can provide `override` boolean to force override properties.
@@ -25,4 +25,4 @@ Fiber.setExtension('Mixin', {
   applyExtension: function(alias, override) {
     Fiber.applyExtension(alias, this, override);
   }
-});
+};

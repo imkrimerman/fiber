@@ -1,5 +1,6 @@
 'use strict';
-var gulp = require('gulp')
+var _ = require('lodash')
+  , gulp = require('gulp')
   , inject = require('gulp-inject')
   , fs = require('fs')
   , path = require('path')
@@ -8,6 +9,7 @@ var gulp = require('gulp')
   , eslint = require('gulp-eslint')
   , connect = require('gulp-connect')
   , karma = require('karma')
+  , packageJson = require('./package')
 
   , config = {
     input: 'fiber.js',
@@ -18,34 +20,43 @@ var gulp = require('gulp')
       configFile: __dirname + '/karma.conf.js'
     },
     files: [
+      './src/Helpers/BeforeLoad.js',
+
+      // Helpers
       './src/Helpers/fn.js',
       './src/Helpers/Class.js',
-      './src/Helpers/String.js',
       './src/Helpers/Template.js',
       './src/Helpers/Validation.js',
-      './src/Helpers/Native.js',
+      './src/Helpers/Delegator.js',
 
-      './src/Extensions/Extensions.js',
+      // Extensions
       './src/Extensions/Access.js',
+      './src/Extensions/Binder.js',
       './src/Extensions/Extend.js',
       './src/Extensions/Mixin.js',
       './src/Extensions/NsEvents.js',
       './src/Extensions/OwnProperties.js',
+      './src/Extensions/Extensions.js',
 
+      // Base
       './src/Base/Class.js',
       './src/Base/Bag.js',
-      './src/Base/Collection.js',
 
+      // Services
+      './src/Services/Container.js',
+      './src/Extensions/AddExtensions.js',
+
+      // Support
+      './src/Support/Collection.js',
       './src/Support/ErrorBag.js',
       './src/Support/LinkedViews.js',
       './src/Support/Listeners.js',
 
+      // Base components
       './src/Model.js',
       './src/Collection.js',
       './src/View.js',
       './src/CollectionView.js',
-
-      './src/Services/Container.js',
 
 //      './src/Middleware.js',
 //      './src/Route.js',
@@ -66,7 +77,7 @@ gulp.task('compile', ['build', 'build-test', 'build-doc', 'minify']);
 
 gulp.task('dev', ['build', 'watch-dev']);
 gulp.task('dev-doc', ['build', 'build-doc', 'watch-dev']);
-gulp.task('dev-test', ['build', 'mocha', 'watch-dev-test']);
+gulp.task('dev-test', ['build', 'build-test', 'mocha', 'watch-dev-test']);
 
 gulp.task('build', Build);
 gulp.task('build-doc', BuildDocs);
@@ -88,12 +99,19 @@ gulp.task('reload', function() {
 });
 
 function Build() {
+
   return gulp.src(config.input)
     .pipe(inject(gulp.src(config.files, {read: false}), {
       removeTags: true,
       transform: function(filepath) {
         if (filepath.slice(-3) === '.js') {
-          var contents = fs.readFileSync(path.join(__dirname, filepath)).toString().split("\n");
+          var contents = fs.readFileSync(path.join(__dirname, filepath)).toString();
+
+          if (_.last(filepath.split('/')).replace('.js', '') === 'BeforeLoad') {
+            contents = contents.replace('$VERSION$', packageJson.version);
+          }
+
+          contents = contents.split("\n");
           for (var i = 0; i < contents.length; i ++) {
             if (! i) continue;
             contents[i] = "  " + contents[i];

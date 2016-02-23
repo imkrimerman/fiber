@@ -15,7 +15,7 @@ Fiber.fn.class = {
    * @var {Object}
    */
   extendMixin: function () {
-    return { extend: Fiber.fn.proxy(Fiber.fn.class.extend) };
+    return { extend: Fiber.fn.proxy(Fiber.fn.class.make) };
   },
 
   /**
@@ -111,7 +111,7 @@ Fiber.fn.class = {
       // if `property` value is array then concatenate `parent` object with `child` object
       if (_.isArray(child[property])) child[property] = objProtoProp.concat(child[property]);
       // else if it's plain object then extend `child` object from `parent` object
-      else if (_.isPlainObject(child[property])) _.extend(child[property], objProtoProp);
+      else if (_.isPlainObject(child[property])) child[property] = _.extend({}, child[property], objProtoProp);
     });
     return child;
   },
@@ -139,7 +139,7 @@ Fiber.fn.class = {
    */
   resolveMethod: function(object, method, bind) {
     bind = val(bind, true, _.isBoolean);
-    if (_.isString(method) && object[method]) {
+    if (_.isString(method) && object[method] && _.isFunction(object[method])) {
       var resolved = object[method];
       return bind ? resolved.bind(object) : resolved;
     }
@@ -149,11 +149,11 @@ Fiber.fn.class = {
   /**
    * Extends Backbone Class with all available extensions
    * @param {string} backboneClass - Backbone class to extend (Model, Collection, View, Router)
-   * @param {?Array} [proto] - Additional list of prototypes to mix to child Class
+   * @param {?Array|Object} [proto] - Additional list of prototypes to mix to child Class
    * @returns {Function|null}
    */
   makeExtended: function(backboneClass, proto) {
-    backboneClass = Fiber.fn.string.capitalize(backboneClass, true)
+    backboneClass = _.capitalize(backboneClass, true)
 
     var Parent = Backbone[backboneClass]
       , excludeAccessFrom = ['Model', 'Collection']
@@ -199,5 +199,49 @@ Fiber.fn.class = {
         return _.extend(statics, mixin);
       default: return statics;
     }
+  },
+
+  /**
+   * Creates condition methods
+   * @param {Object} object
+   * @param {Array} methods
+   * @param {string|Function} checkerMethod
+   * @param {?string} [condition=if]
+   * @returns {Object}
+   */
+  createConditionMethods: function(object, methods, checkerMethod, condition) {
+    methods = _.castArray(methods);
+    checkerMethod = this.prepareConditionCheckerMethod(object, checkerMethod);
+    condition = _.capitalize(val(condition, 'if'), true);
+    for (var i = 0; i < methods.length; i ++) {
+      var method = methods[i];
+      object[method + condition] = function(abstract, concrete) {
+        if (! checkerMethod(abstract)) object[method](abstract, concrete);
+        return object;
+      };
+    }
+    return object;
+  },
+
+  /**
+   * Prepares checker method for conditional methods
+   * @param {Object} object
+   * @param {string|Function} checkerMethod
+   * @returns {Function}
+   */
+  prepareConditionCheckerMethod: function(object, checkerMethod) {
+    if (_.isString(checkerMethod)) checkerMethod = object[checkerMethod];
+    if (_.isBoolean(checkerMethod)) checkerMethod = _.constant(checkerMethod);
+    if (! _.isFunction(checkerMethod)) return _.constant(true);
+  },
+
+  /**
+   * Creates simple Class with Backbone Events
+   * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
+   * @param {?Array|Object} [statics] - Static properties (available on the constructor)
+   * @returns {Function}
+   */
+  createClass: function(proto, statics) {
+    return Fiber.fn.class.extend(_.noop, proto, statics);
   },
 };

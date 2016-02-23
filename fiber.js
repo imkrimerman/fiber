@@ -36,54 +36,6 @@
    */
   var Fiber = exports;
 
-  /**
-   * Save the previous value of the `Fiber` variable, so that it can be
-   * restored later on, if `noConflict` is used.
-   */
-  var prevFiber = root.Fiber;
-
-  /**
-   * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
-   * to its previous owner. Returns a reference to this Fiber object.
-   * @returns {Fiber}
-   */
-  Fiber.noConflict = function() {
-    root.Fiber = prevFiber;
-    return this;
-  };
-
-  /**
-   * Exposed jQuery (or similar) from Backbone
-   * @type {Function}
-   */
-  var $ = Fiber.$ = Backbone.$;
-
-  /**
-   * Add `lodash` to the Fiber
-   * @type {Function}
-   */
-  Fiber._ = _;
-
-  /**
-   * Fiber Version
-   * @type {string}
-   */
-  Fiber.VERSION = '0.0.10';
-
-  /**
-   * Fiber global variables
-   * @var {Object}
-   */
-  Fiber.globals = {};
-
-  /**
-   * Fiber extensions holder.
-   * Extensions in Fiber are like mixins or common code that you can
-   * share over the Instances.
-   * @var {Object}
-   */
-  Fiber.Extensions = {};
-
   <!-- inject:js -->
   <!-- endinject -->
   return Fiber;

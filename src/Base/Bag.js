@@ -3,13 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
-
-  /**
-   * Events namespace
-   * @var {string}
-   */
-  eventsNs: 'bag',
+Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
 
   /**
    * Bag items
@@ -83,6 +77,14 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
   },
 
   /**
+   * Returns all items from the Bag
+   * @returns {Object}
+   */
+  all: function() {
+    return this.items;
+  },
+
+  /**
    * Clears bag items
    * @return {Fiber.Bag}
    */
@@ -90,4 +92,9 @@ Fiber.Bag = Fiber.fn.class.make(Fiber.Class, ['NsEvents', {
     this.items = {};
     return this;
   }
-}]);
+});
+
+/**
+ * Proxy lodash object methods to the Bag
+ */
+Fiber.fn.delegator.delegateMixin(Fiber.Bag, 'object', 'items');

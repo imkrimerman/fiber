@@ -1,5 +1,5 @@
 // Extend extension.
-Fiber.setExtension('Extend', {
+Fiber.Extensions.Extend = {
 
   // Properties keys that will be auto extended from initialize object
   extendable: [],
@@ -15,4 +15,4 @@ Fiber.setExtension('Extend', {
     }
     return this;
   }
-});
+};

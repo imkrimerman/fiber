@@ -1,6 +1,6 @@
 // Access extension brings getters, setters and unsetters that uses
 // `lodash` methods to support deep access to the Class.
-Fiber.setExtension('Access', {
+Fiber.Extensions.Access = {
 
   // Gets value by given `property` key. You can provide `defaults` value that
   // will be returned if value is not found by the given key. If `defaults` is
@@ -32,4 +32,4 @@ Fiber.setExtension('Access', {
     Fiber.fn.forget(this, property);
     return this;
   }
-});
+};

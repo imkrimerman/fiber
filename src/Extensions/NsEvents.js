@@ -1,6 +1,6 @@
 // Namespace Events extension brings namespaces to the event and also
 // provides catalog to simplify registered events.
-Fiber.setExtension('NsEvents', {
+Fiber.Extensions.NsEvents = {
 
   // Events namespace
   eventsNs: '',
@@ -71,4 +71,4 @@ Fiber.setExtension('NsEvents', {
     this.eventsCatalog[alias] = event;
     return this;
   }
-});
+};

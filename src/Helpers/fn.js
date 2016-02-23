@@ -111,6 +111,7 @@ Fiber.fn = {
   merge: function(array) {
     if (arguments.length > 1) array = _.toArray(arguments);
     if (! _.isArray(array)) return array;
+    array = _.compact(array);
     if (Fiber.fn.isArrayOf(array, 'object'))
       return _.extend.apply(_, [{}].concat(array));
     else if (Fiber.fn.isArrayOf(array, 'array'))
@@ -197,7 +198,7 @@ Fiber.fn = {
    */
   isArrayOf: function(array, of, method) {
     method = val(method, 'every', _.isString);
-    return _.isArray(array) && _[method](array, _['is' + Fiber.fn.string.capitalize(of)]);
+    return _.isArray(array) && _[method](array, _['is' + _.capitalize(of)]);
   },
 
   /**
