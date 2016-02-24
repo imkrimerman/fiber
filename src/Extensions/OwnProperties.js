@@ -1,10 +1,19 @@
-// Own Properties extension.
+/**
+ * Fiber Own Properties extension.
+ * @var {Object}
+ */
 Fiber.Extensions.OwnProperties = {
 
-  // Properties keys that will be owned by the instance
+  /**
+   * Properties keys that will be owned by the instance
+   * @var {Array|Function}
+   */
   ownProps: [],
 
-  // Ensures that class owns properties
+  /**
+   * Ensures that class owns properties
+   * @returns {*}
+   */
   applyOwnProps: function() {
     for (var i = 0; i < this.ownProps.length; i ++) {
       var prop = this.ownProps[i];

@@ -1,12 +1,22 @@
-// Fiber Model
+/**
+ * Fiber Model
+ * @class
+ * @extends {Backbone.Model}
+ */
 Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
-  'NsEvents', 'Extend', 'Mixin', 'OwnProperties', Fiber.fn.proto(), {
+  'NsEvents', 'Extend', 'Mixin', 'OwnProperties', {
 
-    // Hidden fields.
-    // toJSON method will omit this fields.
+    /**
+     * Hidden fields.
+     * toJSON method will omit this fields.
+     * @var {Array|Function}
+     */
     hidden: [],
 
-    // Validation rules
+    /**
+     * Validation rules
+     * @var {Object|Function}
+     */
     rules: {},
 
     /**
@@ -15,20 +25,33 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     errorBag: null,
 
-    // Events namespace
+    /**
+     * Events namespace
+     * @var {string}
+     */
     eventsNs: 'model',
 
-    // Events catalog
+    /**
+     * Events catalog
+     * @var {Object}
+     */
     eventsCatalog: {
       fetchSuccess: 'fetch:success',
       fetchError: 'fetch:error',
       invalid: 'invalid'
     },
 
-    // Properties keys that will be auto extended from initialize object
+    /**
+     * Properties keys that will be auto extended from initialize object
+     * @var {Array|Function}
+     */
     extendable: ['collection', 'url', 'hidden', 'rules', 'eventsNs', 'eventsCatalog'],
 
-    // Model constructor
+    /**
+     * Constructs Model
+     * @param {?Object} [attributes={}]
+     * @param {?Object} [options={}]
+     */
     constructor: function(attributes, options) {
       this.errorBag = new Fiber.ErrorBag();
       this.resetView();
@@ -46,7 +69,11 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       this.initialize.apply(this, arguments);
     },
 
-    // Fetch model data
+    /**
+     * Fetches model data
+     * @param {Object} options
+     * @returns {*}
+     */
     fetch: function(options) {
       return Fiber.fn.apply(Backbone.Model, 'fetch', [
         _.extend({}, options || {}, {
@@ -56,72 +83,87 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       ], this);
     },
 
-    // Fetch success handler
-    whenSuccess: function(model, response, options) {},
-
-    // Fetch error handler
-    whenError: function(model, response, options) {},
-
-    // Validation error handler
-    whenInvalid: function(model, errors, options) {},
-
-    // Sends request using jQuery `ajax` method with the given `options`
+    /**
+     * Sends request using jQuery `ajax` method with the given `options`
+     * @param {Object} options
+     * @returns {*}
+     */
     request: function(options) {
       return Fiber.$.ajax(options);
     },
 
-    // Checks if Model is fetchable
-    isFetchable: function() {
-      try {
-        return _.isString(_.result(this, 'url'));
-      }
-      catch (e) {
-        return false;
-      }
-    },
-
-    // Validates `attributes` of Model against `rules`
-    validate: function(attrs, options) {
-      Fiber.fn.validation.validate(this, val(attrs, this.attributes), options);
+    /**
+     * Validates `attributes` of Model against `rules`
+     * @param {?Object} [attributes=this.attributes]
+     * @param {?Object} [options={}]
+     * @returns {Object|undefined}
+     */
+    validate: function(attributes, options) {
+      Fiber.fn.validation.validate(this, val(attributes, this.attributes), options);
       return this.errorBag.getErrors();
     },
 
-    // Returns validation `rules`
+    /**
+     * Returns validation `rules`
+     * @param {Object} defaults
+     * @returns {Object}
+     */
     getRules: function(defaults) {
       return _.result(this, 'rules', defaults);
     },
 
-    // Sets validation `rules`
+    /**
+     * Sets validation `rules`
+     * @param {Object} rules
+     * @returns {Fiber.Model}
+     */
     setRules: function(rules) {
       this.rules = rules;
       return this;
     },
 
-    // Checks if `rules` is not empty
+    /**
+     * Determine if `rules` is not empty
+     * @returns {boolean}
+     */
     hasRules: function() {
       return ! _.isEmpty(this.rules);
     },
 
-    // Converts Model to JSON
+    /**
+     * Converts Model to JSON
+     * @returns {Object}
+     */
     toJSON: function() {
-      return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON', [], this), this.hidden);
+      return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON', [], this), _.result(this, 'hidden'));
     },
 
-    // Returns next model.
+    /**
+     * Returns next model.
+     * @param {?Object} [options={}]
+     * @returns {Fiber.Model|null}
+     */
     next: function(options) {
       return this.sibling(_.extend({ direction: 'next' }, options || {}));
     },
 
-    // Returns previous model.
+    /**
+     * Returns previous model.
+     * @param {?Object} [options={}]
+     * @returns {Fiber.Model|null}
+     */
     prev: function(options) {
       return this.sibling(_.extend({ direction: 'prev' }, options || {}));
     },
 
-    // Returns Sibling Model.
-    // Options:
-    //  direction: 'next', - direction to search, can be 'next' or 'prev'
-    //  where: null, - options object to find model by, will be passed to the `collection.where`
-    //  cid: null - if no model cid found will be used as default Model cid
+    /**
+     * Returns Sibling Model.
+     * @param {?Object} [options={}] direction: next, - direction to search, can be 'next' or 'prev'
+     *                               where: null, - options object to find model by, will be passed to
+     *                                      the `collection.where`
+     *                               cid: null - if no model cid found will be used as default Model cid
+     * @returns {Fiber.Model}
+     */
     sibling: function(options) {
       if (! this.collection) return this;
 
@@ -131,9 +173,9 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
         defaultCid: null
       });
 
-      var cid    = this.cid,
-          models = options.where ? this.collection.where(options.where) : this.collection.models,
-          dirCid;
+      var cid = this.cid,
+        models = options.where ? this.collection.where(options.where) : this.collection.models,
+        dirCid;
 
       if (models.length) dirCid = _.first(models).cid;
       else dirCid = options.defaultCid;
@@ -157,34 +199,88 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       return dirCid != null ? this.collection.get(dirCid) : this;
     },
 
-    // Sets model view
+    /**
+     * Sets model view
+     * @param {Fiber.View} view
+     */
     setView: function(view) {
       this.__view = view;
     },
 
-    // Gets model view
+    /**
+     * Returns model view
+     * @returns {Fiber.View|*|null}
+     */
     getView: function() {
       return this.__view;
     },
 
-    // Checks if has view
+    /**
+     * Determines if model has view
+     * @returns {boolean}
+     */
     hasView: function() {
       return ! _.isEmpty(this.__view);
     },
 
-    // Resets view reference
+    /**
+     * Resets view reference
+     * @returns {Fiber.Model}
+     */
     resetView: function() {
       this.__view = null;
       return this;
     },
 
-    // Destroys model and also reset view reference
+    /**
+     * Fetch success handler
+     * @param {Object.<Fiber.Model>} model
+     * @param {Object} response
+     * @param {?Object} [options]
+     */
+    whenSuccess: function(model, response, options) {},
+
+    /**
+     * Fetch error handler
+     * @param {Object.<Fiber.Model>} model
+     * @param {Object} response
+     * @param {?Object} [options]
+     */
+    whenError: function(model, response, options) {},
+
+    /**
+     * Validation error handler
+     * @param {Object.<Fiber.Model>} model
+     * @param {Object} response
+     * @param {?Object} [options]
+     */
+    whenInvalid: function(model, errors, options) {},
+
+    /**
+     * Checks if Model is fetchable
+     * @returns {boolean}
+     */
+    isFetchable: function() {
+      try { return _.isString(_.result(this, 'url')); }
+      catch (e) { return false; }
+    },
+
+    /**
+     * Destroys model and also reset view reference
+     * @returns {*}
+     */
     destroy: function() {
       this.resetView();
       return Fiber.fn.apply(Backbone.Model, 'destroy', arguments, this);
     },
 
-    // Private success handler
+    /**
+     * Private success handler
+     * @param {Object.<Fiber.Model>} model
+     * @param {Object} response
+     * @param {?Object} [options]
+     * @private
+     */
     __whenSuccess: function(model, response, options) {
       this.whenSuccess.apply(this, arguments);
       this.fire('fetchSuccess', {
@@ -194,7 +290,13 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       });
     },
 
-    // Private error handler
+    /**
+     * Private error handler
+     * @param {Object.<Fiber.Model>} model
+     * @param {Object} response
+     * @param {?Object} [options]
+     * @private
+     */
     __whenError: function(model, response, options) {
       this.whenError.apply(this, arguments);
       this.fire('fetchError', {
@@ -204,7 +306,13 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       });
     },
 
-    // Private validation error handler
+    /**
+     * Private validation error handler
+     * @param {Object.<Fiber.Model>} model
+     * @param {Object} response
+     * @param {?Object} [options]
+     * @private
+     */
     __whenInvalid: function(model, errors, options) {
       this.whenInvalid.apply(this, arguments);
       this.fire('invalid', {

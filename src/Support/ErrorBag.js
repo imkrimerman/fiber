@@ -28,11 +28,15 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * @returns {Fiber.ErrorBag}
    */
   push: function(key, error) {
-    var check = this.get(key);
-    if (! _.isArray(check)) this.set(key, []);
-    var one = this.get(key);
-    one.push(error);
-    this.set(key, one);
+    var check = this.get(key)
+      , isArray = _.isArray(check)
+      , array = [];
+
+    if (! isArray && check != null) array.push(check);
+    else if (isArray) array = check;
+
+    array.push(error);
+    this.set(key, array);
     return this;
   },
 

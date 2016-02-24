@@ -24,10 +24,16 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
   shared: null,
 
   /**
+   * Bag of aliases
+   * @var {Object.<Fiber.Bag>}
+   */
+  aliases: null,
+
+  /**
    * Bags list
    * @var {Array}
    */
-  bags: ['bindings', 'extensions', 'shared'],
+  bags: ['bindings', 'extensions', 'shared', 'aliases'],
 
   /**
    * Events namespace
@@ -57,22 +63,37 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
    * @returns {boolean}
    */
   bound: function(abstract) {
-    return _.any(this.bags, _.bind(function(bag) {
+    return _.some(this.bags, _.bind(function(bag) {
       return this[bag].has(abstract);
     }, this));
   },
 
   /**
    * Register a binding with the container.
-   * @param {string} abstract
+   * @param {string|Array} abstract
    * @param {*} concrete
-   * @param {boolean} shared
+   * @param {?boolean} [shared=false]
    * @returns {Fiber.Services.Container}
    */
   bind: function(abstract, concrete, shared) {
     var container = 'bindings';
     if (val(shared, false)) container = 'shared';
+    if (_.isArray(abstract)) {
+      this.alias(abstract[0], abstract[1]);
+      abstract = abstract[0];
+    }
     this[container].set(abstract, concrete);
+    return this;
+  },
+
+  /**
+   * Sets binding alias
+   * @param {string} abstract
+   * @param {string} alias
+   * @returns {Fiber.Services.Container}
+   */
+  alias: function(abstract, alias) {
+    this.aliases.set(alias, abstract);
     return this;
   },
 
@@ -115,6 +136,7 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
    * @throws Resolution Exception
    */
   make: function(abstract, parameters, scope) {
+    if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
     if (! concrete) throw new Error('Resolution Exception with ' + abstract);
@@ -131,10 +153,7 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
     dependencies = _.castArray(dependencies);
     for (var i = 0; i < dependencies.length; i ++) {
       var dep = dependencies[i];
-      if (_.isString(dep)) {
-        var retrieved = this.make(dep);
-        if (retrieved) dep = retrieved;
-      }
+      if (_.isString(dep) && this.bound(dep)) dep = this.make(dep);
       resolved.push(dep);
     }
     return resolved;
@@ -166,6 +185,15 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
    */
   isRetrievable: function(abstract) {
     return this.extensions.has(abstract) || this.shared.has(abstract);
+  },
+
+  /**
+   * Determine if abstract is alias
+   * @param {string} abstract
+   * @returns {boolean}
+   */
+  isAlias: function(abstract) {
+    return this.aliases.has(abstract);
   },
 
 }]);

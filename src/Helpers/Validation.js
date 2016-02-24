@@ -10,7 +10,7 @@ Fiber.fn.validation = {
    */
   ruleDefaults: {
     required: false,
-    match: 'every',
+    match: 'every', // some
     validators: [],
     when: null,
     message: null

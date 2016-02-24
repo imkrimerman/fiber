@@ -1,16 +1,32 @@
-// Fiber Collection View
+/**
+ * Fiber Collection View
+ * @class
+ * @extends {Fiber.View}
+ */
 Fiber.CollectionView = Fiber.View.extend({
 
-  // Defaults collection class
+  /**
+   * Defaults collection class
+   * @var {Fiber.Collection}
+   */
   collectionClass: Fiber.Collection,
 
-  // Collection instance
+  /**
+   * Collection instance
+   * @var {Object.<Fiber.Collection>}
+   */
   collection: null,
 
-  // Collection initial models to create collection from
+  /**
+   * Collection initial models to create collection from
+   * @var {Array}
+   */
   models: [],
 
-  // Element to render Collection to
+  /**
+   * Element to render Collection to
+   * @var {string}
+   */
   collectionElement: '.collection-view',
 
   // Collection jQuery element found/created in DOM

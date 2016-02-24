@@ -16,32 +16,55 @@ Fiber.fn = {
    */
   notDefined: '$__NULL__$',
 
-  // Gets value by given `property` key. You can provide `defaults` value that
-  // will be returned if value is not found by the given key. If `defaults` is
-  // not provided that defaults will be set to `null`
+  /**
+   * Gets value by given `property` key. You can provide `defaults` value that
+   * will be returned if value is not found by the given key. If `defaults` is
+   * not provided that defaults will be set to `null`
+   * @param {string} property
+   * @param {?*} [defaults]
+   * @returns {*}
+   */
   get: function(object, property, defaults) {
     return _.get(object, property, defaults);
   },
 
-  // Sets `value` by given `property` key
+  /**
+   * Sets `value` by given `property` key
+   * @param {string} property
+   * @param {*} value
+   * @returns {*}
+   */
   set: function(object, property, value) {
     _.set(object, property, value);
     return object;
   },
 
-  // Checks if Class has given `property`
+  /**
+   * Determine if Class has given `property`
+   * @param {string} property
+   * @returns {boolean}
+   */
   has: function(object, property) {
     return _.has(object, property);
   },
 
-  // Gets value by given `property` key, if `property` value is function then it will be called.
-  // You can provide `defaults` value that will be returned if value is not found
-  // by the given key. If `defaults` is not provided that defaults will be set to `null`
+  /**
+   * Gets value by given `property` key, if `property` value is function then it will be called.
+   * You can provide `defaults` value that will be returned if value is not found
+   * by the given key. If `defaults` is not provided that defaults will be set to `null`
+   * @param {string} property
+   * @param {*} defaults
+   * @returns {*}
+   */
   result: function(object, property, defaults) {
     return _.result(object, property, defaults);
   },
 
-  // Removes `value` by given `property` key
+  /**
+   * Removes `value` by given `property` key
+   * @param {string} property
+   * @returns {*}
+   */
   forget: function(object, property) {
     _.unset(object, property);
     return object;

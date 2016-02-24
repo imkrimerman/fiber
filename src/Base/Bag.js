@@ -12,12 +12,6 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
   items: {},
 
   /**
-   * Access extension to provide get/set to items
-   * @var {Fiber.Extensions.Access}
-   */
-  access: null,
-
-  /**
    * Initializes bag
    * @param {?Object} [items] - Items to set to the Bag
    */
@@ -91,7 +85,15 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
   clear: function() {
     this.items = {};
     return this;
-  }
+  },
+
+  /**
+   * Determine size of the Bag items
+   * @returns {number}
+   */
+  size: function() {
+    return _.size(this.items);
+  },
 });
 
 /**

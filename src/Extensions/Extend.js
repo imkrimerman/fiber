@@ -1,10 +1,20 @@
-// Extend extension.
+/**
+ * Extend extension.
+ * @type {Object}
+ */
 Fiber.Extensions.Extend = {
 
-  // Properties keys that will be auto extended from initialize object
+  /**
+   * Properties keys that will be auto extended from initialize object
+   * @var {Array|Function|string}
+   */
   extendable: [],
 
-  // Extends options object. Only options from `extendable` keys array will be extended.
+  /**
+   * Extends options object. Only options from `extendable` keys array will be extended.
+   * @param {Object} options
+   * @returns {*}
+   */
   applyExtend: function(options) {
     options = val(options, {});
     var extendable = _.result(this, 'extendable');
