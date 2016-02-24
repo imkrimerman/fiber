@@ -10,10 +10,11 @@ Fiber.fn.class = {
    */
   deepProperties: {
     rules: [_.isArray, _.isPlainObject],
+    exclude: ['fn'],
     explore: [
-      [Fiber, 'ioc.binding.items'],
-      [Fiber, 'ioc.extensions.items'],
-      [Fiber, 'Model.prototype'],
+      {owner: Fiber, path: 'ioc.binding.items'},
+      {owner: Fiber, path: 'ioc.extensions.items'},
+      {owner: Fiber, path: 'Model.prototype', direct: true}
     ],
   },
 
@@ -23,37 +24,57 @@ Fiber.fn.class = {
    */
   exploreDeepProperties: function(explorables, rules, comparatorFn) {
     var properties = [];
-
+    // check arguments or set default values
     explorables = _.castArray(val(explorables, this.deepProperties.explore));
     rules = _.castArray(val(rules, this.deepProperties.rules));
-    comparatorFn = val(comparatorFn, 'some', function(val) {
-      return _.includes(['some', 'every'], val);
-    });
-
+    comparatorFn = val(comparatorFn, 'some', Fiber.fn.createIncludes(['some', 'any']));
+    // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
-      var owner = explorables[i][0]
-        , propHolder = owner[explorables[i][1]];
-
-      if (! propHolder || ! _.isPlainObject(propHolder)) continue;
-
-      for (var key in propHolder)
-        if (this.validateDeepProperty(key, rules, comparatorFn))
-          properties.push(key);
+      var explorable = explorables[i]
+        , holder = _.get(explorable.owner, explorable.path, {});
+      // if holder is not valid then continue
+      if (_.isEmpty(holder) || _.isFunction(holder) || ! _.isObject(holder)) continue;
+      // if we are not exploring deeply then wrap container container into array
+      if (explorable.direct) holder = [holder];
+      // traverse through the holder of the properties container
+      for (var key in holder) {
+        var explored = this.exploreDeepPropertiesInContainer(holder[key], rules, comparatorFn);
+        // explore properties in container using rules and comparator function
+        properties = properties.concat(explored);
+      }
     }
+    return _.uniq(properties);
+  },
 
-    return properties;
+  /**
+   * Explores deep properties in given `container`
+   * @param {Object} container
+   * @param {Array} rules
+   * @param {string} fn
+   * @param {Array|string} [exclude]
+   * @returns {Array}
+   */
+  exploreDeepPropertiesInContainer: function(container, rules, fn, exclude) {
+    var properties = [];
+    exclude = _.castArray(val(exclude, [], [_.isArray, _.isString]));
+    container = _.omit(container, exclude.concat(Fiber.fn.class.deepProperties.exclude));
+    _.each(container, function(value, prop) {
+      if (Fiber.fn.class.validateDeepProperty(value, rules, fn)) properties.push(prop);
+    });
+    return _.uniq(properties);
   },
 
   /**
    * Validates deep property
    * @param {*} property
    * @param {Array|Function} rules
-   * @param {string} comparatorFn
+   * @param {?string} [fn]
    * @returns {boolean}
    */
-  validateDeepProperty: function(property, rules, comparatorFn) {
-    if (! rules || ! comparatorFn) return false;
-    return _[comparatorFn](_.castArray(rules), function(rule) {
+  validateDeepProperty: function(property, rules, fn) {
+    if (! rules || ! property) return false;
+    fn = val(fn, 'every', Fiber.fn.createIncludes(['some', 'every']))
+    return _[fn](_.castArray(rules), function(rule) {
       return rule(property);
     });
   },
@@ -128,8 +149,10 @@ Fiber.fn.class = {
    */
   extend: function(Parent, proto, statics) {
     var fn = Fiber.fn.class, merge = Fiber.fn.merge;
-    proto = fn.deepExtendProperties(merge(fn.mixProto(proto)), Parent);
-    return fn.nativeExtend(Parent, proto, merge(fn.mixStatics(statics)));
+    proto = merge(fn.mixProto(proto));
+    var deepProto = fn.deepExtendProperties(proto, Parent)
+    var mergedStatics = merge(fn.mixStatics(statics));
+    return fn.nativeExtend(Parent, deepProto, mergedStatics);
   },
 
   /**
@@ -185,11 +208,10 @@ Fiber.fn.class = {
   /**
    * Adds mixins to the given `object`
    * @param {Array|Object|Function} proto - Object to add helpers mixin
-   * @param {?Array|String} [exclude] - Array of properties to exclude from functions object
    * @returns {Array|Object|Function}
    */
-  mixProto: function(proto, exclude) {
-    return Fiber.fn.class.mergeExtendMix(Fiber.fn.class.getExtendMixin('proto', exclude), proto);
+  mixProto: function(proto) {
+    return Fiber.fn.class.mergeExtendMixin('proto', proto);
   },
 
   /**
@@ -198,16 +220,17 @@ Fiber.fn.class = {
    * @returns {Array|Object|Function|*}
    */
   mixStatics: function(statics) {
-    return Fiber.fn.class.mergeExtendMix(Fiber.fn.class.getExtendMixin('statics'), object);
+    return Fiber.fn.class.mergeExtendMixin('statics', statics);
   },
 
   /**
    * Merges extend mixin to the given `object`object
-   * @param {Object} mixin
+   * @param {string|Object} mixin
    * @param {Object|Array|Function} object - Object to add helpers mixin
    * @returns {*}
    */
-  mergeExtendMix: function(mixin, object) {
+  mergeExtendMixin: function(mixin, object) {
+    mixin = _.isString(mixin) ? Fiber.fn.class.getExtendMixin(mixin) : mixin;
     object = val(object, {});
     switch (true) {
       case _.isArray(object): return object.concat(mixin);

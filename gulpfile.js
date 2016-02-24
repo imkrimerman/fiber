@@ -183,3 +183,7 @@ function Minify() {
 function BuildDocs() {
   shell.exec('npm run doc');
 }
+
+function Commit() {
+  shell.exec('git add . && git commit -m "'+ message +'"');
+}

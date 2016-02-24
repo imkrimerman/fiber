@@ -53,7 +53,8 @@
     "doc": "rm -rf ./docs/doc && mr-doc -s ./src -o ./docs/doc -n 'Fiber' -t 'cayman'",
     "open-doc": "open -a \"Google Chrome\" docs/doc/index.html",
     "anotate": "rm -rf ./docs/anotate && docco ./build/fiber.js -o ./docs/anotate",
-    "open-anotate": "open -a \"Google Chrome\" docs/anotate/fiber.html"
+    "open-anotate": "open -a \"Google Chrome\" docs/anotate/fiber.html",
+    "commit": "gulp commit"
   },
   "main": "fiber.js",
   "version": "0.0.12",

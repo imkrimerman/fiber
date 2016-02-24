@@ -30,15 +30,31 @@ Fiber.fn = {
     defaults = arguments.length > 1 ? defaults : Fiber.fn.notDefined;
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
-    // if value and checker is specified then use it to additionally check value
-    if (_.isFunction(checker) && value != null) {
-      // if checker returns true then we are good
-      if (checker(value)) return value;
-      // otherwise return defaults
-      return defaults;
-    }
+    // if value check was made and it's not valid then return `defaults`
+    if (! Fiber.fn.valCheck(value, checker)) return defaults;
     // if value not specified return defaults, otherwise return value;
     return value != null ? value : defaults;
+  },
+
+  /**
+   * Checks value with the given checkers
+   * @param {*} value
+   * @param {Array|Function} checkers
+   * @param {?string} [fn='every']
+   * @returns {boolean}
+   */
+  valCheck: function(value, checkers, fn) {
+    fn = _.isString(fn) ? fn : 'every';
+    // if value and checker is specified then use it to additionally check value
+    if (! _.isArray(checkers) && ! _.isFunction(checkers)) return true;
+    return _[fn](_.castArray(checkers), function(check) {
+      if (_.isFunction(check) && value != null) {
+        // if `check` returns true then we are good
+        if (check(value)) return true;
+        // and return false otherwise
+        return false;
+      }
+    });
   },
 
   /**
@@ -134,6 +150,17 @@ Fiber.fn = {
    */
   proto: function(exclude) {
     return _.omit(Fiber.fn, Fiber.fn.protoExclude.concat(val(exclude, [], _.isArray)));
+  },
+
+  /**
+   * Creates include function to determine
+   * @param {Array} list
+   * @returns {Function}
+   */
+  createIncludes: function(list) {
+    return function(val) {
+      return _.includes(list, val);
+    };
   },
 
 };
