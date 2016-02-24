@@ -93,6 +93,7 @@ gulp.task('tdd', CreateKarmaServer(false));
 
 gulp.task('lint', Lint);
 gulp.task('mocha', Mocha);
+gulp.task('commit', Commit);
 
 gulp.task('reload', function() {
   gulp.src(config.allFiles).pipe(connect.reload());
@@ -185,5 +186,6 @@ function BuildDocs() {
 }
 
 function Commit() {
-  shell.exec('git add . && git commit -m "'+ message +'"');
+  var message = process.argv[2];
+  shell.exec('git add . && git commit -m "'+ message +'" && npm version patch && git push');
 }
