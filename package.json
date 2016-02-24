@@ -57,7 +57,7 @@
     "commit": "gulp commit"
   },
   "main": "fiber.js",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "license": "MIT",
   "repository": {
     "type": "git",
