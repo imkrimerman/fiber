@@ -26,7 +26,7 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
    * @returns {Fiber.Bag}
    */
   set: function(key, value) {
-    Fiber.fn.set(this.items, key, value);
+    _.set(this.items, key, value);
     return this;
   },
 
@@ -37,7 +37,7 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
    * @returns {*}
    */
   get: function(key, defaults) {
-    return Fiber.fn.get(this.items, key, defaults);
+    return _.get(this.items, key, defaults);
   },
 
   /**
@@ -48,7 +48,7 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
    * @return {*}
    */
   result: function(key) {
-    return Fiber.fn.result(this.items, key);
+    return _.result(this.items, key);
   },
 
   /**
@@ -57,7 +57,7 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
    * @returns {boolean}
    */
   has: function(key) {
-    return Fiber.fn.has(this.items, key);
+    return _.has(this.items, key);
   },
 
   /**
@@ -66,7 +66,7 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
    * @return {Fiber.Bag}
    */
   forget: function(key) {
-    Fiber.fn.forget(this.items, key);
+    _.unset(this.items, key);
     return this;
   },
 
@@ -79,10 +79,10 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
   },
 
   /**
-   * Clears bag items
+   * Flushes bag items
    * @return {Fiber.Bag}
    */
-  clear: function() {
+  flush: function() {
     this.items = {};
     return this;
   },
@@ -99,4 +99,4 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
 /**
  * Proxy lodash object methods to the Bag
  */
-Fiber.fn.delegator.delegateMixin(Fiber.Bag, 'object', 'items');
+Fiber.fn.delegator.mixin(Fiber.Bag, 'object', 'items');

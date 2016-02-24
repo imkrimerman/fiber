@@ -1,9 +1,9 @@
 /**
  * Fiber Listeners
  * @class
- * @extends {Fiber.BaseCollection}
+ * @extends {BaseCollection}
  */
-Fiber.Listeners = Fiber.BaseCollection.extend({
+Fiber.Listeners = BaseCollection.extend({
 
   /**
    * Events namespace

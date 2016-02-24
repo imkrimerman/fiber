@@ -1,9 +1,9 @@
 /**
  * Fiber Collection
  * @class
- * @extends {Fiber.BaseCollection}
+ * @extends {BaseCollection}
  */
-Fiber.Collection = Fiber.BaseCollection.extend({
+Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
 
   /**
    * Properties keys that will be auto extended from initialize object
@@ -118,4 +118,4 @@ Fiber.Collection = Fiber.BaseCollection.extend({
       options: options
     });
   }
-});
+}]);

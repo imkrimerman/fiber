@@ -41,11 +41,11 @@ describe('Fiber.Bag', function() {
     expect(this.bag.all()).to.eql({bagKey: 'TEST'});
   });
 
-  it('should `clear` items', function() {
+  it('should `flush` items', function() {
     this.bag.set('bagKey', 'TEST');
     this.bag.set('bagKey2', 'TEST');
     expect(_.size(this.bag.items)).to.eql(2);
-    this.bag.clear();
+    this.bag.flush();
     expect(_.size(this.bag.items)).to.eql(0);
   });
 

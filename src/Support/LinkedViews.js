@@ -1,9 +1,9 @@
 /**
  * Fiber Linked Views
  * @class
- * @extends {Fiber.BaseCollection}
+ * @extends {BaseCollection}
  */
-Fiber.LinkedViews = Fiber.BaseCollection.extend({
+Fiber.LinkedViews = BaseCollection.extend({
 
   /**
    * Parent View

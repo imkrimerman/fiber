@@ -17,91 +17,6 @@ Fiber.fn = {
   notDefined: '$__NULL__$',
 
   /**
-   * Gets value by given `property` key. You can provide `defaults` value that
-   * will be returned if value is not found by the given key. If `defaults` is
-   * not provided that defaults will be set to `null`
-   * @param {string} property
-   * @param {?*} [defaults]
-   * @returns {*}
-   */
-  get: function(object, property, defaults) {
-    return _.get(object, property, defaults);
-  },
-
-  /**
-   * Sets `value` by given `property` key
-   * @param {string} property
-   * @param {*} value
-   * @returns {*}
-   */
-  set: function(object, property, value) {
-    _.set(object, property, value);
-    return object;
-  },
-
-  /**
-   * Determine if Class has given `property`
-   * @param {string} property
-   * @returns {boolean}
-   */
-  has: function(object, property) {
-    return _.has(object, property);
-  },
-
-  /**
-   * Gets value by given `property` key, if `property` value is function then it will be called.
-   * You can provide `defaults` value that will be returned if value is not found
-   * by the given key. If `defaults` is not provided that defaults will be set to `null`
-   * @param {string} property
-   * @param {*} defaults
-   * @returns {*}
-   */
-  result: function(object, property, defaults) {
-    return _.result(object, property, defaults);
-  },
-
-  /**
-   * Removes `value` by given `property` key
-   * @param {string} property
-   * @returns {*}
-   */
-  forget: function(object, property) {
-    _.unset(object, property);
-    return object;
-  },
-
-  /**
-   * Extend this Class to create a new one inheriting this one.
-   * Also add a helper __super__ object pointing to the parent prototypes methods.
-   * {@link https://github.com/sboudrias/class-extend|Check original version of class extend method on Github}
-   * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
-   * @param  {?Object} [staticProps] - Static properties (available on the constructor)
-   * @return {Function}
-   */
-  nativeExtend: function(parent, protoProps, staticProps) {
-    if (! parent) return parent;
-    var child;
-    // The constructor function for the new subclass is either defined by you
-    // (the "constructor" property in your `extend` definition), or defaulted
-    // by us to simply call the parent's constructor.
-    if (! protoProps || ! _.has(protoProps, 'constructor'))
-      child = function() { return parent.apply(this, arguments); };
-    else child = protoProps.constructor;
-    // Add static properties to the constructor function, if supplied.
-    _.extend(child, parent, staticProps);
-    // Set the prototype chain to inherit from `parent`
-    child.prototype = Object.create(parent.prototype, {
-      constructor: { value: child, enumerable: false, writable: true, configurable: true }
-    });
-    // Add prototype properties (instance properties) to the subclass, if supplied.
-    if (protoProps) _.extend(child.prototype, protoProps);
-    // Set a convenience property in case the parent's prototype is needed later.
-    child.__super__ = parent.prototype;
-    // and finally return child
-    return child;
-  },
-
-  /**
    * Returns value if not undefined or null,
    * otherwise returns defaults or $__NULL__$ value
    * @see https://github.com/imkrimerman/im.val (npm version)
@@ -201,18 +116,6 @@ Fiber.fn = {
   },
 
   /**
-   * Proxies function
-   * @param {Function} fn
-   * @returns {Function}
-   */
-  proxy: function(fn) {
-    return function() {
-      var args = _.toArray(arguments);
-      return fn.apply(fn, [this].concat(args));
-    };
-  },
-
-  /**
    * Checks if given array is array with objects
    * @param {Array} array - Array to check
    * @param {string} of - String of type (object, string, array ...etc)
@@ -230,9 +133,7 @@ Fiber.fn = {
    * @returns {Object}
    */
   proto: function(exclude) {
-    return {
-      fn: _.omit(Fiber.fn, Fiber.fn.protoExclude.concat(val(exclude, [], _.isArray)))
-    };
+    return _.omit(Fiber.fn, Fiber.fn.protoExclude.concat(val(exclude, [], _.isArray)));
   },
 
 };

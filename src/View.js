@@ -202,11 +202,3 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     return this;
   }
 }]);
-
-
-/**
- * Extend method
- * @var {Function}
- * @static
- */
-Fiber.View.extend = Fiber.fn.proxy(Fiber.fn.class.extend);

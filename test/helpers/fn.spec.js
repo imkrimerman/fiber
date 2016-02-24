@@ -5,7 +5,7 @@ describe('Fiber.fn', function() {
   });
 
   it('should `extend` object with one or with array of prototypes, ' +
-     'same is for statics and deep extend `Fiber.fn.class.deepProperties`', function() {
+     'same is for statics and deep extend `Fiber.fn.class.exploreDeepProperties`', function() {
     var ModelClass = Fiber.fn.class.extend(Backbone.Model, { test: 'var' });
     var model = new ModelClass();
     expect(model).to.be.an.instanceof(Backbone.Model);

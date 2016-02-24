@@ -14,7 +14,7 @@ Fiber.Extensions.Access = {
    * @returns {*}
    */
   get: function(property, defaults) {
-    return Fiber.fn.get(this, property, defaults);
+    return _.get(this, property, defaults);
   },
 
   /**
@@ -24,7 +24,7 @@ Fiber.Extensions.Access = {
    * @returns {*}
    */
   set: function(property, value) {
-    Fiber.fn.set(this, property, value);
+    _.set(this, property, value);
     return this;
   },
 
@@ -34,7 +34,7 @@ Fiber.Extensions.Access = {
    * @returns {boolean}
    */
   has: function(property) {
-    return Fiber.fn.has(this, property);
+    return _.has(this, property);
   },
 
   /**
@@ -46,7 +46,7 @@ Fiber.Extensions.Access = {
    * @returns {*}
    */
   result: function(property, defaults) {
-    return Fiber.fn.result(this, property, defaults);
+    return _.result(this, property, defaults);
   },
 
   /**
@@ -55,7 +55,7 @@ Fiber.Extensions.Access = {
    * @returns {*}
    */
   forget: function(property) {
-    Fiber.fn.forget(this, property);
+    _.unset(this, property);
     return this;
   }
 };

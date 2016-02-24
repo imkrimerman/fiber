@@ -24,8 +24,8 @@ Fiber.fn.validation = {
    * @returns {void|Object}
    */
   validate: function(model, attributes, options) {
-    // clear error bag after last validation
-    model.errorBag.clear();
+    // flush error bag after last validation
+    model.errorBag.flush();
     var rules = model.getRules();
     // if model doesn't have any rules, then we are okey to return true
     if (_.isEmpty(rules)) return true;
