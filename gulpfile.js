@@ -93,7 +93,7 @@ gulp.task('tdd', CreateKarmaServer(false));
 
 gulp.task('lint', Lint);
 gulp.task('mocha', Mocha);
-gulp.task('commit', Commit);
+//gulp.task('commit', Commit);
 
 gulp.task('reload', function() {
   gulp.src(config.allFiles).pipe(connect.reload());

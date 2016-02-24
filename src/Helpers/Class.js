@@ -172,6 +172,16 @@ Fiber.fn.class = {
   },
 
   /**
+   * Creates simple Class with Backbone Events
+   * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
+   * @param {?Array|Object} [statics] - Static properties (available on the constructor)
+   * @returns {Function}
+   */
+  createClass: function(proto, statics) {
+    return Fiber.fn.class.extend(_.noop, proto, statics);
+  },
+
+  /**
    * Adds given `mixin` to the `object`. Mixin can be object or function.
    * Also you can provide `override` boolean to force override properties.
    * @param {Object|Function} object
@@ -311,13 +321,5 @@ Fiber.fn.class = {
     if (! _.isFunction(checkerMethod)) return _.constant(true);
   },
 
-  /**
-   * Creates simple Class with Backbone Events
-   * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
-   * @param {?Array|Object} [statics] - Static properties (available on the constructor)
-   * @returns {Function}
-   */
-  createClass: function(proto, statics) {
-    return Fiber.fn.class.extend(_.noop, proto, statics);
-  },
+
 };

@@ -70,29 +70,6 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     },
 
     /**
-     * Fetches model data
-     * @param {Object} options
-     * @returns {*}
-     */
-    fetch: function(options) {
-      return Fiber.fn.apply(Backbone.Model, 'fetch', [
-        _.extend({}, options || {}, {
-          success: this.__whenSuccess.bind(this),
-          error: this.__whenError.bind(this)
-        })
-      ], this);
-    },
-
-    /**
-     * Sends request using jQuery `ajax` method with the given `options`
-     * @param {Object} options
-     * @returns {*}
-     */
-    request: function(options) {
-      return Fiber.$.ajax(options);
-    },
-
-    /**
      * Validates `attributes` of Model against `rules`
      * @param {?Object} [attributes=this.attributes]
      * @param {?Object} [options={}]
@@ -233,6 +210,29 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     },
 
     /**
+     * Fetches model data
+     * @param {Object} options
+     * @returns {*}
+     */
+    fetch: function(options) {
+      return Fiber.fn.apply(Backbone.Model, 'fetch', [
+        _.extend({}, options || {}, {
+          success: this.__whenSuccess.bind(this),
+          error: this.__whenError.bind(this)
+        })
+      ], this);
+    },
+
+    /**
+     * Sends request using jQuery `ajax` method with the given `options`
+     * @param {Object} options
+     * @returns {*}
+     */
+    request: function(options) {
+      return Fiber.$.ajax(options);
+    },
+
+    /**
      * Fetch success handler
      * @param {Object.<Fiber.Model>} model
      * @param {Object} response
@@ -271,7 +271,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     destroy: function() {
       this.resetView();
-      return Fiber.fn.apply(Backbone.Model, 'destroy', arguments, this);
+      return this.fn.apply(Backbone.Model, 'destroy', arguments);
     },
 
     /**
