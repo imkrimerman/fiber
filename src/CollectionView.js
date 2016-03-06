@@ -45,7 +45,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * View class to create View for each model
    * @var {Fiber.View}
    */
-  ModelViewClass: Fiber.View,
+  ViewClass: Fiber.View,
 
   /**
    * Instance key to listen to
@@ -71,13 +71,13 @@ Fiber.CollectionView = Fiber.View.extend({
    * Properties keys that will be auto extended from initialize object
    * @var {Array|Function|string}
    */
-  extendable: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ModelViewClass'],
+  extendable: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
   /**
    * Properties keys that will be owned by the instance
    * @var {Array|Function}
    */
-  ownProps: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ModelViewClass'],
+  ownProps: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
   /**
    * Constructs collection view
@@ -151,7 +151,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   getModelViewClass: function(model) {
     if (model.has('viewClass')) return model.get('viewClass');
-    return this.ModelViewClass;
+    return this.ViewClass;
   },
 
   /**
