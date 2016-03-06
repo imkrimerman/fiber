@@ -12,6 +12,12 @@ Fiber.CollectionView = Fiber.View.extend({
   CollectionClass: Fiber.Collection,
 
   /**
+   * View class to create View for each model
+   * @var {Fiber.View}
+   */
+  ViewClass: Fiber.View,
+
+  /**
    * Collection instance
    * @var {Object.<Fiber.Collection>}
    */
@@ -40,12 +46,6 @@ Fiber.CollectionView = Fiber.View.extend({
    * @var {jQuery|null}
    */
   $collectionElement: null,
-
-  /**
-   * View class to create View for each model
-   * @var {Fiber.View}
-   */
-  ViewClass: Fiber.View,
 
   /**
    * Instance key to listen to
