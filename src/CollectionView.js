@@ -6,7 +6,7 @@
 Fiber.CollectionView = Fiber.View.extend({
 
   /**
-   * Defaults collection class
+   * Default collection class
    * @var {Fiber.Collection}
    */
   collectionClass: Fiber.Collection,
@@ -18,72 +18,107 @@ Fiber.CollectionView = Fiber.View.extend({
   collection: null,
 
   /**
-   * Collection initial models to create collection from
+   * Collection of initial data models to create collection
    * @var {Array}
    */
-  models: [],
+  data: [],
 
   /**
    * Element to render Collection to
-   * @var {string}
+   * @var {string|Function}
    */
   collectionElement: '.collection-view',
 
-  // Collection jQuery element found/created in DOM
+  /**
+   * Collection jQuery element found/created in DOM
+   * @var {jQuery|null}
+   */
   $collectionElement: null,
 
-  // View class to create View for each model
+  /**
+   * View class to create View for each model
+   * @var {Fiber.View}
+   */
   modelViewClass: Fiber.View,
 
-  // Instance key to listen to
+  /**
+   * Instance key to listen to
+   * @var {string|Function}
+   */
   listens: 'collection',
 
-  // Events listeners
+  /**
+   * Events to listen on `listens` instance and trigger methods map
+   * @var {Object}
+   */
   listeners: {
     'sync update clear': 'render'
   },
 
-  // Events namespace
+  /**
+   * Events namespace
+   * @var {string}
+   */
   eventsNs: 'collectionView',
 
-  // Constructor
+  /**
+   * Constructs collection view
+   */
   constructor: function() {
     Fiber.View.apply(this, arguments);
-    this.replaceCollectionElementUi();
-    if (! this.collection) this.createCollection(this.models);
+    if (! this.collection) this.createCollection(this.data);
   },
 
-  // Renders collection
+  /**
+   * Renders collection
+   * @returns {Fiber.CollectionView}
+   */
   renderCollection: function() {
     this.clearCollectionElement();
     this.prepareCollection().each(this.renderOne, this);
     return this;
   },
 
-  // Prepares collection for render
+  /**
+   * Prepares collection for render
+   * @returns {Object.<Fiber.Collection>}
+   */
   prepareCollection: function() {
     return this.collection;
   },
 
-  // Renders one model
+  /**
+   * Renders one model
+   * @param {Object.<Fiber.Model>} model
+   * @returns {Object.<Fiber.View>}
+   */
   renderOne: function(model) {
     var View = this.getModelViewClass(model)
       , view = this.createModelView(View, {model: model});
 
     view.render();
 
-    this.$collectionElement.append(view.$el);
+    this.$collectionElement.append(view.el);
     return view;
   },
 
-  // Removes view by given `model`
+  /**
+   * Removes view by given `model`
+   * @param {Object.<Fiber.Model>} model
+   * @returns {*|Fiber.View|null}
+   */
   removeOne: function(model) {
     var view = model.getView();
     if (view) view.remove();
     return view;
   },
 
-  // Creates model view
+  /**
+   * Creates model view
+   * @param {Fiber.View} View
+   * @param {Object} options
+   * @returns {Object.<Fiber.View>}
+   */
   createModelView: function(View, options) {
     var view = new View(options);
     this.linkedViews.addView(view);
@@ -91,42 +126,62 @@ Fiber.CollectionView = Fiber.View.extend({
     return view;
   },
 
-  // Returns model view class
+  /**
+   * Returns model view class
+   * @param {Object.<Fiber.Model>} model
+   * @returns {Fiber.View}
+   */
   getModelViewClass: function(model) {
     if (model.has('viewClass')) return model.get('viewClass');
     return this.modelViewClass;
   },
 
-  // Clears collection element
+  /**
+   * Clears collection element
+   * @returns {Fiber.CollectionView}
+   */
   clearCollectionElement: function() {
     if (this.$collectionElement instanceof $)
       this.$collectionElement.empty();
     return this;
   },
 
-  // Resolves collection element in DOM
+  /**
+   * Resolves collection element in DOM
+   * @returns {jQuery|HTMLElement}
+   */
   resolveCollectionElement: function() {
-    var $element = this.$(this.collectionElement);
+    var collectionEl = _.result(this, 'collectionElement');
+    collectionEl = this.replaceCollectionElementUi(collectionEl);
+
+    var $element = this.$(collectionEl);
     if ($element.length) return this.$collectionElement = $element;
 
     var props = {};
-    if (this.collectionClass[0] === '.')
-      props['class'] = this.collectionClass.slice(1).split('.').join(' ');
-    else if (this.collectionClass[0] === '#')
-      props.id = this.collectionClass.slice(1);
+    if (collectionEl[0] === '.')
+      props['class'] = collectionEl.slice(1).split('.').join(' ');
+    else if (collectionEl[0] === '#')
+      props.id = collectionEl.slice(1);
 
     $element = $('<div />', props);
     this.$el.append($element);
     return this.$collectionElement = $element;
   },
 
-  // Creates collection
+  /**
+   * Creates collection
+   * @param {Array} models
+   * @param {Object} [options]
+   * @returns {Object.<Fiber.Collection>}
+   */
   createCollection: function(models, options) {
-    var CollectionClass = this.collectionClass;
-    return this.collection = new CollectionClass(models, options);
+    return this.collection = new this.collectionClass(models, options);
   },
 
-  // Real render function
+  /**
+   * Real render function
+   * @param {Function} render
+   */
   renderFn: function(render) {
     this.fire('render', this);
     this.beforeRender();
@@ -138,10 +193,15 @@ Fiber.CollectionView = Fiber.View.extend({
     this.fire('rendered', this);
   },
 
-  //  Replaces collection element selector from `ui`
-  replaceCollectionElementUi: function() {
-    if (~this.collectionElement.indexOf('@ui'))
-      this.collectionElement = this.ui[this.collectionElement.replace('@ui.', '')];
-    return this;
+  /**
+   * Replaces collection element selector from `ui`
+   * @param {string} collectionElement
+   * @returns {string}
+   */
+  replaceCollectionElementUi: function(collectionElement) {
+    collectionElement = collectionElement || this.collectionElement;
+    if (~collectionElement.indexOf('@ui'))
+      collectionElement = this.ui[collectionElement.replace('@ui.', '')];
+    return collectionElement;
   }
 });

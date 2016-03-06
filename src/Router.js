@@ -1,266 +1,244 @@
 /**
- * Router options to auto merge
- * @type {Array.<String>}
- */
-var routerOptions = ['routeCollection', 'middlewareCollection', 'startOptions'];
-
-/**
  * Router
  * @class
  */
-Fiber.Router = Fiber.fn.class.make(Backbone.Router, ['NsEvents', {
+Fiber.Router = Fiber.fn.class.make(Backbone.Router, [
+  'NsEvents', 'Extend', 'OwnProps', 'Access', 'Mixin', {
 
-  /**
-   * Route collections
-   * @type {Object<Collection>}
-   */
-  routeCollection: null,
+    /**
+     * Route collections
+     * @type {Object<Collection>}
+     */
+    routeCollection: null,
 
-  /**
-   * Middleware collection
-   * @type {Object<Collection>}
-   */
-  middlewareCollection: null,
+    /**
+     * Middleware collection
+     * @type {Object<Collection>}
+     */
+    middlewareCollection: null,
 
-  /**
-   * Router history start options
-   * @type {Object}
-   */
-  startOptions: {
+    /**
+     * Router history start options
+     * @type {Object}
+     */
+    startOptions: {
 //      pushState: true
-  },
+    },
 
-  /**
-   * Current route
-   * @type {Route|null}
-   */
-  currentRoute: null,
+    /**
+     * Current route
+     * @type {Route|null}
+     */
+    currentRoute: null,
 
-  /**
-   * Ready state
-   * @type {boolean}
-   */
-  state: false,
+    /**
+     * Viewport
+     * @type {Viewport}
+     */
+    viewport: null,
 
-  /**
-   * Viewport
-   * @type {Viewport}
-   */
-  viewport: null,
+    /**
+     * Events namespace
+     * @var {string}
+     */
+    eventsNs: 'router',
 
-  /**
-   * Events configuration object
-   * @type {Object}
-   */
-  eventsConfig: {
-    // Event namespace
-    ns: 'router',
-    // Event catalog
-    catalog: {
+    /**
+     * Event catalog
+     * @var {Object}
+     */
+    eventsCatalog: {
+      start: 'start',
+      started: 'started',
       load: 'load',
       loaded: 'loaded',
       notAllowed: 'not:allowed'
-    }
-  },
+    },
 
-  /**
-   * Router constructor
-   * @param options
-   */
-  constructor: function(options) {
-    this.state = false;
-    this.viewport = new Fiber.Viewport();
-    _.defaults(options, {routes: [], middleware: []});
-    _.assign(this, _.pick(options, routerOptions));
-    this.createRouteCollection(options.routes);
-    this.createMiddlewareCollection(options.middleware);
-    this.attachRoutes();
-    this.initialize.apply(this, options);
-  },
+    /**
+     * Properties keys that will be auto extended from initialize object
+     * @var {Array|Function|string}
+     */
+    extendable: ['routeCollection', 'middlewareCollection', 'startOptions'],
 
-  /**
-   * Starts backbone history
-   * @returns {Router}
-   */
-  start: function() {
-    Backbone.history.start(_.result(this, 'startOptions', {}));
-    Global('subscribe', this, 'userSignedIn', this.whenSignedIn.bind(this));
-    return this;
-  },
+    /**
+     * Router constructor
+     * @param options
+     */
+    constructor: function(options) {
+      this.options = options;
+      this.viewport = new Fiber.Viewport();
+      _.defaults(options, { routes: {}, middleware: {} });
+      this.applyExtend(options);
+      this.applyOwnProps();
+      this.createRouteCollection(options.routes);
+      this.createMiddlewareCollection(options.middleware);
+      this.attachRoutes();
+      this.initialize.apply(this, options);
+    },
 
-  /**
-   * When user has signed in
-   */
-  whenSignedIn: function() {
-    this.go('stories');
-  },
+    /**
+     * Attaches collection of routes
+     * @return {Fiber.Router}
+     */
+    attachRoutes: function() {
+      this.routeCollection.each(this.attachRoute, this);
+      return this;
+    },
 
-  /**
-   * Executes route
-   * @param {Function} route
-   * @param {Array} args
-   * @param {String} alias
-   * @returns {void|boolean}
-   */
-  execute: function(route, args) {
-    var route = route()
-      , handler = route.get('handler')
-      , middleware = this.getMiddleware(route)
-      , isAllowed = this.passThrough(middleware, route);
+    /**
+     * Starts backbone history
+     * @returns {Router}
+     */
+    start: function() {
+      var options = _.result(this, 'startOptions', {});
+      this.fire('start', options, this, Backbone.history);
+      Backbone.history.start(options);
+      this.fire('started', options, this, Backbone.history);
+      return this;
+    },
 
-    if (! isAllowed) {
-      this.fire('notAllowed', {route: route, middleware: middleware});
-      return false;
-    }
+    /**
+     * Executes route
+     * @param {Function} route
+     * @param {Array} args
+     * @param {String} alias
+     * @returns {void|boolean}
+     */
+    execute: function(route, args) {
+      var route      = route()
+        , page    = route.get('page')
+        , middleware = this.getMiddleware(route)
+        , isAllowed  = this.passThrough(middleware, route);
 
-    this.currentRoute = route;
+      if (! isAllowed) {
+        this.fire('notAllowed', route, middleware, this);
+        return false;
+      }
 
-    if (handler instanceof Page) this.viewport.show(handler, route.get('layout'));
-    else if (handler) handler.apply(this, args);
-    else return false;
-  },
+      this.currentRoute = route;
 
-  /**
-   * Goes to the url by alias
-   * @param {String} alias
-   * @returns {*}
-   */
-  go: function(alias) {
-    var route = this.routeCollection.findWhere({alias: alias});
-    if (! route) return;
-    var url = route.get('url');
-    if (_.isArray(url)) url = _.first(url);
-    return this.navigate(url, {trigger: true});
-  },
+      if (page instanceof Fiber.Page) this.viewport.show(page, route);
+      else return false;
+    },
 
-  /**
-   * Passes route through all attached middleware to it
-   * @param {Array} middleware
-   * @param {Route} route
-   * @returns {boolean}
-   */
-  passThrough: function(middleware, route) {
-    return _.every(middleware, function(oneMiddleware) {
-      return oneMiddleware.passThrough(route);
-    });
-  },
+    /**
+     * Goes to the url by alias
+     * @param {String} alias
+     * @returns {*}
+     */
+    go: function(alias) {
+      var route = this.routeCollection.findWhere({ alias: alias });
+      if (! route) return;
+      var url = route.get('url');
+      if (_.isArray(url)) url = _.first(url);
+      return this.navigate(url, { trigger: true });
+    },
 
-  /**
-   * Returns middleware for route
-   * @param {Route} route
-   * @returns {Array}
-   */
-  getMiddleware: function(route) {
-    var needToPass = route.get('middleware');
-    return this.middlewareCollection.filter(function(middleware) {
-      return _.contains(needToPass, middleware.get('alias'));
-    });
-  },
+    /**
+     * Passes route through all attached middleware to it
+     * @param {Array} middleware
+     * @param {Route} route
+     * @returns {boolean}
+     */
+    passThrough: function(middleware, route) {
+      return _.every(middleware, function(oneMiddleware) {
+        return oneMiddleware.passThrough(route);
+      });
+    },
 
-  /**
-   * Attaches routes
-   * @return {Router}
-   */
-  attachRoutes: function() {
-    this.fire('load', this);
-    Support.requireQueue(
-      this.routeCollection.pluck('page'),
-      this.onPagesLoaded.bind(this)
-    );
-    return this;
-  },
+    /**
+     * Returns middleware for route
+     * @param {Route} route
+     * @returns {Array}
+     */
+    getMiddleware: function(route) {
+      var needToPass = route.get('middleware');
+      return this.middlewareCollection.filter(function(middleware) {
+        return _.contains(needToPass, middleware.get('alias'));
+      });
+    },
 
-  /**
-   * On pages loaded
-   * @param {Object} loaded
-   */
-  onPagesLoaded: function(loaded) {
-    this.routeCollection.each(function(route) {
-      route.set('handler', loaded[route.get('page')]);
-      this.attachRoute(route);
-    }, this);
-    this.state = true;
-    this.fire('loaded', this);
-  },
+    /**
+     * Attaches one Route
+     * @param {Object.<Fiber.Route>} route
+     * @returns {*}
+     */
+    attachRoute: function(route) {
+      var url = route.get('url');
+      if (_.isArray(url)) for (var i = 0; i < url.length; i ++)
+        this.route(url[i], route.get('alias'), _.constant(route));
+      else
+        this.route(url, route.get('alias'), _.constant(route));
+      return this;
+    },
 
-  /**
-   * Attaches one Route
-   * @param {Route} route
-   * @returns {*}
-   */
-  attachRoute: function(route) {
-    var url = route.get('url');
-    if (_.isArray(url)) for (var i = 0; i < url.length; i ++)
-      this.route(url[i], route.get('alias'), _.constant(route));
-    else
-      this.route(url, route.get('alias'), _.constant(route));
-  },
+    /**
+     * Prepares routes object
+     * @param {Object} routes
+     * @returns {Object}
+     */
+    prepareRoutes: function(routes) {
+      for (var alias in routes)
+        if (! _.has(routes[alias], 'alias')) routes[alias].alias = alias;
+      return routes;
+    },
 
-  /**
-   * Prepares routes object
-   * @param {Object} routes
-   * @returns {Object}
-   */
-  prepareRoutes: function(routes) {
-    for (var alias in routes)
-      if (! _.has(routes[alias], 'alias')) routes[alias].alias = alias;
-    return routes;
-  },
+    /**
+     * Prepares middleware object
+     * @param {Object} middleware
+     * @returns {Object}
+     */
+    prepareMiddleware: function(middleware) {
+      for (var alias in middleware) {
+        if (_.isFunction(middleware[alias])) middleware[alias] = { handler: middleware[alias] };
+        if (! _.has(middleware[alias], 'alias')) middleware[alias].alias = alias;
+      }
+      return middleware;
+    },
 
-  /**
-   * Prepares middleware object
-   * @param {Object} middleware
-   * @returns {Object}
-   */
-  prepareMiddleware: function(middleware) {
-    for (var alias in middleware) {
-      if (_.isFunction(middleware[alias])) middleware[alias] = {handler: middleware[alias]};
-      if (! _.has(middleware[alias], 'alias')) middleware[alias].alias = alias;
-    }
-    return middleware;
-  },
+    /**
+     * Creates Route Collection from routes object
+     * @param [{Object|Array}] routes
+     * @returns {Collection}
+     */
+    createRouteCollection: function(routes) {
+      return this.createCollection(
+        'routeCollection',
+        Fiber.Collection,
+        this.prepareRoutes(routes),
+        { model: Fiber.Route }
+      );
+    },
 
-  /**
-   * Creates Route Collection from routes object
-   * @param [{Object|Array}] routes
-   * @returns {Collection}
-   */
-  createRouteCollection: function(routes) {
-    return this.createCollection(
-      'routeCollection',
-      Collection,
-      this.prepareRoutes(routes),
-      {model: Route}
-    );
-  },
+    /**
+     * Creates middleware collection
+     * @param {Object|Array} middleware
+     * @returns {*}
+     */
+    createMiddlewareCollection: function(middleware) {
+      return this.createCollection(
+        'middlewareCollection',
+        Fiber.Collection,
+        this.prepareMiddleware(middleware),
+        { model: Fiber.Middleware }
+      );
+    },
 
-  /**
-   * Creates middleware collection
-   * @param {Object|Array} middleware
-   * @returns {*}
-   */
-  createMiddlewareCollection: function(middleware) {
-    return this.createCollection(
-      'middlewareCollection',
-      Collection,
-      this.prepareMiddleware(middleware),
-      {model: Middleware}
-    );
-  },
-
-  /**
-   * Creates collection
-   * @param {String} collectionKey
-   * @param {Collection|Function} CollectionClass
-   * @param {Object|Array} models
-   * @param [{Object}] options
-   * @returns {Object<Collection>}
-   */
-  createCollection: function(collectionKey, CollectionClass, models, options) {
-    if (this[collectionKey] instanceof CollectionClass) return this[collectionKey];
-    models = models || [];
-    if (_.isPlainObject(models)) models = _.values(models);
-    if (! _.isArray(models)) models = [];
-    return this[collectionKey] = new CollectionClass(models, options);
-  },
-}]);
+    /**
+     * Creates collection
+     * @param {String} collectionKey
+     * @param {Collection|Function} CollectionClass
+     * @param {Object|Array} models
+     * @param [{Object}] options
+     * @returns {Object<Collection>}
+     */
+    createCollection: function(collectionKey, CollectionClass, models, options) {
+      if (this[collectionKey] instanceof CollectionClass) return this[collectionKey];
+      models = models || [];
+      if (_.isPlainObject(models)) models = _.values(models);
+      if (! _.isArray(models)) models = [];
+      return this[collectionKey] = new CollectionClass(models, options);
+    },
+  }
+]);

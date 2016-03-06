@@ -9,7 +9,7 @@ Fiber.Route = Fiber.Model.extend({
    * Class hidden fields
    * @type {Array.<String>}
    */
-  hidden: ['handler', 'middleware'],
+  hidden: ['middleware'],
 
   /**
    * Class defaults
@@ -19,7 +19,6 @@ Fiber.Route = Fiber.Model.extend({
     alias: null,
     url: null,
     page: null,
-    handler: null,
     redirect: null,
     middleware: []
   },
@@ -37,7 +36,6 @@ Fiber.Route = Fiber.Model.extend({
       validators: [_.isString, _.negate(_.isEmpty)]
     },
     page: {
-      required: true,
       match: 'any',
       validators: [_.isFunction, [_.isString, _.negate(_.isEmpty)]]
     }
@@ -48,8 +46,12 @@ Fiber.Route = Fiber.Model.extend({
    * @param {Object} [attributes]
    * @param {Object} [options]
    */
-  initialize: function(attributes, options) {
+  initialize: function() {
     this.ensureAlias();
+
+    if (this.has('compose')) {
+      this.set('page', this.createPage());
+    }
   },
 
   /**
@@ -58,15 +60,6 @@ Fiber.Route = Fiber.Model.extend({
    */
   isValid: function() {
     return this.validate();
-  },
-
-  /**
-   * Checks if page needs to be resolve
-   * @param {Object.<Fiber.Page>} page
-   * @return {boolean}
-   */
-  isPageNeedResolve: function(page) {
-    return _.isString(page) && ! _.isEmpty(page);
   },
 
   /**
@@ -79,5 +72,15 @@ Fiber.Route = Fiber.Model.extend({
       this.set('alias', url);
     }
     return this;
+  },
+
+  /**
+   * Creates page instance
+   * @param {Object} [options]
+   * @returns {Object.<Fiber.Page>}
+   */
+  createPage: function(options) {
+    options = options || this.get('compose');
+    return new Fiber.Page(options);
   },
 });

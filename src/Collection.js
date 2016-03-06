@@ -6,18 +6,6 @@
 Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
 
   /**
-   * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function}
-   */
-  extendable: ['model', 'url', 'eventsNs', 'eventsCatalog'],
-
-  /**
-   * Properties keys that will be owned by the instance
-   * @var {Array|Function}
-   */
-  ownProp: ['eventsNs', 'eventsCatalog'],
-
-  /**
    * Model by default
    * @var {Fiber.Model}
    */
@@ -37,6 +25,18 @@ Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
     fetchSuccess: 'fetch:success',
     fetchError: 'fetch:error'
   },
+
+  /**
+   * Properties keys that will be auto extended from initialize object
+   * @var {Array|Function}
+   */
+  extendable: ['model', 'url', 'eventsNs', 'eventsCatalog'],
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @var {Array|Function}
+   */
+  ownProp: ['eventsNs', 'eventsCatalog'],
 
   /**
    * Constructor

@@ -48,6 +48,12 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     extendable: ['collection', 'url', 'hidden', 'rules', 'eventsNs', 'eventsCatalog'],
 
     /**
+     * Properties keys that will be owned by the instance
+     * @var {Array|Function}
+     */
+    ownProps: ['hidden', 'rules'],
+
+    /**
      * Constructs Model
      * @param {?Object} [attributes={}]
      * @param {?Object} [options={}]
@@ -138,7 +144,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @param {?Object} [options={}] direction: next, - direction to search, can be 'next' or 'prev'
      *                               where: null, - options object to find model by, will be passed to
      *                                      the `collection.where`
-     *                               cid: null - if no model cid found will be used as default Model cid
+     *                               defaultCid: null - if no model cid found will be used as default Model cid
      * @returns {Fiber.Model}
      */
     sibling: function(options) {
@@ -271,7 +277,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     destroy: function() {
       this.resetView();
-      return this.fn.apply(Backbone.Model, 'destroy', arguments);
+      return Fiber.fn.apply(Backbone.Model, 'destroy', arguments);
     },
 
     /**

@@ -6,13 +6,13 @@ Fiber.Layout = Fiber.View.extend({
 
   /**
    * Class name
-   * @type {String}
+   * @type {string}
    */
   className: 'layout',
 
   /**
    * Layout type
-   * @type {String}
+   * @type {string}
    */
   type: 'base',
 
@@ -20,7 +20,7 @@ Fiber.Layout = Fiber.View.extend({
    * Class options
    * @type {Array}
    */
-  classOptions: ['type'],
+  extendable: ['type'],
 
   /**
    * Own properties
@@ -30,27 +30,27 @@ Fiber.Layout = Fiber.View.extend({
 
   /**
    * Layout page
-   * @type {Object<Page>}
+   * @type {Object.<Page>}
    */
   page: null,
 
   /**
-   * Is layout rendered
+   * Layout rendered flag
    * @type {boolean}
    */
-  rendered: false,
+  __rendered: false,
 
   /**
    * After render hook
    */
   afterRender: function() {
-    this.rendered = true;
+    this.__rendered = true;
   },
 
   /**
    * Renders page
    * @param {Page} page
-   * @return {Layout}
+   * @return {Fiber.Layout}
    */
   renderPage: function(page) {
     this.page = page;
@@ -62,12 +62,10 @@ Fiber.Layout = Fiber.View.extend({
 
   /**
    * Removes page
-   * @param [{Page}] page
-   * @returns {Layout}
+   * @returns {Fiber.Layout}
    */
   removePage: function() {
     this.page.unload();
-    this.template = null;
     this.page = null;
     return this;
   }

@@ -9,19 +9,13 @@ Fiber.Viewport = Fiber.View.extend({
    * Class options
    * @type {Array}
    */
-  extendable: ['layouts', 'layout', 'layoutKey'],
+  extendable: ['layouts', 'layout', 'defaultLayout'],
 
   /**
    * Own properties
    * @type {Array}
    */
-  ownProps: ['layouts', 'layout', 'layoutKey'],
-
-  /**
-   * Default layout
-   * @type {String}
-   */
-  defaultLayout: 'fullFrame',
+  ownProps: ['layouts', 'layout', 'defaultLayout'],
 
   /**
    * Layouts
@@ -37,9 +31,9 @@ Fiber.Viewport = Fiber.View.extend({
 
   /**
    * Current layout key
-   * @type {String}
+   * @type {string}
    */
-  layoutKey: 'fullFrame',
+  defaultLayout: 'fullFrame',
 
   /**
    * Initializes Viewport
@@ -50,12 +44,11 @@ Fiber.Viewport = Fiber.View.extend({
 
   /**
    * Shows page
-   * @param {Page} page
-   * @param {String|Object} layout
-   * @returns {Viewport}
+   * @param {Object.<Fiber.Page>} page
+   * @returns {Fiber.Viewport}
    */
-  show: function(page, layout) {
-    var layout = layout || this.defaultLayout
+  show: function(page) {
+    var layout = page.get('layout') || this.defaultLayout
       , options = {};
 
     if (_.isPlainObject(layout)) {
@@ -63,7 +56,7 @@ Fiber.Viewport = Fiber.View.extend({
       layout = layout.type;
     }
 
-    if (layout !== this.layoutKey)
+    if (layout !== this.defaultLayout)
       this.createLayout(layout, options);
 
     this.renderLayout();
@@ -73,18 +66,31 @@ Fiber.Viewport = Fiber.View.extend({
 
   /**
    * Renders layout if it's not rendered
-   * @param [{boolean}] force
-   * @returns {Viewport}
+   * @param {boolean} [force]
+   * @returns {Fiber.Viewport}
    */
   renderLayout: function(force) {
     force = force !== void 0 ? force : false;
-    if (! this.layout.rendered || force) this.layout.render();
+    if (! this.layout.isRendered() || force) this.layout.render();
     return this;
   },
 
   /**
+   * Creates layout by given `alias`
+   * @param {string} [alias]
+   * @pram {Object} [options]
+   * @returns {Object<Layout>}
+   */
+  createLayout: function(alias, options) {
+    this.clear();
+    alias = val(alias, this.defaultLayout, _.isString);
+    this.defaultLayout = alias;
+    return this.layout = new this.layouts[alias](options);
+  },
+
+  /**
    * Closes page
-   * @return {Viewport}
+   * @returns {Fiber.Viewport}
    */
   close: function() {
     this.layout.removePage();
@@ -93,7 +99,7 @@ Fiber.Viewport = Fiber.View.extend({
 
   /**
    * Clears
-   * @returns {Viewport}
+   * @returns {Fiber.Viewport}
    */
   clear: function() {
     this.removeLayout();
@@ -103,39 +109,22 @@ Fiber.Viewport = Fiber.View.extend({
 
   /**
    * Resets Viewport
-   * @return {Viewport}
+   * @returns {Fiber.Viewport}
    */
   reset: function() {
-    this.layoutKey = _.first(_.keys(this.layouts));
+    this.defaultLayout = _.first(_.keys(this.layouts));
     this.clear();
     return this;
   },
 
   /**
-   * Creates layout by given `alias`
-   * @param [{String}] alias
-   * @pram [{Object}] options
-   * @returns {Object<Layout>}
-   */
-  createLayout: function(alias, options) {
-    this.clear();
-    alias = this.val(alias, this.layoutKey, _.isString);
-    this.layoutKey = alias;
-    this.layout = new this.layouts[alias](options);
-    this.layout.render();
-    this.$el.html(this.layout.$el);
-    return this.layout;
-  },
-
-  /**
    * Removes layout
-   * @returns {Viewport}
+   * @returns {Fiber.Viewport}
    */
   removeLayout: function() {
     if (this.layout) {
       this.layout.remove();
       this.layout = null;
-      this.layoutKey = null;
     }
     return this;
   }

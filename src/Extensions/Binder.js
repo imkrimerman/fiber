@@ -15,7 +15,7 @@ Fiber.Extensions.Binder = {
    */
   applyBinder: function() {
     var methods = _.result(this, 'bindMethods');
-    if (methods === Infinity) methods =  _.functionsIn(this);
+    if (_.isString(methods) && methods === 'all') methods = _.functionsIn(this);
     if (! _.isArray(methods)) return;
 
     for (var i = 0; i < methods.length; i ++)

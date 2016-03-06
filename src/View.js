@@ -7,8 +7,8 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
   'NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', {
 
     /**
-     * Parent View
-     * @var {Object.<Fiber.View>}
+     * Parent element to auto attach
+     * @var {jQuery}
      */
     $parent: null,
 
@@ -86,6 +86,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * @param {?Object} [options={}]
      */
     constructor: function(options) {
+      this.options = options;
       this.cid = _.uniqueId('view-');
       this.linkedViews = new Fiber.LinkedViews();
       this.applyExtend(options);
