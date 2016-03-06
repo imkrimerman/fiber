@@ -44,6 +44,7 @@ Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
    * @param {?Object} [options] - Options to extend from
    */
   constructor: function(models, options) {
+    this.options = options;
     this.applyExtend(options);
     this.applyOwnProps();
     Backbone.Collection.apply(this, arguments);

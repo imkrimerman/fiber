@@ -14,7 +14,9 @@ Fiber.fn.class = {
     explore: [
       {owner: Fiber, path: 'ioc.binding.items'},
       {owner: Fiber, path: 'ioc.extensions.items'},
-      {owner: Fiber, path: 'Model.prototype', direct: true}
+      {owner: Fiber, path: 'Model.prototype', direct: true},
+      {owner: Fiber, path: 'View.prototype', direct: true},
+      {owner: Fiber, path: 'CollectionView.prototype', direct: true}
     ],
   },
 

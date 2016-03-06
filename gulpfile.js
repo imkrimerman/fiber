@@ -58,13 +58,6 @@ var _ = require('lodash')
       './src/View.js',
       './src/CollectionView.js',
 
-//      './src/Middleware.js',
-//      './src/Route.js',
-//      './src/Router.js',
-//      './src/Page.js',
-//      './src/Layout.js',
-//      './src/Viewport.js',
-
       // After load scripts
       './src/Helpers/AfterLoad.js'
     ]

@@ -4,7 +4,7 @@
  * @extends {Backbone.View}
  */
 Fiber.View = Fiber.fn.class.make(Backbone.View, [
-  'NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', {
+  'NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', 'Binder', {
 
     /**
      * Parent element to auto attach
@@ -16,7 +16,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * Linked views collection
      * @var {Object.<Fiber.LinkedView>}
      */
-    linkedViews: null,
+    linked: null,
 
     /**
      * View ui selectors
@@ -41,35 +41,28 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * @var {Object}
      */
     listeners: {
-      'sync change': 'render'
-    },
-
-    proxy: {
-      // TODO implement
+      change: 'render'
     },
 
     /**
-     * Events namespace
-     * @var {string}
-     */
-    eventsNs: 'view',
-
-    /**
-     * Event catalog
+     * Events that should be retransmitted
      * @var {Object}
      */
-    eventsCatalog: {
-      render: 'render',
-      rendered: 'rendered'
-    },
+    transmit: {},
+
+    /**
+     * Rendered flag
+     * @var {boolean}
+     */
+    __rendered: false,
 
     /**
      * Properties keys that will be auto extended from initialize object
      * @var {Array|Function|string}
      */
     extendable: [
-      'model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events',
-      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', 'routeArgs'
+      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events',
+      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', 'transmit'
     ],
 
     /**
@@ -77,31 +70,29 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * @var {Array|Function}
      */
     ownProps: [
-      'model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events',
-      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'linkedViews'
+      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '__rendered',
+      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'transmit'
     ],
 
     /**
-     * Constructs Model
+     * Constructs View
      * @param {?Object} [options={}]
      */
     constructor: function(options) {
       this.options = options;
       this.cid = _.uniqueId('view-');
-      this.linkedViews = new Fiber.LinkedViews();
+      this.linked = new Fiber.LinkedViews();
       this.applyExtend(options);
       this.applyOwnProps();
+      this.applyBinder();
       this.resolveListenable();
+      this.startTransmitting();
       this.__handleEventsUi();
       this.__wrapRender();
       this._ensureElement();
       this.initialize.apply(this, arguments);
+      if (Fiber.$) this.$el.data('fiber.view', this);
     },
-
-    /**
-     * Before render hook
-     */
-    beforeRender: function() {},
 
     /**
      * Render View
@@ -109,16 +100,19 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     render: function() {
       if (this.has('template'))
-        this.$el.html(this.renderTemplate(this.get('template')));
+        this.html(this.renderTemplate(this.get('template')));
       if (this.has('$parent'))
         this.attachToParent(this.result('$parent'));
       return this;
     },
 
     /**
-     * After render hook
+     * Determine if view is rendered
+     * @returns {boolean}
      */
-    afterRender: function() {},
+    isRendered: function() {
+      return this.__rendered;
+    },
 
     /**
      * Attaches View to parent element
@@ -148,8 +142,9 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * @returns {string}
      */
     renderTemplate: function(template, data) {
-      if (_.isString(template)) template = Fiber.fn.template(template);
-      if (_.isFunction(template)) template = template(this.makeTemplateData(data));
+      data = this.makeTemplateData(data);
+      if (_.isString(template)) return Fiber.fn.template.compile(template, data);
+      if (_.isFunction(template)) template = template(data);
       return template;
     },
 
@@ -160,9 +155,8 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     makeTemplateData: function(additional) {
       var data = this.result('templateData', {});
-      if (this.model) data = _.assign({}, data, this.model.toJSON());
-      if (this.val(additional, false, _.isPlainObject))
-        data = _.assign({}, data, additional);
+      if (this.model) data = _.extend({}, data, this.model.toJSON());
+      _.isPlainObject(additional) && _.extend(data, additional);
       data.self = this;
       return data;
     },
@@ -173,7 +167,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     resolveUi: function() {
       this.$ui = {};
-      _.each(this.result('ui'), this.resolveOneUi, this);
+      _.each(this.result('ui'), this.resolveUiBy, this);
       return this.$ui;
     },
 
@@ -183,7 +177,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * @param {string} alias
      * @returns {*|jQuery|HTMLElement}
      */
-    resolveOneUi: function(selector, alias) {
+    resolveUiBy: function(selector, alias) {
       return this.$ui[alias] = $(selector);
     },
 
@@ -206,15 +200,24 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     /**
      * Creates listeners collection from given `listeners`
      * @param {Object} listeners
-     * @returns {*}
+     * @returns {Object.<Fiber.Listeners>}
      */
     prepareListeners: function(listeners) {
-      var prepared = [];
-      for (var key in listeners) prepared.push({
+      return this.listeners = new Fiber.Listeners(this.splitEvents(listeners));
+    },
+
+    /**
+     * Splits events object to events and handlers arrays
+     * @param {Object} events
+     * @returns {Array}
+     */
+    splitEvents: function(events) {
+      var options = [];
+      for (var key in events) options.push({
         events: key.split(' '),
-        handlers: listeners.split(' ')
+        handlers: events[key].split(' ')
       });
-      return this.listeners = new Fiber.Listeners(prepared);
+      return options;
     },
 
     /**
@@ -225,29 +228,71 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     allEventsHandler: function(event, listenable) {
       var args = _.tail(arguments);
       this.listeners.applyHandler(this, event, args);
-      this.fire(event, args);
+      this.fire.apply(this, [event].concat(args));
+    },
+
+    /**
+     * Starts transmitting events
+     * @return {Fiber.View}
+     */
+    startTransmitting: function() {
+      var transmit = this.splitEvents(this.result('transmit'));
+      for (var i = 0; i < transmit.length; i ++) {
+        var eventObj = transmit.events[i];
+
+        for (var j = 0; j < eventObj.events.length; j ++) {
+          var event = eventObj.events[j];
+
+          this.when(event, function() {
+            for (var k = 0; k < eventObj.handlers.length; k ++) {
+              var handlerEvent = eventObj.handlers[k];
+              this.fire.apply(this, [handlerEvent].concat(arguments));
+            }
+          }.bind(this));
+        }
+      }
+      return this;
+    },
+
+    /**
+     * Stops transmitting events
+     * @returns {Fiber.View}
+     */
+    stopTransmitting: function() {
+      var transmit = this.splitEvents(this.result('transmit'));
+      for (var i = 0; i < transmit.length; i ++) {
+        var eventObj = transmit.events[i];
+        for (var j = 0; j < eventObj.events.length; j ++) {
+          var event = eventObj.events[j];
+          this.stopListening(this, event);
+        }
+      }
+
+      return this;
     },
 
     /**
      * Real render function
      * @param {Function} render
      */
-    renderFn: function(render) {
-      this.beforeRender();
-      this.fire('render', this);
+    callRender: function(render) {
+      Fiber.fn.fireCallback(this, 'before:render', [this, render]);
+
+      Fiber.fn.apply(this, '__beforeRender');
       render.call(this);
-      this.resolveUi();
-      this.afterRender();
-      this.fire('rendered', this);
+      Fiber.fn.apply(this, '__afterRender');
+
+      Fiber.fn.fireCallback(this, 'after:render', [this, render]);
+      this.__rendered = true;
     },
 
     /**
      * Removes view
      */
     remove: function() {
-      this.fire('remove', this);
-      this.fn.apply(Backbone.View, 'remove');
-      this.fire('removed', this);
+      Fiber.fn.fireCallback(this, 'before:remove', [this]);
+      Fiber.fn.apply(Backbone.View, 'remove');
+      Fiber.fn.fireCallback(this, 'after:remove', [this]);
     },
 
     /**
@@ -259,13 +304,22 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     },
 
     /**
+     * After render private hook
+     * @private
+     */
+    __afterRender: function() {
+      this.resolveUi();
+    },
+
+    /**
      * Resets View
      * @private
      */
     __reset: function() {
       this.$ui = {};
       this.$parent = null;
-      this.linkedViews.reset([]);
+      delete this.options;
+      this.linked.reset([]);
     },
 
     /**
@@ -295,19 +349,8 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * @private
      */
     __wrapRender: function() {
-      this.__origRender = this.render;
-      this.render = _.wrap(this.render, this.renderFn.bind(this));
+      this.render = _.wrap(this.render, this.callRender.bind(this));
       return this;
     },
-
-    /**
-     * Un wraps render function
-     * @returns {Fiber.View}
-     * @private
-     */
-    __unwrapRender: function() {
-      if (this.__origRender) this.render = this.__origRender;
-      return this;
-    }
   }
 ]);

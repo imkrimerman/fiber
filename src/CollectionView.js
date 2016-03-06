@@ -9,13 +9,19 @@ Fiber.CollectionView = Fiber.View.extend({
    * Default collection class
    * @var {Fiber.Collection}
    */
-  collectionClass: Fiber.Collection,
+  CollectionClass: Fiber.Collection,
 
   /**
    * Collection instance
    * @var {Object.<Fiber.Collection>}
    */
   collection: null,
+
+  /**
+   * Sort comparator function to pass to collection
+   * @var {Function|string|null}
+   */
+  comparator: null,
 
   /**
    * Collection of initial data models to create collection
@@ -39,7 +45,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * View class to create View for each model
    * @var {Fiber.View}
    */
-  modelViewClass: Fiber.View,
+  ModelViewClass: Fiber.View,
 
   /**
    * Instance key to listen to
@@ -52,14 +58,26 @@ Fiber.CollectionView = Fiber.View.extend({
    * @var {Object}
    */
   listeners: {
-    'sync update clear': 'render'
+    'sync update reset': 'render'
   },
 
   /**
-   * Events namespace
-   * @var {string}
+   * Methods list to bind
+   * @var {Array|Function}
    */
-  eventsNs: 'collectionView',
+  bindMethods: ['renderOne', 'removeOne'],
+
+  /**
+   * Properties keys that will be auto extended from initialize object
+   * @var {Array|Function|string}
+   */
+  extendable: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ModelViewClass'],
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @var {Array|Function}
+   */
+  ownProps: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ModelViewClass'],
 
   /**
    * Constructs collection view
@@ -75,7 +93,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   renderCollection: function() {
     this.clearCollectionElement();
-    this.prepareCollection().each(this.renderOne, this);
+    this.prepareCollection().each(this.renderOne);
     return this;
   },
 
@@ -121,7 +139,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   createModelView: function(View, options) {
     var view = new View(options);
-    this.linkedViews.addView(view);
+    this.linked.addView(view);
     view.model.setView(view);
     return view;
   },
@@ -133,7 +151,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   getModelViewClass: function(model) {
     if (model.has('viewClass')) return model.get('viewClass');
-    return this.modelViewClass;
+    return this.ModelViewClass;
   },
 
   /**
@@ -151,6 +169,11 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {jQuery|HTMLElement}
    */
   resolveCollectionElement: function() {
+    if (this.$collectionElement instanceof $) {
+      this.$el.append(this.$collectionElement);
+      return this.$collectionElement;
+    }
+
     var collectionEl = _.result(this, 'collectionElement');
     collectionEl = this.replaceCollectionElementUi(collectionEl);
 
@@ -175,22 +198,9 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {Object.<Fiber.Collection>}
    */
   createCollection: function(models, options) {
-    return this.collection = new this.collectionClass(models, options);
-  },
-
-  /**
-   * Real render function
-   * @param {Function} render
-   */
-  renderFn: function(render) {
-    this.fire('render', this);
-    this.beforeRender();
-    render.call(this);
-    this.resolveUi();
-    this.resolveCollectionElement();
-    this.renderCollection();
-    this.afterRender();
-    this.fire('rendered', this);
+    options = val(options, {}, _.isPlainObject);
+    options.comparator = this.comparator;
+    return this.collection = new this.CollectionClass(models, options);
   },
 
   /**
@@ -200,8 +210,38 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   replaceCollectionElementUi: function(collectionElement) {
     collectionElement = collectionElement || this.collectionElement;
+    if (collectionElement instanceof $) return collectionElement;
     if (~collectionElement.indexOf('@ui'))
       collectionElement = this.ui[collectionElement.replace('@ui.', '')];
     return collectionElement;
+  },
+
+  /**
+   * Before render private hook
+   * @private
+   */
+  __beforeRender: function() {
+    this.__resetModelsView();
+    this.linked.reset([]);
+  },
+
+  /**
+   * Resets models view reference
+   * @private
+   */
+  __resetModelsView: function() {
+    this.collection.each(function(model) {
+      model.resetView();
+    });
+  },
+
+  /**
+   * After render private hook
+   * @private
+   */
+  __afterRender: function() {
+    this.resolveUi();
+    this.resolveCollectionElement();
+    this.renderCollection();
   }
 });

@@ -6,18 +6,12 @@
 Fiber.Listeners = BaseCollection.extend({
 
   /**
-   * Events namespace
-   * @var {string}
-   */
-  eventsNs: 'listeners',
-
-  /**
    * Determine if event has listeners
    * @param {string} event
    * @returns {boolean}
    */
   hasEvent: function(event) {
-    return ! ! this.filterByEvent(event).length;
+    return !! this.filterByEvent(event).length;
   },
 
   /**
@@ -38,7 +32,7 @@ Fiber.Listeners = BaseCollection.extend({
    */
   filterByEvent: function(event) {
     return this.filter(function(listener) {
-      return _.contains(listener.get('events'), event);
+      return _.includes(listener.get('events'), event);
     });
   },
 
@@ -50,8 +44,8 @@ Fiber.Listeners = BaseCollection.extend({
   getHandler: function(event) {
     var listener = this.getByEvent(event);
     if (_.isArray(listener))
-      return _.pluck(listener, 'attributes.handler');
-    return listener.get('handler');
+      return _.pluck(listener, 'attributes.handlers');
+    return listener.get('handlers');
   },
 
   /**
@@ -61,12 +55,12 @@ Fiber.Listeners = BaseCollection.extend({
    * @param {?Array} [args]
    */
   applyHandler: function(scope, event, args) {
-    if (! this.listeners.hasEvent(event)) return;
+    if (! this.hasEvent(event)) return;
     var handler = this.getHandler(event);
-    if (_.isArray(handler)) _.each(handler, function(oneHandler) {
+    if (_.isArray(handler)) _.each(handler, _.bind(function(oneHandler) {
       this.callHandler(scope, oneHandler, args);
-    }.bind(this));
-    this.callHandler(scope, handler, args);
+    }, this));
+    else this.callHandler(scope, handler, args);
   },
 
   /**

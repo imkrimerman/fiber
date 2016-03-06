@@ -17,7 +17,7 @@ Fiber.Extensions.OwnProperties = {
   applyOwnProps: function() {
     for (var i = 0; i < this.ownProps.length; i ++) {
       var prop = this.ownProps[i];
-      if (_.has(this, prop)) continue;
+      if (_.has(this, prop) || ! _.has(this.__proto__, prop)) continue;
       this[prop] = _.cloneDeep(this[prop], function(value) {
         if (_.isFunction(value)) return value;
         return _.clone(value, true);

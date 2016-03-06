@@ -29,7 +29,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * Events namespace
      * @var {string}
      */
-    eventsNs: 'model',
+    eventsNs: '',
 
     /**
      * Events catalog
@@ -59,6 +59,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @param {?Object} [options={}]
      */
     constructor: function(attributes, options) {
+      this.options = options;
       this.errorBag = new Fiber.ErrorBag();
       this.resetView();
       var attrs = attributes || {};

@@ -4,7 +4,7 @@
  * @extends {Backbone.Collection}
  */
 var BaseCollection = Fiber.fn.class.make(Backbone.Collection, [
-  'Extend', 'OwnProperties', {
+  'Extend', 'OwnProperties', 'NsEvents', {
 
     /**
      * Properties keys that will be auto extended from initialize object

@@ -76,7 +76,7 @@ Fiber.fn = {
   /**
    * Applies `method` on given `Class` with `context` and passing `args`
    * @param {Function|Object} Class - Class to call
-   * @param {String} method - method to call
+   * @param {string} method - method to call
    * @param {?Array} [args] - arguments to pass
    * @param {?Object|Array} [context] - context to apply to
    * @returns {*}
@@ -85,10 +85,22 @@ Fiber.fn = {
     context = val(context, Class);
     args = val(args, []);
 
-    var proto = Class.prototype
+    var proto = Class.prototype || Class
       , method = proto && proto[method];
 
     if (_.isFunction(method)) return method.apply(context, _.castArray(args));
+  },
+
+  /**
+   * Fires callback and event
+   * @param {Function|Object} Class - Class to call
+   * @param {string} event - event to fire and transform to callback name
+   * @param {?Array} [eventArgs] - arguments to pass to fire method
+   * @param {?Array} [cbArgs] - arguments to  pass to callback
+   */
+  fireCallback: function(Class, event, eventArgs, cbArgs) {
+    Fiber.fn.apply(Class, _.camelCase(event.split(':').join(' ')), cbArgs);
+    Fiber.fn.apply(Class, 'fire', eventArgs);
   },
 
   /**
