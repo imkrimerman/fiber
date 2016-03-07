@@ -2,13 +2,7 @@
  * Save the previous value of the `Fiber` variable, so that it can be
  * restored later on, if `noConflict` is used.
  */
-var prevFiber = root.Fiber
-
-/**
- * Exposed jQuery (or similar) from Backbone.
- * @type {Function}
- */
-  , $ = Fiber.$ = Backbone.$;
+var prevFiber = root.Fiber;
 
 /**
  * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
@@ -25,6 +19,12 @@ Fiber.noConflict = function() {
  * @type {Function}
  */
 Fiber._ = _;
+
+/**
+ * Exposed jQuery (or similar) from Backbone.
+ * @type {Function}
+ */
+Fiber.$ = $;
 
 /**
  * Fiber Version.

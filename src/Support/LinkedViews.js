@@ -101,7 +101,7 @@ Fiber.LinkedViews = BaseCollection.extend({
   reset: function() {
     this.forgetParentView();
     this.stopListening();
-    this.fn.apply(Backbone.View, 'reset', arguments);
+    this._apply(Backbone.View, 'reset', arguments);
     return this;
   },
 

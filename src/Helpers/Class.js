@@ -260,7 +260,10 @@ Fiber.fn.class = {
   getExtendMixin: function(key, protoExclude) {
     var map = {
       proto: {
-        fn: Fiber.fn.proto(protoExclude)
+        fn: Fiber.fn.proto(protoExclude),
+        _apply: function(Class, method, args, context) {
+          return Fiber.fn.apply(Class, method, args, context || this);
+        }
       },
 
       statics: {

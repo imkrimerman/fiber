@@ -64,12 +64,12 @@ Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
    * @returns {*}
    */
   fetch: function(options) {
-    return Fiber.fn.apply(Backbone.Collection, 'fetch', [
+    return this._apply(Backbone.Collection, 'fetch', [
       _.extend({}, options || {}, {
         success: this.__whenSuccess.bind(this),
         error: this.__whenError.bind(this)
       })
-    ], this);
+    ]);
   },
 
   /**

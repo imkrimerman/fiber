@@ -12,7 +12,7 @@ Fiber.CollectionView = Fiber.View.extend({
   CollectionClass: Fiber.Collection,
 
   /**
-   * View class to create View for each model
+   * View class to create for each model
    * @var {Fiber.View}
    */
   ViewClass: Fiber.View,
@@ -210,7 +210,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   replaceCollectionElementUi: function(collectionElement) {
     collectionElement = collectionElement || this.collectionElement;
-    if (collectionElement instanceof $) return collectionElement;
+    if (! _.isString(collectionElement)) return collectionElement;
     if (~collectionElement.indexOf('@ui'))
       collectionElement = this.ui[collectionElement.replace('@ui.', '')];
     return collectionElement;

@@ -119,7 +119,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {Object}
      */
     toJSON: function() {
-      return _.omit(Fiber.fn.apply(Backbone.Model, 'toJSON', [], this), _.result(this, 'hidden'));
+      return _.omit(this._apply(Backbone.Model, 'toJSON'), _.result(this, 'hidden'));
     },
 
     /**
@@ -222,12 +222,12 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {*}
      */
     fetch: function(options) {
-      return Fiber.fn.apply(Backbone.Model, 'fetch', [
+      return this._apply(Backbone.Model, 'fetch', [
         _.extend({}, options || {}, {
           success: this.__whenSuccess.bind(this),
           error: this.__whenError.bind(this)
         })
-      ], this);
+      ]);
     },
 
     /**

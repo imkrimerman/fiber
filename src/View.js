@@ -91,7 +91,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
       this.__wrapRender();
       this._ensureElement();
       this.initialize.apply(this, arguments);
-      if (Fiber.$) this.$el.data('fiber.view', this);
+      this.$el.data('fiber.view', this);
     },
 
     /**
@@ -232,6 +232,27 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     },
 
     /**
+     * Add a single event listener to the view's element (or a child element
+     * using `selector`). This only works for delegate-able events: not `focus`,
+     * `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
+     * @param {string} event
+     * @param {string|Function} selector
+     * @param {?Function} [cb]
+     * @example
+     *
+     * view.delegate('click', function() {});
+     * view.delegate('click', '.button', function() {});
+     */
+    delegate: function(event, selector, cb) {
+      if (arguments.length === 2) {
+        cb = selector;
+        selector = '';
+      }
+
+      this._apply(Backbone.View, 'delegate', [event, selector, cb]);
+    },
+
+    /**
      * Starts transmitting events
      * @return {Fiber.View}
      */
@@ -278,9 +299,9 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     callRender: function(render) {
       Fiber.fn.fireCallback(this, 'before:render', [this, render]);
 
-      Fiber.fn.apply(this, '__beforeRender');
+      this._apply(this, '__beforeRender');
       render.call(this);
-      Fiber.fn.apply(this, '__afterRender');
+      this._apply(this, '__afterRender');
 
       Fiber.fn.fireCallback(this, 'after:render', [this, render]);
       this.__rendered = true;
@@ -291,8 +312,9 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     remove: function() {
       Fiber.fn.fireCallback(this, 'before:remove', [this]);
-      Fiber.fn.apply(Backbone.View, 'remove');
+      this._apply(Backbone.View, 'remove');
       Fiber.fn.fireCallback(this, 'after:remove', [this]);
+      this.__rendered = false;
     },
 
     /**

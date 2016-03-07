@@ -11,7 +11,7 @@ Fiber.Middleware = Fiber.Model.extend({
    */
   defaults: {
     alias: '',
-    handler: _.noop
+    handler: null
   },
 
   /**
