@@ -4,7 +4,7 @@
  * @extends {Backbone.Model}
  */
 Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
-  'NsEvents', 'Extend', 'Mixin', 'OwnProperties', {
+  'NsEvents', 'Extend', 'Mixin', 'OwnProperties', 'Binder', {
 
     /**
      * Hidden fields.
@@ -68,6 +68,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       this.attributes = {};
       this.applyExtend(options);
       this.applyOwnProps();
+      this.applyBinder();
       if (options.parse) attrs = this.parse(attrs, options) || {};
       attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
       this.listenTo(this, 'invalid', this.__whenInvalid.bind(this));
@@ -278,7 +279,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     destroy: function() {
       this.resetView();
-      return Fiber.fn.apply(Backbone.Model, 'destroy', arguments);
+      return this._apply(Backbone.Model, 'destroy', arguments);
     },
 
     /**
@@ -322,7 +323,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     __whenInvalid: function(model, errors, options) {
       this.whenInvalid.apply(this, arguments);
-      this.fire('invalid', {
+      if (this.eventsNs) this.fire('invalid', {
         model: model,
         errors: errors,
         options: options

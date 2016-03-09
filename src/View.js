@@ -259,15 +259,15 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     startTransmitting: function() {
       var transmit = this.splitEvents(this.result('transmit'));
       for (var i = 0; i < transmit.length; i ++) {
-        var eventObj = transmit.events[i];
+        var transmitted = transmit[i];
 
-        for (var j = 0; j < eventObj.events.length; j ++) {
-          var event = eventObj.events[j];
+        for (var j = 0; j < transmitted.events.length; j ++) {
+          var event = transmitted.events[j];
 
           this.when(event, function() {
-            for (var k = 0; k < eventObj.handlers.length; k ++) {
-              var handlerEvent = eventObj.handlers[k];
-              this.fire.apply(this, [handlerEvent].concat(arguments));
+            for (var k = 0; k < transmitted.handlers.length; k ++) {
+              var handlerEvent = transmitted.handlers[k];
+              this.fire.apply(this, [handlerEvent].concat(_.toArray(arguments)));
             }
           }.bind(this));
         }

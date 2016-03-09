@@ -3,7 +3,7 @@
  * @class
  * @extends {BaseCollection}
  */
-Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
+Fiber.Collection = BaseCollection.extend(['Mixins', 'Binder', {
 
   /**
    * Model by default
@@ -15,7 +15,7 @@ Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
    * Events namespace
    * @var {string}
    */
-  eventsNs: 'collection',
+  eventsNs: '',
 
   /**
    * Events catalog
@@ -47,6 +47,7 @@ Fiber.Collection = BaseCollection.extend(['NsEvents', 'Mixins', 'Binder', {
     this.options = options;
     this.applyExtend(options);
     this.applyOwnProps();
+    this.applyBinder();
     Backbone.Collection.apply(this, arguments);
   },
 

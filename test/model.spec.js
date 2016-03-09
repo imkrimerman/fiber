@@ -23,11 +23,11 @@ describe('Fiber.Model', function() {
   });
 
   it('should fetch data and invoke success handler on success', function(done) {
-    var privateErrorSpy = addSpy(this.urlModel, '__whenSuccess');
-    var errorSpy = addSpy(this.urlModel, 'whenSuccess');
+    var privateSuccessSpy = addSpy(this.urlModel, '__whenSuccess');
+    var successSpy = addSpy(this.urlModel, 'whenSuccess');
     this.urlModel.when('fetchSuccess', function() {
-      expectCalled(privateErrorSpy);
-      expectCalled(errorSpy);
+      expectCalled(privateSuccessSpy);
+      expectCalled(successSpy);
       done();
     });
     this.urlModel.when('fetchError', function() {
@@ -64,6 +64,7 @@ describe('Fiber.Model', function() {
   });
 
   it('should `validate` Model attributes', function(done) {
+    this.baseModel.setNs('model');
     this.baseModel.setRules(this.rules);
     this.baseModel.set('title', 'Normal');
     expect(this.baseModel.attributes.title).to.eql('Normal');
@@ -87,6 +88,7 @@ describe('Fiber.Model', function() {
       expect(errors).not.to.be.undefined;
       end();
     });
+
     this.baseModel.set({title: {}}, {validate: true});
   });
 
