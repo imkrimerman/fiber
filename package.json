@@ -46,7 +46,6 @@
     "lodash": "^4.5.0"
   },
   "scripts": {
-    "build": "gulp compile",
     "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha",
