@@ -3,7 +3,7 @@ describe('Fiber.Extensions', function() {
 
   before(function() {
     this.mixin = {method: function() {}};
-    this.ExtensionsRef = Fiber.ioc.extensions.items;
+    this.ExtensionsRef = Fiber.container.extensions.items;
     makeSpyable(this);
   });
 

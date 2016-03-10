@@ -23,7 +23,7 @@ Fiber.MiddlewareCollection = Fiber.RouterCollection.extend({
    * @param {Object.<Fiber.Route>} route
    * @returns {boolean}
    */
-  passThrough: function(route) {
+  pass: function(route) {
     var middleware = this.getFor(route);
     return _.every(middleware, function(one) {
       return one.passThrough(route);

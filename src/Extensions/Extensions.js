@@ -7,7 +7,7 @@ Fiber.getExtension = function(alias) {
   if (_.isArray(alias)) return _.map(_.castArray(alias), function(one) {
     return Fiber.getExtension(one);
   });
-  return _.isString(alias) ? Fiber.ioc.extensions.get(alias, {}) : alias;
+  return _.isString(alias) ? Fiber.container.extensions.get(alias, {}) : alias;
 };
 
 /**
@@ -25,7 +25,7 @@ Fiber.addExtension = function(alias, extension, override) {
   });
   else {
     if (Fiber.hasExtension(alias) && ! val(override, false)) return this;
-    Fiber.ioc.extensions.set(alias, extension);
+    Fiber.container.extensions.set(alias, extension);
   }
   return this;
 };
@@ -51,7 +51,7 @@ Fiber.hasExtension = function(alias, method) {
   if (_.isArray(alias)) return _[method](alias, function(one) {
     return Fiber.hasExtension(one);
   });
-  return Fiber.ioc.extensions.has(alias);
+  return Fiber.container.extensions.has(alias);
 };
 
 /**
@@ -61,7 +61,7 @@ Fiber.hasExtension = function(alias, method) {
  */
 Fiber.forgetExtension = function(alias) {
   _.each(_.castArray(alias), function(one) {
-    Fiber.ioc.extensions.forget(one);
+    Fiber.container.extensions.forget(one);
   });
   return this;
 };
@@ -84,7 +84,7 @@ Fiber.applyExtension = function(alias, object, override) {
  * @returns {Object}
  */
 Fiber.getExtensions = function() {
-  return Fiber.ioc.extensions.all();
+  return Fiber.container.extensions.all();
 };
 
 /**
@@ -93,5 +93,5 @@ Fiber.getExtensions = function() {
  * @returns {string[]}
  */
 Fiber.getExtensionsList = function(exclude) {
-  return _.difference(Fiber.ioc.extensions.keys(), val(exclude, [], _.isArray));
+  return _.difference(Fiber.container.extensions.keys(), val(exclude, [], _.isArray));
 };

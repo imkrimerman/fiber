@@ -12,8 +12,8 @@ Fiber.fn.class = {
     rules: [_.isArray, _.isPlainObject],
     exclude: ['fn'],
     explore: [
-      {owner: Fiber, path: 'ioc.binding.items'},
-      {owner: Fiber, path: 'ioc.extensions.items'},
+      {owner: Fiber, path: 'container.binding.items'},
+      {owner: Fiber, path: 'container.extensions.items'},
       {owner: Fiber, path: 'Model.prototype', direct: true},
       {owner: Fiber, path: 'View.prototype', direct: true},
       {owner: Fiber, path: 'CollectionView.prototype', direct: true}
@@ -168,7 +168,7 @@ Fiber.fn.class = {
   make: function(Parent, proto, statics) {
     Parent = val(Parent, Fiber.Class);
     // If Parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(Parent) && Fiber.ioc.bound(Parent)) Parent = Fiber.ioc.make(Parent);
+    if (_.isString(Parent) && Fiber.container.bound(Parent)) Parent = Fiber.container.make(Parent);
     // Finally call extend method with right Parent, proto and statics
     return Fiber.fn.class.extend(Parent, Fiber.getExtension(proto), Fiber.getExtension(statics));
   },
@@ -367,5 +367,22 @@ Fiber.fn.class = {
     if (! _.isFunction(checkerMethod)) return _.constant(true);
   },
 
+  /**
+   * Verifies that `options` is plain object and sets options to the scope
+   * @param {Object} scope
+   * @param {Object} options
+   * @param {?Object} [defaults={}]
+   * @param {?boolean} [deep=false]
+   * @returns {Object}
+   */
+  handleOptions: function(scope, options, defaults, deep) {
+    options = val(options, {}, _.isPlainObject);
 
+    if (_.isPlainObject(defaults) && ! _.isEmpty(defaults))
+      if (deep) _.defaultsDeep(options, defaults);
+      else _.defaults(options, defaults);
+
+    scope.options = options;
+    return options;
+  },
 };

@@ -193,4 +193,4 @@ Fiber.fn.class.createConditionMethods(Fiber.Services.Container.prototype, ['bind
  * Create default Fiber Inverse Of Control Container
  * @var {Object.<Fiber.Services.Container>}
  */
-Fiber.ioc = new Fiber.Services.Container();
+Fiber.container = new Fiber.Services.Container();

@@ -27,6 +27,15 @@ var BaseCollection = Fiber.fn.class.make(Backbone.Collection, [
       this.applyExtend(options);
       this.applyOwnProps();
       Backbone.Collection.apply(this, arguments);
-    }
+    },
+
+    /**
+     * Flushes history
+     * @returns {BaseCollection}
+     */
+    flush: function() {
+      this.reset([]);
+      return this;
+    },
   }]
 );

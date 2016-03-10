@@ -1,10 +1,5 @@
-var RouterPrototype = Backbone.Router.prototype;
-
-_.unset(RouterPrototype, 'routes');
-_.unset(RouterPrototype, '_bindRoutes');
-
 Fiber.Router = Fiber.fn.class.createFullMixinClass([
-  RouterPrototype, {
+  _.omit(Backbone.Router.prototype, ['routes', '_bindRoutes']), {
 
     /**
      * Routes collection
@@ -19,12 +14,19 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
     middleware: null,
 
     /**
+     * Router history
+     * @var {Object.<Fiber.HistoryCollection>}
+     */
+    history: null,
+
+    /**
      * Collections list
      * @var {Object|Function}
      */
     collections: {
       routes: Fiber.RouteCollection,
-      middleware: Fiber.MiddlewareCollection
+      middleware: Fiber.MiddlewareCollection,
+      history: Fiber.HistoryCollection
     },
 
     /**
@@ -47,7 +49,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
       this.applyOwnProps();
       this.applyBinder();
       this.createCollections(options);
-      this.attachRoutes();
+      this.bindRoutes();
       this.initialize.apply(this, arguments);
     },
 
@@ -60,7 +62,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
       options = val(options, {}, _.isPlainObject);
       for (var collectionKey in this.collections) {
         var Collection = this.collections[collectionKey]
-          , data = this.prepareCollectionData(options[collectionKey])
+          , data = this.prepareCollectionData(options[collectionKey]);
         this[collectionKey] = new Collection(data, { router: this });
       }
       return this;
@@ -70,8 +72,8 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
      * Attaches routes
      * @return {Fiber.Router}
      */
-    attachRoutes: function() {
-      this.routes.attach();
+    bindRoutes: function() {
+      this.routes.bind();
       return this;
     },
 
@@ -86,12 +88,15 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
       var route = route()
         , handler = route.get('handler');
 
-      if (! this.middleware.passThrough(route)) {
+      if (! this.middleware.pass(route)) {
         this.fire('not:allowed', route, this);
         return false;
       }
 
-      this.setCurrent({route: route, args: args});
+      var current = {route: route, args: args};
+
+      this.setCurrent(current);
+      this.history.add(current);
 
       if (handler) handler.apply(this, args);
       else return false;
@@ -99,14 +104,16 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
 
     /**
      * Goes to the url by alias
-     * @param {String} alias
+     * @param {string} alias
      * @returns {*}
      */
     go: function(alias, options) {
-      var route = this.collections.routes.findWhere({ alias: alias });
+      var route = this.routes.getByAlias(alias);
       if (! route) return;
-      options = _.defaults({}, options || {}, { trigger: true, replace: true });
-      return this.navigate(route.get('url'), options);
+      return this.navigate(route.get('url'), _.defaults({}, options || {}, {
+        trigger: true,
+        replace: true
+      }));
     },
 
     /**
