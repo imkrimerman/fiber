@@ -67,10 +67,10 @@ Fiber.fn = {
     if (arguments.length > 1) array = _.toArray(arguments);
     if (! _.isArray(array)) return array;
     array = _.compact(array);
-    if (Fiber.fn.isArrayOf(array, 'object'))
-      return _.extend.apply(_, [{}].concat(array));
-    else if (Fiber.fn.isArrayOf(array, 'array'))
+    if (Fiber.fn.isArrayOf(array, 'array'))
       return _.flattenDeep(array);
+    else if (Fiber.fn.isArrayOf(array, 'object'))
+      return _.extend.apply(_, [{}].concat(array));
     return array;
   },
 

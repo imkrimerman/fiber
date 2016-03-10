@@ -1,10 +1,11 @@
-// Fiber.js
-//
-// (c) 2015-2016 Igor Krimerman <i.m.krimerman@gmail.com>
-//     Fiber may be freely distributed under the MIT license.
-//     For all details and documentation:
-//     http://familydev.in.ua/hub/fiber
-
+/***************************************************************************
+ *
+ * Fiber.js
+ *
+ * (c) 2016 Igor Krimerman <i.m.krimerman@gmail.com>
+ *     Fiber may be freely distributed under the MIT license.
+ *
+ **************************************************************************/
 ;(function(factory) {
   // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
   // We use `self` instead of `window` for `WebWorker` support.
@@ -35,6 +36,52 @@
    * @type {Object}
    */
   var Fiber = exports;
+
+  /**
+   * Save the previous value of the `Fiber` variable, so that it can be
+   * restored later on, if `noConflict` is used.
+   */
+  var prevFiber = root.Fiber;
+
+  /**
+   * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
+   * to its previous owner. Returns a reference to this Fiber object.
+   * @returns {Fiber}
+   */
+  Fiber.noConflict = function() {
+    root.Fiber = prevFiber;
+    return this;
+  };
+
+  /**
+   * Add `lodash` to the Fiber.
+   * @type {Function}
+   */
+  Fiber._ = _;
+
+  /**
+   * Exposed jQuery (or similar) from Backbone.
+   * @type {Function}
+   */
+  Fiber.$ = $;
+
+  /**
+   * Fiber Global object.
+   * @var {Object}
+   */
+  Fiber.Globals = {};
+
+  /**
+   * Fiber Extensions object.
+   * @var {Object}
+   */
+  Fiber.Extensions = {};
+
+  /**
+   * Fiber Services object.
+   * @var {Object}
+   */
+  Fiber.Services = {};
 
   <!-- inject:js -->
   <!-- endinject -->

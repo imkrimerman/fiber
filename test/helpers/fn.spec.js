@@ -48,6 +48,15 @@ describe('Fiber.fn', function() {
   it('should merge objects into one if array is given', function() {
     var obj = Fiber.fn.merge([{test1: ''}, {test2: ''}]);
     expect(obj).to.eql({test1: '', test2: ''});
+
+    obj = Fiber.fn.merge({test1: ''}, {test2: ''});
+    expect(obj).to.eql({test1: '', test2: ''});
+
+    obj = Fiber.fn.merge([[1], [[2], 3]], [4, 5, [[[6]]]]);
+    expect(obj).to.eql([1, 2, 3, 4, 5, 6]);
+
+    obj = Fiber.fn.merge(1, 2);
+    expect(obj).to.eql([1, 2]);
   });
 
   it('should create template function using `Fiber.fn.template.engine`', function() {

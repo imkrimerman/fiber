@@ -20,9 +20,8 @@ var _ = require('lodash')
       configFile: __dirname + '/karma.conf.js'
     },
     files: [
-      './src/Helpers/BeforeLoad.js',
-
       // Helpers
+      './src/Helpers/Version.js',
       './src/Helpers/fn.js',
       './src/Helpers/Class.js',
       './src/Helpers/Template.js',
@@ -58,8 +57,9 @@ var _ = require('lodash')
       './src/View.js',
       './src/CollectionView.js',
 
-      // After load scripts
-      './src/Helpers/AfterLoad.js'
+      // Routing
+      './src/Routing/Middleware.js',
+      './src/Routing/Router.js',
     ]
   };
 
@@ -86,14 +86,12 @@ gulp.task('tdd', CreateKarmaServer(false));
 
 gulp.task('lint', Lint);
 gulp.task('mocha', Mocha);
-//gulp.task('commit', Commit);
 
 gulp.task('reload', function() {
   gulp.src(config.allFiles).pipe(connect.reload());
 });
 
 function Build() {
-
   return gulp.src(config.input)
     .pipe(inject(gulp.src(config.files, {read: false}), {
       removeTags: true,
@@ -101,7 +99,7 @@ function Build() {
         if (filepath.slice(-3) === '.js') {
           var contents = fs.readFileSync(path.join(__dirname, filepath)).toString();
 
-          if (_.last(filepath.split('/')).replace('.js', '') === 'BeforeLoad') {
+          if (_.last(filepath.split('/')).replace('.js', '') === 'Version') {
             contents = contents.replace('$VERSION$', packageJson.version);
           }
 
@@ -176,9 +174,4 @@ function Minify() {
 
 function BuildDocs() {
   shell.exec('npm run doc');
-}
-
-function Commit() {
-  var message = process.argv[2];
-  shell.exec('git add . && git commit -m "'+ message +'" && npm version patch && git push');
 }

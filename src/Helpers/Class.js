@@ -184,6 +184,47 @@ Fiber.fn.class = {
   },
 
   /**
+   * Creates Class that includes Backbone Events and all Mixins
+   * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
+   * @param {?Array|Object} [statics] - Static properties (available on the constructor)
+   * @returns {Function}
+   */
+  createFullMixinClass: function(proto, statics) {
+    function FullMixinClass(options) {
+      this.applyExtend(options);
+      this.applyOwnProps();
+      this.applyBinder();
+      Fiber.fn.apply(this, 'initialize', arguments);
+    };
+
+    return Fiber.fn.class.extend(FullMixinClass, [Fiber.getExtensionsList(), proto], statics);
+  },
+
+  /**
+   * Composes View with provided options
+   * @param {Function} View
+   * @param {Object} options
+   * @returns {Function}
+   */
+  composeView: function(View, options) {
+    if (! (View instanceof Backbone.View)) throw new Error('View cannot be composed');
+
+    var CollectionClass = options.collection
+      , isCollection = CollectionClass instanceof Backbone.Collection
+      , ModelClass = options.model
+      , isModel = ModelClass instanceof Backbone.Model;
+
+    if (CollectionClass && isCollection && ModelClass && isModel)
+      CollectionClass = CollectionClass.extend({model: model});
+
+    if (CollectionClass && isCollection)
+      return View.extend({collection: new CollectionClass});
+    else if (ModelClass && isModel)
+      return View.extend({model: new ModelClass});
+    else return View;
+  },
+
+  /**
    * Adds given `mixin` to the `object`. Mixin can be object or function.
    * Also you can provide `override` boolean to force override properties.
    * @param {Object|Function} object
