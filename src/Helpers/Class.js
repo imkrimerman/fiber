@@ -209,9 +209,9 @@ Fiber.fn.class = {
   composeView: function(View, options) {
     if (! (View instanceof Backbone.View)) throw new Error('View cannot be composed');
 
-    var CollectionClass = options.collection
+    var CollectionClass = options.Collection
       , isCollection = CollectionClass instanceof Backbone.Collection
-      , ModelClass = options.model
+      , ModelClass = options.Model
       , isModel = ModelClass instanceof Backbone.Model;
 
     if (CollectionClass && isCollection && ModelClass && isModel)

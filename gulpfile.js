@@ -50,6 +50,7 @@ var _ = require('lodash')
       './src/Support/ErrorBag.js',
       './src/Support/LinkedViews.js',
       './src/Support/Listeners.js',
+      './src/Support/RouterCollection.js',
 
       // Base components
       './src/Model.js',
@@ -58,7 +59,10 @@ var _ = require('lodash')
       './src/CollectionView.js',
 
       // Routing
+      './src/Routing/Route.js',
+      './src/Routing/RouteCollection.js',
       './src/Routing/Middleware.js',
+      './src/Routing/MiddlewareCollection.js',
       './src/Routing/Router.js',
     ]
   };
