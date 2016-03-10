@@ -2,7 +2,7 @@
  * Fiber Base Class
  * @class
  */
-Fiber.Class = Fiber.fn.class.createClass([Backbone.Events, {
+Fiber.Class = Fiber.fn.class.createFirstClass([Backbone.Events, {
 
   /**
    * Constructs simple class

@@ -6,6 +6,7 @@ describe('Fiber.Bag', function() {
   });
 
   it('should initialize', function() {
+    expect(this.bag.items).to.eql({});
     expect(this.bag).to.be.an.instanceof(Fiber.Bag);
     expect(this.bag.items).to.eql({});
   });
@@ -57,6 +58,6 @@ describe('Fiber.Bag', function() {
   });
 
   it('should contains mixins from delegator', function() {
-    expectHasAllProps(this.bag, Fiber.fn.delegator.mixins['object']);
+    expectHasAllProps(this.bag, Fiber.fn.delegator.utils['object']);
   });
 });

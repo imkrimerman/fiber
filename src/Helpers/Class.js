@@ -174,12 +174,12 @@ Fiber.fn.class = {
   },
 
   /**
-   * Creates simple Class with Backbone Events
+   * Creates `first` (without parent) Class includes Backbone Events
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
    */
-  createClass: function(proto, statics) {
+  createFirstClass: function(proto, statics) {
     return Fiber.fn.class.extend(_.noop, proto, statics);
   },
 

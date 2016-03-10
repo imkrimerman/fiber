@@ -97,6 +97,6 @@ Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
 });
 
 /**
- * Proxy lodash object methods to the Bag
+ * Include utility object mixin to the Bag, to work with `items`
  */
-Fiber.fn.delegator.mixin(Fiber.Bag, 'object', 'items');
+Fiber.fn.delegator.utilMixin(Fiber.Bag, 'object', 'items');

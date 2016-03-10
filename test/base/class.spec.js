@@ -10,20 +10,13 @@ describe('Fiber.Class', function() {
   });
 
   it('should have Backbone.Events', function() {
-    for (var key in Backbone.Events) {
-      expect(this.base).to.have.property(key);
-    }
+    expectHasAllProps(this.base, Backbone.Events);
   });
 
   it('should apply extensions', function() {
     this.base.applyExtension('Access');
-    for (var key in Fiber.getExtension('Access')) {
-      expect(this.base).to.have.property(key);
-    }
-
-    this.base.applyExtension(['NsEvents', 'Extendable']);
-    for (var key in Fiber.fn.merge(Fiber.getExtension(['NsEvents', 'Extendable']))) {
-      expect(this.base).to.have.property(key);
-    }
+    expectHasAllProps(this.base, Fiber.getExtension('Access'));
+    this.base.applyExtension(['NsEvents', 'Extend']);
+    expectHasAllProps(this.base, Fiber.fn.merge(Fiber.getExtension(['NsEvents', 'Extend'])));
   });
 });

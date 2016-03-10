@@ -23,15 +23,16 @@ Fiber.fn = {
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
    * @param {?Function} [checker] - function to call to check validity
+   * @param {?string} [match='every'] - function to use ('every', 'any')
    * @returns {*}
    */
-  val: function(value, defaults, checker) {
+  val: function(value, defaults, checker, match) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
     defaults = arguments.length > 1 ? defaults : Fiber.fn.notDefined;
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
     // if value check was made and it's not valid then return `defaults`
-    if (! Fiber.fn.valCheck(value, checker)) return defaults;
+    if (! Fiber.fn.valCheck(value, checker, match)) return defaults;
     // if value not specified return defaults, otherwise return value;
     return value != null ? value : defaults;
   },
@@ -40,14 +41,14 @@ Fiber.fn = {
    * Checks value with the given checkers
    * @param {*} value
    * @param {Array|Function} checkers
-   * @param {?string} [fn='every']
+   * @param {?string} [match='every']
    * @returns {boolean}
    */
-  valCheck: function(value, checkers, fn) {
-    fn = _.isString(fn) ? fn : 'every';
+  valCheck: function(value, checkers, match) {
+    match = _.isString(match) ? match : 'every';
     // if value and checker is specified then use it to additionally check value
     if (! _.isArray(checkers) && ! _.isFunction(checkers)) return true;
-    return _[fn](_.castArray(checkers), function(check) {
+    return _[match](_.castArray(checkers), function(check) {
       if (_.isFunction(check) && value != null) {
         // if `check` returns true then we are good
         if (check(value)) return true;
@@ -153,6 +154,31 @@ Fiber.fn = {
   isArrayOf: function(array, of, method) {
     method = val(method, 'every', _.isString);
     return _.isArray(array) && _[method](array, _['is' + _.capitalize(of)]);
+  },
+
+  /**
+   * Concatenates arguments into one array,
+   * if item is arguments it will be converted to array
+   * @params {...args}
+   * @returns {Array}
+   */
+  argsConcat: function() {
+    var args = _.toArray(arguments);
+    for (var i = 0; i < args.length; i ++)
+      if (_.isArguments(args[i])) args[i] = _.toArray(args[i]);
+    return Array.prototype.concat.apply([], args);
+  },
+
+  /**
+   * Concatenates arguments into one array,
+   * if item is arguments it will be converted to array
+   * @param {number} level
+   * @param {...args}
+   * @returns {Array}
+   */
+  argsConcatFlat: function(level) {
+    var concatenated = Fiber.fn.argsConcat.apply(Fiber.fn, _.drop(arguments));
+    return _.flattenDepth(concatenated, val(level, 1, _.isNumber));
   },
 
   /**

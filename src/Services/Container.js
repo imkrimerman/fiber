@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.NsEvents, {
+Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, {
 
   /**
    * The container's bindings.
@@ -34,20 +34,6 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
    * @var {Array}
    */
   bags: ['bindings', 'extensions', 'shared', 'aliases'],
-
-  /**
-   * Events namespace
-   * @var {string}
-   */
-  eventsNs: '',
-
-  /**
-   * Events catalog to hold the events
-   * @var {Object}
-   */
-  eventsCatalog: {
-
-  },
 
   /**
    * Constructs Container
@@ -196,7 +182,7 @@ Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, [Fiber.Extensions.
     return this.aliases.has(abstract);
   },
 
-}]);
+});
 
 /**
  * Adds conditional methods to the Container
