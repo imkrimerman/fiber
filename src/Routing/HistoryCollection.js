@@ -1,4 +1,15 @@
+/**
+ * Fiber History Collection
+ * @class
+ * @extends {Fiber.RouterCollection}
+ */
 Fiber.HistoryCollection = Fiber.RouterCollection.extend({
+
+  /**
+   * Default Model
+   * @var {History}
+   */
+  model: Fiber.HistoryItem,
 
   /**
    * History size
@@ -18,7 +29,7 @@ Fiber.HistoryCollection = Fiber.RouterCollection.extend({
    */
   add: function(models, options) {
     this.handleSize();
-    Fiber.fn.apply(Fiber.RouterCollection, 'add', arguments);
+    this._apply(Fiber.RouterCollection, 'add', arguments);
   },
 
   /**

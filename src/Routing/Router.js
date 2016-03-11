@@ -69,7 +69,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
     },
 
     /**
-     * Attaches routes
+     * Binds routes to the Router
      * @return {Fiber.Router}
      */
     bindRoutes: function() {
@@ -81,7 +81,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
      * Executes route
      * @param {Function} route
      * @param {Array} args
-     * @param {String} alias
+     * @param {string} alias
      * @returns {void|boolean}
      */
     execute: function(route, args) {
@@ -143,58 +143,6 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
     },
 
     /**
-     * Sets given `route` as current
-     * @param {Object.<Fiber.Route>} route
-     * @returns {Fiber.Router}
-     */
-    setCurrentRoute: function(route) {
-      this.current.route = route;
-      return this;
-    },
-
-    /**
-     * Returns current route
-     * @returns {Object.<Fiber.Route>|null}
-     */
-    getCurrentRoute: function() {
-      return this.current.route;
-    },
-
-    /**
-     * Determines if router has current route
-     * @returns {boolean}
-     */
-    hasCurrentRoute: function() {
-      return ! _.isEmpty(this.current.route);
-    },
-
-    /**
-     * Sets given `args` as current route arguments
-     * @param {Array|*} args
-     * @returns {Fiber.Router}
-     */
-    setCurrentArgs: function(args) {
-      this.current.args = args;
-      return this;
-    },
-
-    /**
-     * Returns current route arguments
-     * @returns {Object.<Fiber.Route>|null}
-     */
-    getCurrentArgs: function() {
-      return this.current.args;
-    },
-
-    /**
-     * Determines if router has current route arguments
-     * @returns {boolean}
-     */
-    hasCurrentArgs: function() {
-      return ! _.isEmpty(this.current.args);
-    },
-
-    /**
      * Prepares collection data
      * @param {Array|Object} data
      * @returns {Array}
@@ -205,7 +153,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
         for (var alias in data) {
           var route = data[alias];
           if (_.has(route, 'alias')) continue;
-          route[alias].alias = alias;
+          route.alias = alias;
         }
         data = _.values(data);
       }

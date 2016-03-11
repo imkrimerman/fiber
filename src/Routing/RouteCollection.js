@@ -40,6 +40,16 @@ Fiber.RouteCollection = Fiber.RouterCollection.extend({
   },
 
   /**
+   * Binds routes to the given Router
+   * @param {Object.<Fiber.Router>} router
+   * @return {Fiber.RouteCollection}
+   */
+  bindTo: function(router) {
+    this.setRouter(router);
+    return this.bind();
+  },
+
+  /**
    * Creates function wrapper that will return route model when invoked
    * @param {Object.<Fiber.Route>} route
    * @returns {Function}

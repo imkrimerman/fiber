@@ -37,8 +37,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     eventsCatalog: {
       fetchSuccess: 'fetch:success',
-      fetchError: 'fetch:error',
-      invalid: 'invalid'
+      fetchError: 'fetch:error'
     },
 
     /**
@@ -71,7 +70,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       this.applyBinder();
       if (options.parse) attrs = this.parse(attrs, options) || {};
       attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
-      this.listenTo(this, 'invalid', this.__whenInvalid.bind(this));
+      this.listenTo(this, 'invalid', this.whenInvalid.bind(this));
       this.set(attrs, options);
       this.changed = {};
       this.initialize.apply(this, arguments);
@@ -310,22 +309,6 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       this.fire('fetchError', {
         model: model,
         response: response,
-        options: options
-      });
-    },
-
-    /**
-     * Private validation error handler
-     * @param {Object.<Fiber.Model>} model
-     * @param {Object} response
-     * @param {?Object} [options]
-     * @private
-     */
-    __whenInvalid: function(model, errors, options) {
-      this.whenInvalid.apply(this, arguments);
-      if (this.eventsNs) this.fire('invalid', {
-        model: model,
-        errors: errors,
         options: options
       });
     }

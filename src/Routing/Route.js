@@ -20,11 +20,7 @@ Fiber.Route = Fiber.Model.extend({
     alias: '',
     redirect: '',
     handler: null,
-    compose: {
-      View: null,
-      Model: null,
-      Collection: null
-    }
+    compose: {} // View, Model, Collection
   },
 
   /**
@@ -82,26 +78,21 @@ Fiber.Route = Fiber.Model.extend({
 
   /**
    * Composes route page
-   * @returns {Fiber.View}
+   * @param {?boolean} [setAsHandler=true]
+   * @returns {*|Fiber.View}
    */
-  compose: function() {
+  compose: function(setAsHandler) {
     var options = this.get('compose')
-      , composed = this.composeView(options);
+      , composer = this.composeView.bind(this)
+      , handler = function() {
+        return composer(options);
+      };
 
-    this.set('handler', this.wrapComposedView(composed), {silent: true});
-    this.setComposedState(true);
-    return composed;
-  },
-
-  /**
-   * Wraps composed View with function that returns new View
-   * @param {Fiber.View} View
-   * @returns {Function}
-   */
-  wrapComposedView: function(View) {
-    return function(routeArgs) {
-      return new View({routeArgs: routeArgs});
-    };
+    if (val(setAsHandler, true, _.isBoolean)) {
+      this.set('handler', handler, { silent: true });
+      this.setComposedState(true);
+    }
+    else return handler();
   },
 
   /**

@@ -197,31 +197,110 @@ Fiber.fn.class = {
       Fiber.fn.apply(this, 'initialize', arguments);
     };
 
-    return Fiber.fn.class.extend(FullMixinClass, [Fiber.getExtensionsList(), proto], statics);
+    proto = Fiber.fn.merge(_.values(Fiber.getExtensions()), proto);
+    return Fiber.fn.class.extend(FullMixinClass, proto, statics);
   },
 
   /**
    * Composes View with provided options
    * @param {Function} View
-   * @param {Object} options
-   * @returns {Function}
+   * @param {?Object} [options]
+   * @param {...args}
+   * @returns {*|Function|Fiber.View}
    */
   composeView: function(View, options) {
-    if (! (View instanceof Backbone.View)) throw new Error('View cannot be composed');
+    if (! (Fiber.fn.class.isBackbone(View)))
+      throw new Error('View cannot be composed');
 
-    var CollectionClass = options.Collection
-      , isCollection = CollectionClass instanceof Backbone.Collection
+    options = val(options, {}, _.isPlainObject);
+
+    var args = _.drop(arguments, 2)
+      , CollectionClass = options.Collection
       , ModelClass = options.Model
-      , isModel = ModelClass instanceof Backbone.Model;
+      , hasCollection = ! _.isEmpty(CollectionClass)
+      , hasModel = ! _.isEmpty(ModelClass)
+      , util = Fiber.fn.class
+      , defaults = {};
 
-    if (CollectionClass && isCollection && ModelClass && isModel)
-      CollectionClass = CollectionClass.extend({model: model});
+    if (hasCollection) defaults = {
+      collection: util.composeCollection(CollectionClass, (hasModel ? ModelClass : null))
+    };
+    else if (hasModel) defaults = {
+      model: util.compose(ModelClass)
+    };
 
-    if (CollectionClass && isCollection)
-      return View.extend({collection: new CollectionClass});
-    else if (ModelClass && isModel)
-      return View.extend({model: new ModelClass});
-    else return View;
+    return util.compose.apply(null, [View, defaults].concat(args));
+  },
+
+  /**
+   * Composes Collection
+   * @param {Array|Function} Collection
+   * @param {?Array|Function} [Model]
+   * @param {...args}
+   * @returns {Function}
+   */
+  composeCollection: function(Collection, Model) {
+    var args = _.drop(arguments, 2)
+      , util = Fiber.fn.class;
+
+    if (! Model) {
+      if (! args.length) return Collection;
+      return util.compose.apply(null, [Collection].concat(args));
+    }
+
+    var model = {model: util.compose(Model)};
+    return util.compose.apply(null, [Collection, model].concat(args));
+  },
+
+  /**
+   * Composes Component
+   * @param {Array|Function} Component
+   * @param {...args}
+   * @returns {Function}
+   */
+  compose: function(Component) {
+    var args = _.drop(arguments);
+
+    if (_.isArray(Component)) {
+      args = _.drop(Component).concat(args);
+      Component = _.first(Component);
+    }
+
+    if (! args.length) return new Component;
+    return Fiber.fn.class.makeInstanceWithArgs(Component, args);
+  },
+
+  /**
+   * Determines if `Class` is one of the Backbone Components
+   * @param {Function} instance
+   * @returns {boolean}
+   */
+  isBackbone: function(Class) {
+    return Fiber.fn.class.isBackboneInstance(Class.prototype);
+  },
+
+  /**
+   * Determines if `instance` is one of the Backbone Components
+   * @param {Object} instance
+   * @returns {boolean}
+   */
+  isBackboneInstance: function(instance) {
+    return instance instanceof Backbone.Model ||
+           instance instanceof Backbone.Collection ||
+           instance instanceof Backbone.View ||
+           instance instanceof Backbone.Router
+  },
+
+  /**
+   * Creates new `Class` with array of arguments
+   * @param {Function} Parent
+   * @param {Array} args
+   * @returns {Object}
+   */
+  makeInstanceWithArgs: function(Parent, args) {
+    function ClassApplier() {return Parent.apply(this, args)};
+    ClassApplier.prototype = Parent.prototype;
+    return new ClassApplier();
   },
 
   /**
@@ -277,7 +356,7 @@ Fiber.fn.class = {
   },
 
   /**
-   * Merges extend mixin to the given `object`object
+   * Merges extend mixin to the given `object`
    * @param {string|Object} mixin
    * @param {Object|Array|Function} object - Object to add helpers mixin
    * @returns {*}

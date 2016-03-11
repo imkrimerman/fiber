@@ -145,6 +145,21 @@ Fiber.fn = {
   },
 
   /**
+   * Sets `value` as global variable by the given `key`
+   * @param {string} key
+   * @param {*} value
+   * @param {?boolean} [force=false]
+   * @returns {*}
+   */
+  globalize: function(key, value, force) {
+    force = val(force, false, _.isBoolean);
+    var hasKey = root && _.has(root, key) || false;
+    if ((hasKey && force) || ! hasKey)
+      return window[key] = value;
+    return value;
+  },
+
+  /**
    * Checks if given array is array with objects
    * @param {Array} array - Array to check
    * @param {string} of - String of type (object, string, array ...etc)
