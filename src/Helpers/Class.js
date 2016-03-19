@@ -190,15 +190,20 @@ Fiber.fn.class = {
    * @returns {Function}
    */
   createFullMixinClass: function(proto, statics) {
-    function FullMixinClass(options) {
-      this.applyExtend(options);
-      this.applyOwnProps();
-      this.applyBinder();
-      Fiber.fn.apply(this, 'initialize', arguments);
-    };
+    proto = Fiber.fn.merge(_.values(Fiber.getExtensions()), _.castArray(proto).concat(Backbone.Events));
+    return Fiber.fn.class.extend(this.fullMixinClassConstructor, proto, statics);
+  },
 
-    proto = Fiber.fn.merge(_.values(Fiber.getExtensions()), proto);
-    return Fiber.fn.class.extend(FullMixinClass, proto, statics);
+  /**
+   * Full mixin class default constructor
+   * @param {?Object} [options]
+   */
+  fullMixinClassConstructor: function(options) {
+    Fiber.fn.class.handleOptions(this, options);
+    this.applyExtend(options);
+    this.applyOwnProps();
+    this.applyBinder();
+    Fiber.fn.apply(this, 'initialize', arguments);
   },
 
   /**

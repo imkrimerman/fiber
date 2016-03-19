@@ -13,6 +13,35 @@ Fiber.RouteCollection = Fiber.RouterCollection.extend({
   bindMethods: ['wrap', 'bind', 'bindOne'],
 
   /**
+   * Sets models to the collection
+   * @param {Array|Object.<Fiber.Model>} models
+   * @param {?Object} [options={}]
+   */
+  set: function(models, options) {
+    options = val(options, {});
+    var prepared = [];
+
+    if (! options.remove) {
+      models = _.castArray(models);
+
+      for (var i = 0; i < models.length; i ++) {
+        var model = models[i];
+
+        if (! _.isArray(model.url)) prepared.push(model);
+        else for (var j = 0; j < model.url.length; j ++) {
+          var url = model.url[j]
+            , clone = _.clone(model);
+
+          clone.url = url;
+          prepared.push(clone);
+        }
+      }
+    } else prepared = models;
+
+    this._apply(Backbone.Collection, 'set', [prepared, options]);
+  },
+
+  /**
    * Returns route by alias
    * @param {string} alias
    * @returns {Object.<Fiber.Route>|null}

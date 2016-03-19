@@ -295,25 +295,27 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     /**
      * Real render function
      * @param {Function} render
+     * @return {*}
      */
     callRender: function(render) {
-      Fiber.fn.fireCallback(this, 'before:render', [this, render]);
+      var result;
+      Fiber.fn.fireInvokeLifeCycle(this, 'render', function() {
+        this._apply(this, '__beforeRender');
+        result = render.call(this);
+        this._apply(this, '__afterRender');
+      }, {fire: this, invoke: render});
 
-      this._apply(this, '__beforeRender');
-      render.call(this);
-      this._apply(this, '__afterRender');
-
-      Fiber.fn.fireCallback(this, 'after:render', [this, render]);
       this.__rendered = true;
+      return result;
     },
 
     /**
      * Removes view
      */
     remove: function() {
-      Fiber.fn.fireCallback(this, 'before:remove', [this]);
-      this._apply(Backbone.View, 'remove');
-      Fiber.fn.fireCallback(this, 'after:remove', [this]);
+      Fiber.fn.fireInvokeLifeCycle(this, 'remove', function() {
+        this._apply(Backbone.View, 'remove', {fire: this});
+      });
       this.__rendered = false;
     },
 

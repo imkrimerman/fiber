@@ -30,13 +30,10 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
     },
 
     /**
-     * Current router state
-     * @var {Object}
+     * Current route history model
+     * @var {Object.<Fiber.HistoryItem>}
      */
-    current: {
-      route: null,
-      args: null
-    },
+    current: new Fiber.HistoryItem,
 
     /**
      * Constructs Router
@@ -78,28 +75,41 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
     },
 
     /**
+     * Executes route with the provided parameters. This is an
+     * excellent place to do pre-route setup or post-route cleanup.
+     * @param {Function} route
+     * @param {Array} args
+     * @returns {boolean}
+     */
+    execute: function(route, args) {
+      var params = [route, args], result = true;
+      Fiber.fn.fireInvokeLifeCycle(this, 'execute', function() {
+        if (! this.executeRoute.apply(this, arguments)) result = false;
+      }, { fire: params, invoke: params, callback: arguments });
+      return result;
+    },
+
+    /**
      * Executes route
      * @param {Function} route
      * @param {Array} args
      * @param {string} alias
-     * @returns {void|boolean}
+     * @returns {boolean}
      */
-    execute: function(route, args) {
-      var route = route()
-        , handler = route.get('handler');
+    executeRoute: function(route, args) {
+      var route = route();
 
       if (! this.middleware.pass(route)) {
         this.fire('not:allowed', route, this);
         return false;
       }
 
-      var current = {route: route, args: args};
+      var handler = route.get('handler')();
+      if (! handler) return false;
 
-      this.setCurrent(current);
-      this.history.add(current);
-
-      if (handler) handler.apply(this, args);
-      else return false;
+      this.setCurrent(this.history.add({ route: route, args: args }));
+      this.fire('execute', handler, route, args);
+      return true;
     },
 
     /**
@@ -109,8 +119,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
      */
     go: function(alias, options) {
       var route = this.routes.getByAlias(alias);
-      if (! route) return;
-      return this.navigate(route.get('url'), _.defaults({}, options || {}, {
+      if (route) return this.navigate(route.get('url'), _.defaults({}, options || {}, {
         trigger: true,
         replace: true
       }));
@@ -162,3 +171,9 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
 
   }
 ]);
+
+/**
+ * Creates reference to the Backbone history
+ * @var {Object}
+ */
+Fiber.history = Backbone.history;

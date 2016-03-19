@@ -66,6 +66,10 @@ var _ = require('lodash')
       './src/Routing/Middleware.js',
       './src/Routing/MiddlewareCollection.js',
       './src/Routing/Router.js',
+
+      // Application
+      './src/Viewport.js',
+      './src/Application.js',
     ]
   };
 
