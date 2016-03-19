@@ -59,7 +59,7 @@ Fiber.Application = Fiber.fn.class.createFullMixinClass({
    * @param {Object.<Fiber.Route>} route
    * @param {Array} args
    */
-  whenRouteExecute: function(composed, route, args) {
+  whenRouteExecute: function(composed) {
     this.viewport.show(composed);
   },
 

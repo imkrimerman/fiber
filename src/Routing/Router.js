@@ -108,7 +108,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
       if (! handler) return false;
 
       this.setCurrent(this.history.add({ route: route, args: args }));
-      this.fire('execute', handler, route, args);
+      this.fire('execute', handler, route, args, this);
       return true;
     },
 
