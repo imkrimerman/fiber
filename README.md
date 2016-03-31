@@ -3,8 +3,8 @@
 Fiber framework was born to bring simplicity and consistency to the Backbone Apps with the ease of development and scaling modern apps.
 
 ##Simple Application example
-Install dependencies: jquery, lodash, backbone
-Build fiber with: gulp build
+ - Install dependencies: jquery, lodash, backbone
+ - Build fiber with: gulp build
 
 ```html
 <main id="app"></main>
