@@ -7,28 +7,27 @@ Fiber framework was born to bring simplicity and consistency to the Backbone App
 var View = Fiber.View.extend({ template: '<%= page %>' });
 
 var routes = {
-    home: {
-      url: ['', 'home'],
-      compose: {
-        View: View,
-        Model: [Fiber.Model, {page: 'Home'}]
-      }
-    },
-    login: {
-      url: 'login',
-      compose: {
-        View: View,
-        Model: [Fiber.Model, {page: 'Login'}]
-      }
+  home: {
+    url: ['', 'home'],
+    compose: {
+      View: View,
+      Model: [Fiber.Model, {page: 'Home'}]
     }
-  };
+  },
+  login: {
+    url: 'login',
+    compose: {
+      View: View,
+      Model: [Fiber.Model, {page: 'Login'}]
+    }
+  }
+};
 
+var app = new Fiber.Application({
+  viewport: { el: '#app' },
+  router: { routes: routes },
+});
 
-  var app = new Fiber.Application({
-    viewport: { el: '#app' },
-    router: { routes: routes },
-  });
-
-  app.start();
+app.start();
 
 ```
