@@ -92,7 +92,7 @@ Fiber.Application = Fiber.fn.class.createFullMixinClass({
    */
   stop: function() {
     Fiber.fn.fireInvokeLifeCycle(this, 'stop', function() {
-      Fiber.history.start();
+      Fiber.history.stop();
       this.fire('stop', this);
     });
     return this;
