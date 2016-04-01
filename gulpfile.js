@@ -67,6 +67,9 @@ var _ = require('lodash')
       './src/Routing/MiddlewareCollection.js',
       './src/Routing/Router.js',
 
+      // Layout
+      './src/Layout/Manager.js',
+
       // Application
       './src/Viewport.js',
       './src/Application.js',

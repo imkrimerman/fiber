@@ -215,7 +215,7 @@ Fiber.fn.class = {
    */
   composeView: function(View, options) {
     if (! (Fiber.fn.class.isBackbone(View)))
-      throw new Error('View cannot be composed');
+      throw new Error('View cannot be composed', [View, options]);
 
     options = val(options, {}, _.isPlainObject);
 
