@@ -3,25 +3,25 @@ Fiber.Router = Fiber.fn.class.createWithExtensions([
 
     /**
      * Routes collection
-     * @var {Object.<Fiber.RouteCollection>}
+     * @type {Object.<Fiber.RouteCollection>}
      */
     routes: null,
 
     /**
      * Middleware collection
-     * @var {Object.<Fiber.MiddlewareCollection>}
+     * @type {Object.<Fiber.MiddlewareCollection>}
      */
     middleware: null,
 
     /**
      * Router history
-     * @var {Object.<Fiber.HistoryCollection>}
+     * @type {Object.<Fiber.HistoryCollection>}
      */
     history: null,
 
     /**
      * Collections list
-     * @var {Object|Function}
+     * @type {Object|Function}
      */
     collections: {
       routes: Fiber.RouteCollection,
@@ -31,7 +31,7 @@ Fiber.Router = Fiber.fn.class.createWithExtensions([
 
     /**
      * Current route history model
-     * @var {Object.<Fiber.HistoryItem>}
+     * @type {Object.<Fiber.HistoryItem>}
      */
     current: new Fiber.HistoryItem,
 
@@ -174,6 +174,6 @@ Fiber.Router = Fiber.fn.class.createWithExtensions([
 
 /**
  * Creates reference to the Backbone history
- * @var {Object}
+ * @type {Object}
  */
 Fiber.history = Backbone.history;

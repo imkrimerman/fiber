@@ -2,19 +2,19 @@ Fiber.RouterCollection = BaseCollection.extend({
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProps: ['router'],
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function|string}
+   * @type {Array|Function|string}
    */
   extendable: ['router'],
 
   /**
    * Router instance
-   * @var {Object.<Fiber.Router>}
+   * @type {Object.<Fiber.Router>}
    */
   router: null,
 

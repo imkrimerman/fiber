@@ -3,19 +3,19 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Bag = Fiber.Class.extend({
+Fiber.Bag = Fiber.fn.class.extend(_.noop, {
 
   /**
    * Bag items
-   * @var {Object}
+   * @type {Object}
    */
   items: {},
 
   /**
-   * Initializes bag
+   * Constructs bag
    * @param {?Object} [items] - Items to set to the Bag
    */
-  initialize: function(items) {
+  constructor: function(items) {
     this.items = val(items, {}, _.isPlainObject);
   },
 

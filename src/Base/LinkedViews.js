@@ -7,31 +7,31 @@ Fiber.LinkedViews = BaseCollection.extend({
 
   /**
    * Parent View
-   * @var {Object.<Fiber.View>|null}
+   * @type {Object.<Fiber.View>|null}
    */
   parentView: null,
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   extendable: ['parentView'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProp: ['parentView'],
 
   /**
    * Events namespace
-   * @var {string}
+   * @type {string}
    */
   eventsNs: 'linked',
 
   /**
    * Listen to views and propagate events
-   * @var {boolean}
+   * @type {boolean}
    */
   listenToViews: true,
 

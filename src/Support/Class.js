@@ -1,6 +1,6 @@
 /**
  * Fiber Class support
- * @var {Object}
+ * @type {Object}
  */
 Fiber.fn.class = {
 
@@ -16,8 +16,8 @@ Fiber.fn.class = {
     var child, construct = function(constructor, parent) {
       parent = val(parent, constructor, _.isObject);
       return function() {
-        var created = constructor.apply(this, arguments);
-        return Fiber.fn.class.attachSuper(created, parent);
+        constructor.apply(this, arguments);
+        return Fiber.fn.class.attachSuper(this, parent);
       };
     };
     // if we don't have any parent then log error and return
@@ -65,16 +65,18 @@ Fiber.fn.class = {
   /**
    * Makes new class from `Parent` using extender, statics and extensions.
    * You can provide a string in `proto` or `statics` to auto resolve and inject extensions
-   * @param {?Function|Object} [Parent] - Parent to extend from, default: {@link Fiber.Class}
+   * @param {?Function|Object} [Parent] - Parent to extend from, default: Empty class
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
    */
   make: function(Parent, proto, statics) {
-    // check if `Parent` is valid, if not then set simple Fiber.Class as a `Parent`
-    Parent = val(Parent, Fiber.Class);
+    // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
+    Parent = val(Parent, Fiber.fn.class.create());
     // If Parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(Parent) && Fiber.container.bound(Parent)) Parent = Fiber.container.make(Parent);
+    if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent)) {
+      Parent = Fiber.container.make(Parent);
+    }
     // Finally call extend method with right Parent, proto and statics
     return Fiber.fn.class.extend(Parent, Fiber.getExtension(proto), Fiber.getExtension(statics));
   },
@@ -97,7 +99,7 @@ Fiber.fn.class = {
    */
   createWithExtensions: function(proto, statics) {
     var mergeable = _.castArray(proto).concat(Fiber.Events)
-      , extensions = _.values(Fiber.getExtensionsList())
+      , extensions = Fiber.getExtensionsList(false, 'Extension')
       , Parent = Fiber.fn.class.createConstructor(extensions);
 
     proto = Fiber.fn.merge(extensions, mergeable);
@@ -113,7 +115,7 @@ Fiber.fn.class = {
     var methods = [];
 
     if (extensions) methods = _.map(extensions, function(extension) {
-      extension.getInitMethodName();
+      return extension.getInitMethodName();
     });
 
     return function(options) {

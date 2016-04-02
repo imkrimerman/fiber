@@ -1,6 +1,6 @@
 /**
  * Fiber Binder Extension
- * @var {Object}
+ * @type {Object}
  */
 var $Binder = new Fiber.Extension({
 
@@ -12,7 +12,7 @@ var $Binder = new Fiber.Extension({
 
   /**
    * Methods list to bind
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   bindMethods: [],
 

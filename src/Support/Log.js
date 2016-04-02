@@ -102,8 +102,8 @@ Fiber.Log = Fiber.fn.class.create({
 /**
  * Adds log level methods "debug", "info", "warn", "error"
  */
-for (var i = 0; i < Fiber.Log.prototype.levels.length; i ++) {
-  var level = Fiber.Log.prototype.levels[i];
+for (var i = 0; i < Fiber.Globals.log.levels.length; i ++) {
+  var level = Fiber.Globals.log.levels[i];
   Fiber.Log.prototype[level] = function() {
     return this.write.apply(this, [level].concat(_.toArray(arguments)));
   };

@@ -13,24 +13,26 @@ Fiber.Extension = Fiber.fn.class.create({
   /**
    * Constructs extension
    * @param {Object} delegatable
+   * @param {string|boolean} initMethod
    */
-  constructor: function(delegatable) {
-    this.__delegatable = delegatable;
+  constructor: function(code, initMethod) {
+    this.setCapsule(code);
+    this.initMethod = initMethod || this.initMethod;
   },
 
   /**
-   * Sets code of extension
-   * @param delegateble
+   * Sets extension to the capsule
+   * @param {Object} code
    */
-  set code(delegateble) {
-    this.__delegatable = delegateble;
+  setCapsule: function(code) {
+    this.__delegatable = code;
   },
 
   /**
    * Returns code of the extension
    * @returns {Object}
    */
-  get code() {
+  getCapsule: function() {
     return this.__delegatable;
   },
 
@@ -41,7 +43,7 @@ Fiber.Extension = Fiber.fn.class.create({
    */
   bindTo: function(object) {
     var clone = this.clone();
-    _.each(this.code, _.bind(function(method, name) {
+    _.each(this.getCapsule(), _.bind(function(method, name) {
       clone[name] = _.bind(method, object);
     }, this));
     return clone;
@@ -52,7 +54,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {Object}
    */
   clone: function() {
-    return _.cloneDeep(this.code);
+    return _.clone(this.getCapsule());
   },
 
   /**

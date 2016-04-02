@@ -8,19 +8,19 @@ Fiber.Collection = BaseCollection.extend([
 
     /**
      * Model by default
-     * @var {Fiber.Model}
+     * @type {Fiber.Model}
      */
     model: Fiber.Model,
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     extendable: ['model', 'url', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     ownProp: ['ns', 'catalog'],
 

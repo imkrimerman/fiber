@@ -6,26 +6,26 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
 
   /**
    * Viewport instance
-   * @var {Object.<Fiber.Viewport>}
+   * @type {Object.<Fiber.Viewport>}
    */
   viewport: null,
 
   /**
    * Router instance
-   * @var {Object.<Fiber.Router>}
+   * @type {Object.<Fiber.Router>}
    */
   router: null,
 
   /**
    * Fiber Inversion of Control Container instance
-   * @var {Object.<Fiber.Services.Container>}
+   * @type {Object.<Fiber.Services.Container>}
    */
   container: Fiber.container,
 
   /**
    * Default options holder
    * Will be used to retrieve options for instance construct
-   * @var {Object}
+   * @type {Object}
    */
   defaults: {
     viewport: {},

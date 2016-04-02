@@ -23,8 +23,8 @@ var _ = require('lodash')
       // Support
       './src/Support/Version.js',
       './src/Support/fn.js',
-      './src/Support/DeepProps.js',
       './src/Support/Class.js',
+      './src/Support/DeepProps.js',
       './src/Support/Template.js',
       './src/Support/Validation.js',
       './src/Support/Delegator.js',
@@ -38,19 +38,19 @@ var _ = require('lodash')
       './src/Extensions/Extensions.js',
       './src/Extensions/OwnProps.js',
 
+      // Ioc Container
+      './src/Container.js',
+
       // Base
       './src/Core.js',
       './src/Base/Events.js',
-      './src/Base/Class.js',
       './src/Base/Bag.js',
       './src/Base/ErrorBag.js',
       './src/Base/BaseCollection.js',
       './src/Base/LinkedViews.js',
       './src/Base/Listeners.js',
       './src/Base/RouterCollection.js',
-
-      // Ioc Container
-      './src/Container.js',
+      './src/Base/Transmitter.js',
 
       // Fiber components
       './src/Model.js',
@@ -59,11 +59,10 @@ var _ = require('lodash')
       './src/CollectionView.js',
 
       // Services
-      './src/Services/Registry.js',
-      './src/Services/Command.js',
-      './src/Services/Handler.js',
-      './src/Services/Bus.js',
-      './src/Services/Transmitter.js',
+      './src/Commands/Registry.js',
+      './src/Commands/Command.js',
+      './src/Commands/Handler.js',
+      './src/Commands/Hub.js',
 
       // Routing
       './src/Routing/HistoryItem.js',

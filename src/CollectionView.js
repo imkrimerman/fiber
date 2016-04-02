@@ -7,55 +7,55 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Default collection class
-   * @var {Fiber.Collection}
+   * @type {Fiber.Collection}
    */
   CollectionClass: Fiber.Collection,
 
   /**
    * View class to create for each model
-   * @var {Fiber.View}
+   * @type {Fiber.View}
    */
   ViewClass: Fiber.View,
 
   /**
    * Collection instance
-   * @var {Object.<Fiber.Collection>}
+   * @type {Object.<Fiber.Collection>}
    */
   collection: null,
 
   /**
    * Sort comparator function to pass to collection
-   * @var {Function|string|null}
+   * @type {Function|string|null}
    */
   comparator: null,
 
   /**
    * Collection of initial data models to create collection
-   * @var {Array}
+   * @type {Array}
    */
   data: [],
 
   /**
    * Element to render Collection to
-   * @var {string|Function}
+   * @type {string|Function}
    */
   collectionElement: '.collection-view',
 
   /**
    * Collection jQuery element found/created in DOM
-   * @var {jQuery|null}
+   * @type {jQuery|null}
    */
   $collectionElement: null,
 
   /**
    * Instance key to listen to
-   * @var {string|Function}
+   * @type {string|Function}
    */
   listens: 'collection',
 
   /**
    * Events to listen on `listens` instance and trigger methods map
-   * @var {Object}
+   * @type {Object}
    */
   listeners: {
     'sync update reset': 'render'
@@ -63,19 +63,19 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Methods list to bind
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   bindMethods: ['renderOne', 'removeOne'],
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function|string}
+   * @type {Array|Function|string}
    */
   extendable: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProps: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 

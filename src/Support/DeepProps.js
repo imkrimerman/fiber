@@ -5,7 +5,7 @@
 Fiber.fn.class.deepProps = {
   /**
    * Deep properties configuration
-   * @var {Object}
+   * @type {Object}
    */
   rules: {
     rules: [_.isArray, _.isPlainObject],
@@ -58,7 +58,7 @@ Fiber.fn.class.deepProps = {
   exploreInObject: function(container, rules, fn, exclude) {
     var properties = [];
     exclude = _.castArray(val(exclude, [], [_.isArray, _.isString]));
-    container = _.omit(container, exclude.concat(Fiber.fn.class.rules.exclude));
+    container = _.omit(container, exclude.concat(Fiber.fn.class.deepProps.rules.exclude));
     _.each(container, function(value, prop) {
       if (Fiber.fn.class.deepProps.validate(value, rules, fn)) properties.push(prop);
     });
@@ -91,7 +91,7 @@ Fiber.fn.class.deepProps = {
     if (! child) return child;
     if (! parent) parent = {};
     // if `properties` not provided or not is array, then we'll use Fiber global properties
-    properties = val(properties, Fiber.fn.class.explore(), _.isArray);
+    properties = val(properties, Fiber.fn.class.deepProps.explore(), _.isArray);
     // traverse each property
     _.each(properties, function(property) {
       // check and grab `property` from `parent` object prototype

@@ -1,7 +1,7 @@
 /**
  * `Extensions` extension. Brings power of mutability and mixins to the class.
  * Automatically
- * @var {Object}
+ * @type {Object}
  */
 var $Extensions = new Fiber.Extension({
 

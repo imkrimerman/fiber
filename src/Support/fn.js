@@ -1,6 +1,6 @@
 /**
  * Fiber support function
- * @var {Object}
+ * @type {Object}
  */
 Fiber.fn = {
 

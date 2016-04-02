@@ -7,13 +7,13 @@ Fiber.HistoryCollection = Fiber.RouterCollection.extend({
 
   /**
    * Default Model
-   * @var {History}
+   * @type {History}
    */
   model: Fiber.HistoryItem,
 
   /**
    * History size
-   * @var {number}
+   * @type {number}
    */
   historySize: 20,
 

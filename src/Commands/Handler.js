@@ -11,8 +11,7 @@ Fiber.Services.Commands.Handler = Fiber.fn.class.create([
      */
     constructor: function(command) {
       this.command = command;
-      //todo: test if this.handle will be set properly without manual setting
-      Fiber.fn.wrapFireCallCyclic(this.handle, 'handle', {
+      this.handle = Fiber.fn.wrapFireCallCyclic(this.handle, 'handle', {
         fire: [this.command, this], call: [this.command, this]
       });
     },
@@ -23,7 +22,6 @@ Fiber.Services.Commands.Handler = Fiber.fn.class.create([
      */
     handle: function() {
       Fiber.logs.system.errorThrow('Handler should implement it\'s own `handle` method');
-      return this;
     }
   }
 ]);

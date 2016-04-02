@@ -1,9 +1,8 @@
 /**
- * Fiber Command Bus
+ * Fiber Command Hub
  * @class
- * @extends {Fiber.Class}
  */
-Fiber.Services.Commands.Bus = Fiber.fn.class.createWithExtensions({
+Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
 
   /**
    * Commands Registry
@@ -13,33 +12,33 @@ Fiber.Services.Commands.Bus = Fiber.fn.class.createWithExtensions({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function|string}
+   * @type {Array|Function|string}
    */
   extendable: ['registry'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProps: ['registry'],
 
   /**
-   * Constructs Command Bus
+   * Constructs Command Hub
    * @param {?Object} [options={}]
    */
   constructor: function(options) {
     options = val(options, {}, _.isPlainObject);
-    this.createRegistryCollection(options.commands);
+    this.createRegistry(options.commands);
     this.__parent__.apply(this, arguments);
   },
 
   /**
-   * Registers command by name
+   * Adds `command` by `name`
    * @param {string} name
    * @param {Object.<Fiber.Command>} command
-   * @returns {Fiber.Services.Bus}
+   * @returns {Fiber.Commands.Hub}
    */
-  register: function(name, command, handler) {
+  link: function(name, command, handler) {
     this.registry.add({name: name, command: command, handler: val(handler, null)});
     return this;
   },
@@ -49,7 +48,7 @@ Fiber.Services.Commands.Bus = Fiber.fn.class.createWithExtensions({
    * @param {string} name
    * @returns {boolean}
    */
-  unregister: function(name) {
+  unlink: function(name) {
     if (! this.registry.has(name)) return false;
     this.registry.remove(name);
     return true;
@@ -84,19 +83,7 @@ Fiber.Services.Commands.Bus = Fiber.fn.class.createWithExtensions({
    * @param {?Object} [options]
    * @returns {Backbone.Collection|e.Collection|*}
    */
-  createRegistryCollection: function(models, options) {
-    return this.registry = new Fiber.Collection(val(models, [], _.isArray), options);
+  createRegistry: function(models, options) {
+    return this.registry = new Fiber.Commands.Registry(val(models, [], _.isArray), options);
   }
 });
-
-/**
- * Add aliases for register method
- */
-Fiber.fn.delegator.aliasMany(Fiber.Bus, {
-  register: 'bind',
-  unregister: 'unbind'
-}, true);
-
-
-Fiber.fn.delegator.alias(Fiber.Bus, 'register', ['bind', 'remember']);
-Fiber.fn.delegator.alias(Fiber.Bus, 'unregister', ['unbind', 'forget']);

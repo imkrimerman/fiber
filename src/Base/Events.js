@@ -3,30 +3,32 @@
  *
  * Build in events brings namespaces to the event and also
  * provides catalog to simplify registered events for the developers.
+ *
+ * @type {Object}
  */
 Fiber.Events = _.extend(Backbone.Events, {
 
   /**
    * Events namespace
-   * @var {string}
+   * @type {string}
    */
   ns: '',
 
   /**
    * Events catalog to hold the events
-   * @var {Object}
+   * @type {Object}
    */
   catalog: {},
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function|string}
+   * @type {Array|Function|string}
    */
   extendable: ['ns', 'catalog'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProps: ['ns', 'catalog', '__responders'],
 
@@ -268,7 +270,16 @@ Fiber.Events = _.extend(Backbone.Events, {
    * @returns {Fiber.Events}
    */
   instance: function() {
-    return _.clone(this);
+    return _.extend({}, this);
+  },
+
+  /**
+   * Includes current Events to the given `object`
+   * @param {Object} object
+   * @returns {*|Object|Function}
+   */
+  includeTo: function(object) {
+    return Fiber.fn.class.mix(object, this);
   },
 });
 

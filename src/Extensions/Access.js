@@ -1,7 +1,7 @@
 /**
  * Access extension brings getters, setters and unsetters that uses
  * `lodash` methods to support deep access to the Class.
- * @var {Object}
+ * @type {Object}
  */
 var $Access = new Fiber.Extension({
 
@@ -59,3 +59,8 @@ var $Access = new Fiber.Extension({
     return this;
   }
 });
+
+/**
+ * Add access mixin to the Fiber
+ */
+_.extend(Fiber, $Access.getCapsule());

@@ -9,31 +9,31 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     /**
      * Hidden fields.
      * toJSON method will omit this fields.
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     hidden: [],
 
     /**
      * Validation rules
-     * @var {Object|Function}
+     * @type {Object|Function}
      */
     rules: {},
 
     /**
      * Error bag
-     * @var {Object.<Fiber.ErrorBag>}
+     * @type {Object.<Fiber.ErrorBag>}
      */
     errorBag: null,
 
     /**
      * Events namespace
-     * @var {string}
+     * @type {string}
      */
     eventsNs: '',
 
     /**
      * Events catalog
-     * @var {Object}
+     * @type {Object}
      */
     eventsCatalog: {
       fetchSuccess: 'fetch:success',
@@ -42,13 +42,13 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     extendable: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     ownProps: ['hidden', 'rules'],
 

@@ -4,12 +4,14 @@
  * @returns {Array|string}
  */
 Fiber.getExtension = function(alias) {
+  if (! Fiber.has('container')) return alias;
+
   if (_.isArray(alias)) return _.map(_.castArray(alias), function(one) {
-      return Fiber.getExtension(one);
-    }
-  );
+    return Fiber.getExtension(one);
+  });
+
   var retrieved = Fiber.container.extensions.get(alias, {});
-  if (retrieved instanceof Fiber.Extension) retrieved = retrieved.code;
+  if (retrieved instanceof Fiber.Extension) retrieved = retrieved.getCapsule();
   return _.isString(alias) ? retrieved : alias;
 };
 
@@ -21,6 +23,7 @@ Fiber.getExtension = function(alias) {
  * @returns {Fiber}
  */
 Fiber.addExtension = function(alias, extension, override) {
+  if (! Fiber.has('container')) return this;
   if (_.isPlainObject(alias)) _.each(alias, function(one, oneAlias) {
       // Allow passing multiple extensions `{'name': extension}`,
       // `override` will go next instead of `extension` argument
@@ -29,7 +32,6 @@ Fiber.addExtension = function(alias, extension, override) {
   );
   else {
     if (Fiber.hasExtension(alias) && ! val(override, false)) return this;
-    if (extension instanceof Fiber.Extension) extension = extension.code;
     Fiber.container.extensions.set(alias, extension);
   }
   return this;
@@ -52,6 +54,7 @@ Fiber.setExtension = function(alias, extension) {
  * @returns {boolean}
  */
 Fiber.hasExtension = function(alias, method) {
+  if (! Fiber.has('container')) return false;
   method = val(method, 'every', _.isString);
   if (_.isArray(alias)) return _[method](
     alias, function(one) {
@@ -67,6 +70,7 @@ Fiber.hasExtension = function(alias, method) {
  * @returns {Fiber}
  */
 Fiber.forgetExtension = function(alias) {
+  if (! Fiber.has('container')) return this;
   _.each(
     _.castArray(alias), function(one) {
       Fiber.container.extensions.forget(one);
@@ -85,6 +89,7 @@ Fiber.forgetExtension = function(alias) {
  */
 Fiber.applyExtension = function(alias, object, override) {
   var extension = Fiber.getExtension(alias);
+  if (extension instanceof Fiber.Extension) extension = extension.getCapsule();
   Fiber.fn.class.include(object, extension, override);
   Fiber.fn.class.setExtensions(object, alias);
   return this;
@@ -116,12 +121,12 @@ Fiber.getAllExtensions = function() {
 /**
  * Returns list of extensions
  * @param {?boolean} [asObj=false]
- * @param {?Array} [exclude=[]]
+ * @param {?Array|string} [exclude=[]]
  * @returns {*}
  */
 Fiber.getExtensionsList = function(asObj, exclude) {
   asObj = val(asObj, false, _.isBoolean);
-  exclude = val(exclude, [], _.isArray);
+  exclude = _.castArray(val(exclude, []));
   var list = Fiber.container.extensions.all();
   if (! _.isEmpty(exclude)) list = _.omit(list, exclude);
   return asObj ? list : _.values(list);
@@ -132,6 +137,6 @@ Fiber.getExtensionsList = function(asObj, exclude) {
  * @type {Object}
  */
 Fiber.logs = {
-  debug: new Fiber.Log({level: Fiber.Log.levels.debug}),
-  system: new Fiber.Log({level: Fiber.Log.levels.error})
+  debug: new Fiber.Log({level: Fiber.Globals.log.levels.debug}),
+  system: new Fiber.Log({level: Fiber.Globals.log.levels.error})
 };

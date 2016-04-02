@@ -1,37 +1,36 @@
 /**
  * Fiber Inverse Of Control Container
  * @class
- * @extends {Fiber.Class}
  */
-Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
+Fiber.Container = Fiber.fn.class.create({
 
   /**
    * The container's bindings.
-   * @var {Object.<Fiber.Bag>}
+   * @type {Object.<Fiber.Bag>}
    */
   bindings: null,
 
   /**
    * Bag of extensions
-   * @var {Object.<Fiber.Bag>}
+   * @type {Object.<Fiber.Bag>}
    */
   extensions: null,
 
   /**
    * Bag of shared instances
-   * @var {Object.<Fiber.Bag>}
+   * @type {Object.<Fiber.Bag>}
    */
   shared: null,
 
   /**
    * Bag of aliases
-   * @var {Object.<Fiber.Bag>}
+   * @type {Object.<Fiber.Bag>}
    */
   aliases: null,
 
   /**
    * Bags list
-   * @var {Array}
+   * @type {Array}
    */
   bags: ['bindings', 'extensions', 'shared', 'aliases'],
 
@@ -40,7 +39,7 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
    */
   constructor: function() {
     this.flush();
-    this.initialize.apply(this, arguments);
+    Fiber.fn.apply(this, 'initialize', [arguments]);
   },
 
   /**
@@ -59,7 +58,7 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
    * @param {string|Array} abstract
    * @param {*} concrete
    * @param {?boolean} [shared=false]
-   * @returns {Fiber.Services.Container}
+   * @returns {Fiber.Container}
    */
   bind: function(abstract, concrete, shared) {
     var container = 'bindings';
@@ -76,7 +75,7 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
    * Sets binding alias
    * @param {string} abstract
    * @param {string} alias
-   * @returns {Fiber.Services.Container}
+   * @returns {Fiber.Container}
    */
   alias: function(abstract, alias) {
     this.aliases.set(alias, abstract);
@@ -97,7 +96,7 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
    * Register a binding as extension
    * @param {string} abstract
    * @param {Object} concrete
-   * @returns {Fiber.Services.Container}
+   * @returns {Fiber.Container}
    */
   extension: function(abstract, concrete) {
     this.extensions.set(abstract, concrete);
@@ -125,7 +124,7 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete) throw new Error('Resolution Exception with ' + abstract);
+    if (! concrete) Fiber.logs.system.errorThrow('Resolution Exception with ' + abstract);
     return concrete.apply(val(scope, this), this.resolve(parameters).concat([this]));
   },
 
@@ -147,7 +146,7 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
 
   /**
    * Flushes Container
-   * @return {Fiber.Services.Container}
+   * @return {Fiber.Container}
    */
   flush: function() {
     for (var i = 0; i < this.bags.length; i ++)
@@ -187,13 +186,13 @@ Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
 /**
  * Adds conditional methods to the Container
  */
-Fiber.fn.class.createConditionMethods(Fiber.Services.Container.prototype, ['bind', 'share', 'extension'], 'bound');
+Fiber.fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'extension'], 'bound');
 
 /**
  * Create default Fiber Inverse Of Control Container
- * @var {Object.<Fiber.Services.Container>}
+ * @type {Object.<Fiber.Container>}
  */
-Fiber.container = new Fiber.Services.Container();
+Fiber.container = new Fiber.Container();
 
 /**
  * Adds default extensions to the Container

@@ -7,13 +7,13 @@ Fiber.Route = Fiber.Model.extend({
 
   /**
    * Hidden fields list
-   * @var {Array}
+   * @type {Array}
    */
   hidden: ['handler'],
 
   /**
    * Route defaults
-   * @var {Object}
+   * @type {Object}
    */
   defaults: {
     url: '',
@@ -25,7 +25,7 @@ Fiber.Route = Fiber.Model.extend({
 
   /**
    * Validation rules
-   * @var {Object}
+   * @type {Object}
    */
   rules: {
     url: {
@@ -48,7 +48,7 @@ Fiber.Route = Fiber.Model.extend({
 
   /**
    * Default route View Class
-   * @var {Fiber.View}
+   * @type {Fiber.View}
    */
   ViewClass: Fiber.View,
 

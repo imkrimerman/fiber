@@ -5,7 +5,7 @@ describe('Fiber.Events', function() {
   });
 
   beforeEach(function() {
-    this.Class = new Fiber.Class();
+    this.Class = new Fiber.fn.class.create();
   });
 
   it('should apply `ns` and `catalog` default values', function() {

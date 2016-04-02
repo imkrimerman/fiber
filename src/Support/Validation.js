@@ -1,12 +1,12 @@
 /**
  * Fiber Validation support
- * @var {Object}
+ * @type {Object}
  */
 Fiber.fn.validation = {
 
   /**
    * Rule defaults
-   * @var {Object}
+   * @type {Object}
    */
   ruleDefaults: {
     required: false,

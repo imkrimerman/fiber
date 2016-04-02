@@ -8,37 +8,37 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
 
     /**
      * Parent element to auto attach
-     * @var {jQuery}
+     * @type {jQuery}
      */
     $parent: null,
 
     /**
      * Linked views collection
-     * @var {Object.<Fiber.LinkedView>}
+     * @type {Object.<Fiber.LinkedView>}
      */
     linked: null,
 
     /**
      * View ui selectors
-     * @var {Object}
+     * @type {Object}
      */
     ui: {},
 
     /**
      * View `$ui` found elements by `ui` selector
-     * @var {Object}
+     * @type {Object}
      */
     $ui: {},
 
     /**
      * Instance key to listen to
-     * @var {string}
+     * @type {string}
      */
     listens: 'model',
 
     /**
      * Events listeners
-     * @var {Object}
+     * @type {Object}
      */
     listeners: {
       change: 'render'
@@ -46,19 +46,19 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
 
     /**
      * Events that should be retransmitted
-     * @var {Object}
+     * @type {Object}
      */
     transmit: {},
 
     /**
      * Rendered flag
-     * @var {boolean}
+     * @type {boolean}
      */
     __rendered: false,
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @var {Array|Function|string}
+     * @type {Array|Function|string}
      */
     extendable: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events',
@@ -67,7 +67,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
 
     /**
      * Properties keys that will be owned by the instance
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     ownProps: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '__rendered',

@@ -30,7 +30,7 @@ describe('Fiber.fn', function() {
   });
 
   it('should `make` child class using extender and statics with resolving extensions by `alias`', function() {
-    var Component = Fiber.fn.class.make(Fiber.Class, ['Access', { testKey: 'value' }]);
+    var Component = Fiber.fn.class.make(Fiber.fn.class.create(), ['Access', { testKey: 'value' }]);
 
     expect(Component.prototype).to.have.property('testKey');
     for (var key in Fiber.getExtension('Access')) {

@@ -1,6 +1,6 @@
 /**
  * Fiber delegate support
- * @var {Object}
+ * @type {Object}
  */
 Fiber.fn.delegator = {
 
@@ -123,7 +123,7 @@ Fiber.fn.delegator = {
 
   /**
    * Utils holder
-   * @var {Object}
+   * @type {Object}
    */
   utils: {
     object: {

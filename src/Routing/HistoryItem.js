@@ -7,7 +7,7 @@ Fiber.HistoryItem = Fiber.Model.extend({
 
   /**
    * Model defaults
-   * @var {Object}
+   * @type {Object}
    */
   defaults: {
     route: null,
@@ -16,7 +16,7 @@ Fiber.HistoryItem = Fiber.Model.extend({
 
   /**
    * Validation rules
-   * @var {Object}
+   * @type {Object}
    */
   rules: {
     route: {

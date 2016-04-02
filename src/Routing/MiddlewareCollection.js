@@ -2,7 +2,7 @@ Fiber.MiddlewareCollection = Fiber.RouterCollection.extend({
 
   /**
    * Default collection model
-   * @var {Fiber.Middleware}
+   * @type {Fiber.Middleware}
    */
   model: Fiber.Middleware,
 

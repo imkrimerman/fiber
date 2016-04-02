@@ -12,7 +12,7 @@ var $Extend = new Fiber.Extension({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function|string}
+   * @type {Array|Function|string}
    */
   extendable: [],
 

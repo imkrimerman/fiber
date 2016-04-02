@@ -2,7 +2,7 @@
  * Fiber Transmitter Service
  * @class
  */
-Fiber.Services.Transmitter = Fiber.fn.class.createWithExtensions({
+Fiber.Transmitter = Fiber.fn.class.createWithExtensions({
 
   /**
    * Transmitter channels
@@ -12,13 +12,13 @@ Fiber.Services.Transmitter = Fiber.fn.class.createWithExtensions({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @var {Array|Function|string}
+   * @type {Array|Function|string}
    */
   extendable: ['channels'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProps: ['channels'],
 
@@ -47,7 +47,7 @@ Fiber.Services.Transmitter = Fiber.fn.class.createWithExtensions({
   /**
    * Removes channel by name
    * @param {string} name
-   * @returns {Fiber.Services.Transmitter}
+   * @returns {Fiber.Transmitter}
    */
   forget: function(name) {
     delete this.channels[name];

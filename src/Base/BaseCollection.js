@@ -3,18 +3,18 @@
  * @class
  * @extends {Backbone.Collection}
  */
-var BaseCollection = Fiber.fn.class.make(Backbone.Collection, [
-  'Extend', 'OwnProps', {
+var BaseCollection = Fiber.fn.class.extend(Backbone.Collection, [
+  $Extend, $OwnProps, {
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     extendable: ['model', 'url', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
-     * @var {Array|Function}
+     * @type {Array|Function}
      */
     ownProp: ['ns', 'catalog'],
 

@@ -1,6 +1,6 @@
 /**
  * Fiber Own Properties extension.
- * @var {Object}
+ * @type {Object}
  */
 var $OwnProps = new Fiber.Extension({
 
@@ -12,7 +12,7 @@ var $OwnProps = new Fiber.Extension({
 
   /**
    * Properties keys that will be owned by the instance
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   ownProps: [],
 

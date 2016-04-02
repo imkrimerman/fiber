@@ -1,12 +1,12 @@
 /**
  * Fiber Template support
- * @var {Object}
+ * @type {Object}
  */
 Fiber.fn.template = {
 
   /**
    * Template engine
-   * @var {Function}
+   * @type {Function}
    * @private
    */
   engine: _.template,
@@ -69,7 +69,7 @@ Fiber.fn.template = {
 
   /**
    * Fallback function that emulates template engine renderer
-   * @var {Function}
+   * @type {Function}
    */
   fallback: function(val) { return val; },
 

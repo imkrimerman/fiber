@@ -7,13 +7,13 @@ Fiber.RouteCollection = Fiber.RouterCollection.extend({
 
   /**
    * Default collection model
-   * @var {Fiber.Route}
+   * @type {Fiber.Route}
    */
   model: Fiber.Route,
 
   /**
    * Methods list to bind
-   * @var {Array|Function}
+   * @type {Array|Function}
    */
   bindMethods: ['wrap', 'bind', 'bindOne'],
 
