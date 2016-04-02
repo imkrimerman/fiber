@@ -128,7 +128,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {Fiber.Model|null}
      */
     next: function(options) {
-      return this.sibling(_.extend({ direction: 'next' }, options || {}));
+      return this.sibling(_.extend({direction: 'next'}, options || {}));
     },
 
     /**
@@ -137,7 +137,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {Fiber.Model|null}
      */
     prev: function(options) {
-      return this.sibling(_.extend({ direction: 'prev' }, options || {}));
+      return this.sibling(_.extend({direction: 'prev'}, options || {}));
     },
 
     /**

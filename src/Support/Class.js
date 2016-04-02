@@ -85,20 +85,20 @@ Fiber.fn.class = {
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
    */
-  createClass: function(proto, statics) {
+  create: function(proto, statics) {
     return Fiber.fn.class.extend(_.noop, proto, statics);
   },
 
   /**
-   * Creates Class that includes Backbone Events and all Mixins
+   * Creates Class that includes Backbone Events and all Extensions
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
    */
-  createClassWithExtensions: function(proto, statics) {
+  createWithExtensions: function(proto, statics) {
     var mergeable = _.castArray(proto).concat(Fiber.Events)
       , extensions = _.values(Fiber.getExtensionsList())
-      , Parent = Fiber.fn.class.createClassConstructor(extensions);
+      , Parent = Fiber.fn.class.createConstructor(extensions);
 
     proto = Fiber.fn.merge(extensions, mergeable);
     return Fiber.fn.class.extend(Parent, proto, statics);
@@ -109,7 +109,7 @@ Fiber.fn.class = {
    * @param {Array.<Object>} mixins
    * @returns {Function}
    */
-  createClassConstructor: function(extensions) {
+  createConstructor: function(extensions) {
     var methods = [];
 
     if (extensions) methods = _.map(extensions, function(extension) {
@@ -128,7 +128,7 @@ Fiber.fn.class = {
    * @param {Object} object
    * @returns {Array|null}
    */
-  getObjectExtensions: function(object) {
+  getExtensions: function(object) {
     var key = Fiber.Globals.extensions.property;
     if (! object[key]) return null;
     return object[key];
@@ -140,7 +140,7 @@ Fiber.fn.class = {
    * @param {Array|string} extensionsList
    * @returns {Array}
    */
-  setObjectExtensions: function(object, extensionsList) {
+  setExtensions: function(object, extensionsList) {
     var key = Fiber.Globals.extensions.property;
     if (! object[key]) object[key] = [];
     return object[key] = _.uniq(object[key].concat(_.castArray(extensionsList)));
@@ -151,7 +151,7 @@ Fiber.fn.class = {
    * @param {Object} object
    * @returns {boolean}
    */
-  hasObjectExtensions: function(object) {
+  hasExtensions: function(object) {
     return _.has(object, Fiber.Globals.extensions.property);
   },
 
@@ -244,6 +244,15 @@ Fiber.fn.class = {
    */
   isBackbone: function(Class) {
     return Fiber.fn.class.isBackboneInstance(Class.prototype);
+  },
+
+  /**
+   * Checks if given Class is Class constructor
+   * @param {*} Class
+   * @returns {boolean}
+   */
+  isClass: function(Class) {
+    return _.isFunction(Class);
   },
 
   /**

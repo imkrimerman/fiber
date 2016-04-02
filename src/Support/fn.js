@@ -93,14 +93,20 @@ Fiber.fn = {
    * @returns {*}
    */
   apply: function(Class, method, args, context) {
-    context = val(context, Class);
-    args = val(args, []);
-
-    var proto = Class.prototype || Class
-      , method = proto && proto[method];
-
+    var method = Fiber.fn.getMethod(Class, method);
     args = ! _.isArguments(args) ? _.castArray(args) : args;
     if (_.isFunction(method)) return method.apply(context, args);
+  },
+
+  /**
+   * Returns Class method or void otherwise
+   * @param {Object} Class
+   * @param {string} method
+   * @returns {Function|undefined}
+   */
+  getMethod: function(Class, method) {
+    var proto = Class.prototype || Class
+    return proto && proto[method] || void 0;
   },
 
   /**
@@ -112,8 +118,8 @@ Fiber.fn = {
    * @return {*}
    */
   fireCall: function(Class, event, args, prepare) {
-    if (val(prepare, true)) args = Fiber.fn.prepareInvokeArgs(args, {fire: [], invoke: []});
-    var result = Fiber.fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.invoke);
+    if (val(prepare, true)) args = Fiber.fn.prepareCallArgs(args, {fire: [], call: []});
+    var result = Fiber.fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
     Fiber.fn.apply(Class, 'fire', [event].concat(args.fire));
     return result;
   },
@@ -127,16 +133,17 @@ Fiber.fn = {
    * @param {?Array} [lifeCycle]
    * @return {*}
    */
-  fireCallCycle: function(Class, event, callback, args, lifeCycle) {
-    args = Fiber.fn.prepareInvokeArgs(args, {fire: [], invoke: [], callback: []})
+  fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
+    args = Fiber.fn.prepareCallArgs(args, {fire: [], call: [], callback: []})
     lifeCycle = val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
 
     var result;
+
     for (var i = 0; i < lifeCycle.length; i ++) {
       var now = lifeCycle[i]
         , nowEvent = now[now.length - 1] === ':' ? now + event : now + ':' + event;
-      if (now === '@callback' && _.isFunction(callback))
-        result = callback.apply(Class, args.callback);
+
+      if (now === '@callback' && _.isFunction(callback)) result = callback.apply(Class, args.callback);
       else Fiber.fn.fireCall(Class, nowEvent, args, false);
     }
 
@@ -144,12 +151,12 @@ Fiber.fn = {
   },
 
   /**
-   * Prepares arguments for fire invoke methods
+   * Prepares arguments for fire call methods
    * @param {Object} args
    * @param {?Object} [defaults={}]
    * @returns {*|Object|stream}
    */
-  prepareInvokeArgs: function(args, defaults) {
+  prepareCallArgs: function(args, defaults) {
     var prepared = _.extend({}, defaults || {}, val(args, {}, _.isPlainObject));
     return Fiber.fn.transform(prepared, function(val) {
       if (_.isArguments(val)) return val;
@@ -269,6 +276,9 @@ Fiber.fn = {
     };
   },
 
+  expect: function() {
+//    return
+  },
 };
 
 /**

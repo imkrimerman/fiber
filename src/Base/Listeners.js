@@ -11,7 +11,7 @@ Fiber.Listeners = BaseCollection.extend({
    * @returns {boolean}
    */
   hasEvent: function(event) {
-    return !! this.filterByEvent(event).length;
+    return ! ! this.filterByEvent(event).length;
   },
 
   /**

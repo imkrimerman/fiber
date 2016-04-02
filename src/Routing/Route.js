@@ -85,11 +85,11 @@ Fiber.Route = Fiber.Model.extend({
     var options = this.get('compose')
       , composer = this.composeView.bind(this)
       , handler = function() {
-        return composer(options);
-      };
+      return composer(options);
+    };
 
     if (val(setAsHandler, true, _.isBoolean)) {
-      this.set('handler', handler, { silent: true });
+      this.set('handler', handler, {silent: true});
       this.setComposedState(true);
     }
     else return handler();

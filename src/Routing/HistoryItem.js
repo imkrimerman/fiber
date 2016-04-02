@@ -21,9 +21,11 @@ Fiber.HistoryItem = Fiber.Model.extend({
   rules: {
     route: {
       required: true,
-      validators: [function(val) {
-        return val instanceof Fiber.Route;
-      }]
+      validators: [
+        function(val) {
+          return val instanceof Fiber.Route;
+        }
+      ]
     },
     args: {
       validators: [_.isObjectLike]

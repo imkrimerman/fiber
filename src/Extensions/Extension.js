@@ -2,7 +2,7 @@
  * Fiber Extension
  * @class
  */
-Fiber.Extension = Fiber.fn.class.createClass({
+Fiber.Extension = Fiber.fn.class.create({
 
   /**
    * Method name to call when extension is initiating
@@ -22,7 +22,7 @@ Fiber.Extension = Fiber.fn.class.createClass({
    * Sets code of extension
    * @param delegateble
    */
-  set code (delegateble) {
+  set code(delegateble) {
     this.__delegatable = delegateble;
   },
 
@@ -30,7 +30,7 @@ Fiber.Extension = Fiber.fn.class.createClass({
    * Returns code of the extension
    * @returns {Object}
    */
-  get code () {
+  get code() {
     return this.__delegatable;
   },
 

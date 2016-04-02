@@ -70,9 +70,28 @@
    * @var {Object}
    */
   Fiber.Globals = {
+
+    /**
+     * Extensions globals
+     * @type {Object}
+     */
     extensions: {
+
+      /**
+       * Property to use to keep extensions in classes
+       * @type {string}
+       */
       property: 'extensions',
-      all: 'ALL'
+
+    },
+
+    /**
+     * Log globals
+     * @type {Object}
+     */
+    log: {
+      levels: ['trace', 'debug', 'info', 'warn', 'error'],
+      default: 'error',
     }
   };
 

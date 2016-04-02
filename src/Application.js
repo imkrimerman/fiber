@@ -2,7 +2,7 @@
  * Fiber Application Class
  * @class
  */
-Fiber.Application = Fiber.fn.class.createClassWithExtensions({
+Fiber.Application = Fiber.fn.class.createWithExtensions({
 
   /**
    * Viewport instance
@@ -79,7 +79,7 @@ Fiber.Application = Fiber.fn.class.createClassWithExtensions({
    * @return {Fiber.Application}
    */
   start: function() {
-    Fiber.fn.fireCallCycle(this, 'start', function() {
+    Fiber.fn.fireCallCyclic(this, 'start', function() {
       Fiber.history.start();
       this.fire('start', this);
     });
@@ -91,7 +91,7 @@ Fiber.Application = Fiber.fn.class.createClassWithExtensions({
    * @returns {Fiber.Application}
    */
   stop: function() {
-    Fiber.fn.fireCallCycle(this, 'stop', function() {
+    Fiber.fn.fireCallCyclic(this, 'stop', function() {
       Fiber.history.stop();
       this.fire('stop', this);
     });

@@ -5,6 +5,22 @@
 Fiber.fn.delegator = {
 
   /**
+   * Adds `alias` for the `method` in `Class`
+   * @param {Object} Class
+   * @param {string} method
+   * @param {string} alias
+   * @param {?boolean} [toProto=false]
+   * @returns {boolean}
+   */
+  alias: function(Class, method, alias, toProto) {
+    var method = Fiber.fn.getMethod(Class, method);
+    if (! method) return false;
+    if (val(toProto, false) && Class.prototype) Class.prototype[alias] = method;
+    else Class[alias] = method;
+    return true;
+  },
+
+  /**
    * Proxies function
    * @param {Function} fn
    * @param {?Object} [scope=fn]
@@ -47,7 +63,7 @@ Fiber.fn.delegator = {
     owner = owner || _;
 
     for (var method in methods) {
-      var len = methods[method], destruct = { name: method, len: len };
+      var len = methods[method], destruct = {name: method, len: len};
       if (_.isArray(len)) destruct = _.zipObject(['name', 'len'], len);
       if (! owner[method]) continue;
       Object.prototype[destruct.name] = this.strictProxy(owner, method, attribute, destruct.len);

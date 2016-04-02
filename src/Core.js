@@ -86,7 +86,7 @@ Fiber.forgetExtension = function(alias) {
 Fiber.applyExtension = function(alias, object, override) {
   var extension = Fiber.getExtension(alias);
   Fiber.fn.class.include(object, extension, override);
-  Fiber.fn.class.setObjectExtensions(object, alias);
+  Fiber.fn.class.setExtensions(object, alias);
   return this;
 };
 
@@ -96,7 +96,7 @@ Fiber.applyExtension = function(alias, object, override) {
  * @returns {boolean}
  */
 Fiber.initializeExtensions = function(object, list) {
-  list = val(list, Fiber.fn.class.getObjectExtensions(object), _.isArray);
+  list = val(list, Fiber.fn.class.getExtensions(object), _.isArray);
   if (! list || _.isEmpty(list)) return false;
   var initMethods = Fiber.fn.class.getExtensionsInitMethods(list);
   for (var i = 0; i < initMethods.length; i ++) {

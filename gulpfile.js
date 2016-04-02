@@ -38,8 +38,8 @@ var _ = require('lodash')
 
       // Base
       './src/Core.js',
-      './src/Base/Class.js',
       './src/Base/Events.js',
+      './src/Base/Class.js',
       './src/Base/Bag.js',
       './src/Base/ErrorBag.js',
       './src/Base/BaseCollection.js',

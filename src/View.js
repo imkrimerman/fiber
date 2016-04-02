@@ -299,7 +299,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     callRender: function(render) {
       var result;
-      Fiber.fn.fireCallCycle(this, 'render', function() {
+      Fiber.fn.fireCallCyclic(this, 'render', function() {
         this.apply(this, '__beforeRender');
         result = render.call(this);
         this.apply(this, '__afterRender');
@@ -313,7 +313,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * Removes view
      */
     remove: function() {
-      Fiber.fn.fireCallCycle(this, 'remove', function() {
+      Fiber.fn.fireCallCyclic(this, 'remove', function() {
         this.apply(Backbone.View, 'remove', {fire: this});
       });
       this.__rendered = false;
@@ -353,8 +353,8 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     __handleEventsUi: function() {
       if (! this.events) return;
       var isValidUi = this.ui && ! _.isEmpty(this.ui),
-          events    = this.result('events'),
-          handled   = {};
+        events = this.result('events'),
+        handled = {};
 
       for (var selector in events) {
         var handler = events[selector];

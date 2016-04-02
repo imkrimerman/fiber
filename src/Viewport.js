@@ -71,5 +71,4 @@ Fiber.Viewport = Fiber.View.extend({
     return this;
   },
 
-
 });

@@ -211,7 +211,7 @@ Fiber.CollectionView = Fiber.View.extend({
   replaceCollectionElementUi: function(collectionElement) {
     collectionElement = collectionElement || this.collectionElement;
     if (! _.isString(collectionElement)) return collectionElement;
-    if (~collectionElement.indexOf('@ui'))
+    if (~ collectionElement.indexOf('@ui'))
       collectionElement = this.ui[collectionElement.replace('@ui.', '')];
     return collectionElement;
   },

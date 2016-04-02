@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Bag = Fiber.fn.class.extend(Fiber.Class, {
+Fiber.Bag = Fiber.Class.extend({
 
   /**
    * Bag items

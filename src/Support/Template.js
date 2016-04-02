@@ -84,7 +84,8 @@ Fiber.fn.template = {
       // if it's not available then wrap it with function that will
       // return the same value that is used as the argument.
       return _ && _.template ? _.template : Fiber.fn.template.fallback;
-    } catch(e) { return Fiber.fn.template.fallback; }
+    }
+    catch (e) { return Fiber.fn.template.fallback; }
   },
 
   /**

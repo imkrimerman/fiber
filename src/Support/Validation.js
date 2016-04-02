@@ -52,7 +52,7 @@ Fiber.fn.validation = {
 
       // if attribute is required and it's empty and not a number (0 can be treated as false),
       if (rule.required && (! _.isNumber(attribute) && _.isEmpty(attribute)))
-        // then we'll add error to model's error bag
+      // then we'll add error to model's error bag
         model.errorBag.push(key, 'Required attribute [' + key + '] is missing.');
 
       // Also if we have rule validators, then continue validating with them.

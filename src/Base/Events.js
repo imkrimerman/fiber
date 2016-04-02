@@ -5,7 +5,7 @@
  * provides catalog to simplify registered events for the developers.
  * @class
  */
-Fiber.Events = Fiber.fn.class.createClassWithExtensions({
+Fiber.Events = Fiber.fn.class.createWithExtensions({
 
   /**
    * Events namespace
