@@ -99,7 +99,9 @@
    * Fiber Services holder
    * @var {Object}
    */
-  Fiber.Services = {};
+  Fiber.Services = {
+    Commands: {}
+  };
 
   /**
    * Object to use internally

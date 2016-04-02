@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Bag}
  */
-Fiber.Services.Command = Fiber.Bag.extend({
+Fiber.Services.Commands.Command = Fiber.Bag.extend({
 
   /**
    * Command name

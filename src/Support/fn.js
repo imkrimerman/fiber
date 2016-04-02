@@ -151,6 +151,20 @@ Fiber.fn = {
   },
 
   /**
+   * Returns wrapped `fireCallCyclic` method
+   * @param {Function} fn
+   * @param {string} event
+   * @param {?Object} [args]
+   * @param {?Array} [lifeCycle]
+   * @returns {Function}
+   */
+  wrapFireCallCyclic: function(fn, event, args, lifeCycle) {
+    return _.wrap(fn, _.bind(function(execFn) {
+      return Fiber.fn.fireCallCyclic(this, event, execFn, args, lifeCycle);
+    }, this));
+  },
+
+  /**
    * Prepares arguments for fire call methods
    * @param {Object} args
    * @param {?Object} [defaults={}]
@@ -229,6 +243,17 @@ Fiber.fn = {
   isArrayOf: function(array, of, method) {
     method = val(method, 'every', _.isString);
     return _.isArray(array) && _[method](array, _['is' + _.capitalize(of)]);
+  },
+
+  /**
+   * Checks if all values in array are the same
+   * @param {Array} array
+   * @returns {boolean}
+   */
+  inArrayAllSame: function(array) {
+    return !! array.reduce(function(a, b) {
+      return a === b ? a : NaN;
+    });
   },
 
   /**

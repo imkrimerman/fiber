@@ -80,7 +80,7 @@ Fiber.fn.class = {
   },
 
   /**
-   * Creates Class. Includes Backbone Events
+   * Creates simple Class. Includes Fiber Events
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}

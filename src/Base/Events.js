@@ -3,9 +3,8 @@
  *
  * Build in events brings namespaces to the event and also
  * provides catalog to simplify registered events for the developers.
- * @class
  */
-Fiber.Events = Fiber.fn.class.createWithExtensions({
+Fiber.Events = _.extend(Backbone.Events, {
 
   /**
    * Events namespace
@@ -124,8 +123,7 @@ Fiber.Events = Fiber.fn.class.createWithExtensions({
    * @returns {Fiber.Events}
    */
   respondTo: function(event, action, scope) {
-    if (~ event.indexOf('@'))
-      return this.setResponder(event, action, scope);
+    return this.setResponder(event, action, scope);
   },
 
   /**
@@ -269,5 +267,7 @@ Fiber.Events = Fiber.fn.class.createWithExtensions({
 /**
  * Add more aliases for the `send` method
  */
-Fiber.Events.prototype.retrieve = Fiber.Events.prototype.send;
-Fiber.Events.prototype.request = Fiber.Events.prototype.send;
+Fiber.fn.delegator.aliasMany(Fiber.Events, {
+  send: ['retrieve', 'request'],
+  respondTo: ['respond', 'responder']
+});

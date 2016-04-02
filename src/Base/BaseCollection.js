@@ -25,7 +25,7 @@ var BaseCollection = Fiber.fn.class.make(Backbone.Collection, [
      */
     constructor: function(models, options) {
       Fiber.initializeExtensions(this);
-      Backbone.Collection.apply(this, arguments);
+      this.__parent__.apply(this, arguments);
     },
 
     /**

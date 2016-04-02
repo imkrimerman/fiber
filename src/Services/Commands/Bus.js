@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Services.Bus = Fiber.fn.class.createWithExtensions({
+Fiber.Services.Commands.Bus = Fiber.fn.class.createWithExtensions({
 
   /**
    * Commands Registry
@@ -15,7 +15,7 @@ Fiber.Services.Bus = Fiber.fn.class.createWithExtensions({
    * Properties keys that will be auto extended from initialize object
    * @var {Array|Function|string}
    */
-  extendable: [],
+  extendable: ['registry'],
 
   /**
    * Properties keys that will be owned by the instance
@@ -89,5 +89,14 @@ Fiber.Services.Bus = Fiber.fn.class.createWithExtensions({
   }
 });
 
-Fiber.fn.delegator.alias(Fiber.Bus, 'register', 'bind');
-Fiber.fn.delegator.alias(Fiber.Bus, 'unregister', 'unbind');
+/**
+ * Add aliases for register method
+ */
+Fiber.fn.delegator.aliasMany(Fiber.Bus, {
+  register: 'bind',
+  unregister: 'unbind'
+}, true);
+
+
+Fiber.fn.delegator.alias(Fiber.Bus, 'register', ['bind', 'remember']);
+Fiber.fn.delegator.alias(Fiber.Bus, 'unregister', ['unbind', 'forget']);

@@ -1,3 +1,7 @@
+/**
+ * Deep properties explorer
+ * @type {Object}
+ */
 Fiber.fn.class.deepProps = {
   /**
    * Deep properties configuration

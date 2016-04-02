@@ -3,7 +3,7 @@
  * @class
  */
 Fiber.Class = Fiber.fn.class.create([
-  Backbone.Events, {
+  Fiber.Events, {
 
     /**
      * Constructs simple class
@@ -12,7 +12,7 @@ Fiber.Class = Fiber.fn.class.create([
      */
     constructor: function(options, extensions) {
       Fiber.fn.class.handleOptions(this, options);
-      if (extensions) Fiber.applyExtension(extensions, this, true);
+      if (extensions) this.applyExtension(extensions, true);
       Fiber.fn.apply(this, 'initialize', [arguments]);
     },
 

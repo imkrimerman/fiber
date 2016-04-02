@@ -9,8 +9,8 @@ describe('Fiber.Class', function() {
     expect(this.base).to.be.an.instanceof(Fiber.Class);
   });
 
-  it('should have Backbone.Events', function() {
-    expectHasAllProps(this.base, Backbone.Events);
+  it('should have Fiber.Events', function() {
+    expectHasAllProps(this.base, Fiber.Events);
   });
 
   it('should apply extensions', function() {

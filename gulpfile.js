@@ -23,17 +23,19 @@ var _ = require('lodash')
       // Support
       './src/Support/Version.js',
       './src/Support/fn.js',
+      './src/Support/DeepProps.js',
       './src/Support/Class.js',
       './src/Support/Template.js',
       './src/Support/Validation.js',
       './src/Support/Delegator.js',
+      './src/Support/Log.js',
 
       // Extensions
       './src/Extensions/Extension.js',
       './src/Extensions/Access.js',
       './src/Extensions/Binder.js',
       './src/Extensions/Extend.js',
-      './src/Extensions/Mixin.js',
+      './src/Extensions/Extensions.js',
       './src/Extensions/OwnProps.js',
 
       // Base
@@ -55,6 +57,13 @@ var _ = require('lodash')
       './src/Collection.js',
       './src/View.js',
       './src/CollectionView.js',
+
+      // Services
+      './src/Services/Registry.js',
+      './src/Services/Command.js',
+      './src/Services/Handler.js',
+      './src/Services/Bus.js',
+      './src/Services/Transmitter.js',
 
       // Routing
       './src/Routing/HistoryItem.js',

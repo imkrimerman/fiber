@@ -13,11 +13,33 @@ Fiber.fn.delegator = {
    * @returns {boolean}
    */
   alias: function(Class, method, alias, toProto) {
+    var castedAlias = _.castArray(alias);
     var method = Fiber.fn.getMethod(Class, method);
     if (! method) return false;
-    if (val(toProto, false) && Class.prototype) Class.prototype[alias] = method;
-    else Class[alias] = method;
+    for (var i = 0; i < castedAlias.length; i ++) {
+      var alias = castedAlias[i];
+      if (val(toProto, false) && Class.prototype) Class.prototype[alias] = method;
+      else Class[alias] = method;
+    }
     return true;
+  },
+
+  /**
+   * Adds many `aliases` for `Class` methods
+   * @param {Object} Class
+   * @param {Object} aliases
+   * @param {?boolean} [toProto=false]
+   * @returns {boolean}
+   */
+  aliasMany: function(Class, aliases, toProto) {
+    var result = [];
+    for (var originalName in aliases) {
+      var aliasList = _.castArray(aliases[originalName]);
+      result.push(_.every(aliasList, function(alias) {
+        return Fiber.fn.delegator.alias(Class, originalName, alias, toProto);
+      }));
+    }
+    return Fiber.fn.inArrayAllSame(result);
   },
 
   /**
