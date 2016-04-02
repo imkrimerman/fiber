@@ -262,6 +262,14 @@ Fiber.Events = _.extend(Backbone.Events, {
     listenable = val(listenable, this);
     return _.has(listenable, 'nsEvent') ? listenable.nsEvent(event) : event;
   },
+
+  /**
+   * Copies Events Object
+   * @returns {Fiber.Events}
+   */
+  copy: function() {
+    return _.clone(this);
+  },
 });
 
 /**
