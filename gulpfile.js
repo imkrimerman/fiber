@@ -33,17 +33,15 @@ var _ = require('lodash')
       './src/Extensions/Binder.js',
       './src/Extensions/Extend.js',
       './src/Extensions/Mixin.js',
-      './src/Extensions/NsEvents.js',
       './src/Extensions/OwnProperties.js',
-      './src/Extensions/Extensions.js',
 
       // Base
+      './src/Core.js',
       './src/Base/Class.js',
       './src/Base/Bag.js',
 
       // Services
-      './src/Services/Container.js',
-      './src/Extensions/AddExtensions.js',
+      './src/Container.js',
 
       // Support
       './src/Support/Collection.js',

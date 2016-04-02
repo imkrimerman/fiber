@@ -2,7 +2,7 @@
  * Fiber Own Properties extension.
  * @var {Object}
  */
-Fiber.Extensions.OwnProperties = {
+var $OwnProperties = {
 
   /**
    * Properties keys that will be owned by the instance

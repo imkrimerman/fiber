@@ -2,7 +2,7 @@
  * Extend extension.
  * @type {Object}
  */
-Fiber.Extensions.Extend = {
+var $Extend = {
 
   /**
    * Properties keys that will be auto extended from initialize object

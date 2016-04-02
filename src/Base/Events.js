@@ -1,9 +1,11 @@
 /**
- * Namespace Events extension brings namespaces to the event and also
- * provides catalog to simplify registered events.
- * @var {Object}
+ * Fiber Events
+ *
+ * Build in events brings namespaces to the event and also
+ * provides catalog to simplify registered events for the developers.
+ * @class
  */
-Fiber.Extensions.NsEvents = {
+Fiber.Events = Fiber.fn.class.createClass({
 
   /**
    * Events namespace
@@ -122,4 +124,4 @@ Fiber.Extensions.NsEvents = {
     this.eventsCatalog[alias] = event;
     return this;
   }
-};
+});

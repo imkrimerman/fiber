@@ -3,7 +3,7 @@
  * Functions that provides including and mixining objects and array of objects
  * @var {Object}
  */
-Fiber.Extensions.Mixin = {
+var $Mixin = {
 
   /**
    * Adds given `mixin` to Fiber Class. Mixin can be object or function.

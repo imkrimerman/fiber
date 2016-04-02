@@ -3,7 +3,7 @@
  * `lodash` methods to support deep access to the Class.
  * @var {Object}
  */
-Fiber.Extensions.Access = {
+var $Access = {
 
   /**
    * Gets value by given `property` key. You can provide `defaults` value that

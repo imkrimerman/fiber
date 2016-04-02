@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Services.Container = Fiber.fn.class.extend(Fiber.Class, {
+Fiber.Container = Fiber.fn.class.extend(Fiber.Class, {
 
   /**
    * The container's bindings.
@@ -194,3 +194,14 @@ Fiber.fn.class.createConditionMethods(Fiber.Services.Container.prototype, ['bind
  * @var {Object.<Fiber.Services.Container>}
  */
 Fiber.container = new Fiber.Services.Container();
+
+/**
+ * Adds default extensions to the Container
+ */
+Fiber.addExtension({
+  Access: $Access,
+  Binder: $Binder,
+  Extend: $Extend,
+  Mixin: $Mixin,
+  OwnProperties: $OwnProperties
+});

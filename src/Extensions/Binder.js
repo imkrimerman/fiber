@@ -2,7 +2,7 @@
  * Fiber Binder Extension
  * @var {Object}
  */
-Fiber.Extensions.Binder = {
+var $Binder = {
 
   /**
    * Methods list to bind

@@ -5,6 +5,14 @@
 Fiber.fn.class = {
 
   /**
+   * Class helper constants
+   * @type {Object}
+   */
+  constants: {
+    ALL_MIXINS: []
+  },
+
+  /**
    * Deep properties configuration
    * @var {Object}
    */
@@ -174,12 +182,12 @@ Fiber.fn.class = {
   },
 
   /**
-   * Creates `first` (without parent) Class includes Backbone Events
+   * Creates Class. Includes Backbone Events
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
    */
-  createFirstClass: function(proto, statics) {
+  createClass: function(proto, statics) {
     return Fiber.fn.class.extend(_.noop, proto, statics);
   },
 
