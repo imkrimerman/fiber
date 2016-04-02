@@ -60,13 +60,13 @@ describe('Fiber.fn', function() {
   });
 
   it('should create template function using `Fiber.fn.template.engine`', function() {
-    var template = Fiber.fn.template.wrap('String <%= one %>');
+    var template = Fiber.fn.template.prepare('String <%= one %>');
     expect(template).to.be.a('function');
     expect(template({one: 'Test'})).to.eql('String Test');
 
     Fiber.fn.template.engine = null;
 
-    var template2 = Fiber.fn.template.wrap('one');
+    var template2 = Fiber.fn.template.prepare('one');
     expect(template2).to.be.a('function');
     expect(template2()).to.eql('one');
   });

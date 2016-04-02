@@ -8,7 +8,7 @@ var $Extend = new Fiber.Extension({
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  initMethodName: 'applyExtend',
+  initMethod: 'applyExtend',
 
   /**
    * Properties keys that will be auto extended from initialize object

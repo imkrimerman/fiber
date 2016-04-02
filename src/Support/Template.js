@@ -16,15 +16,15 @@ Fiber.fn.template = {
    * @returns {string}
    */
   compile: function(template, data) {
-    return this.wrap(template)(data);
+    return this.prepare(template)(data);
   },
 
   /**
    * Prepares template to compile
-   * @param {string} template - Template to wrap
+   * @param {string} template - Template to prepare
    * @returns {Function}
    */
-  wrap: function(template) {
+  prepare: function(template) {
     var engine = Fiber.fn.template.getEngine()
     // lets use all arguments and path them into the engine
       , prepared = engine.apply(engine, arguments);
@@ -80,8 +80,8 @@ Fiber.fn.template = {
    */
   getFallback: function() {
     try {
-      // Try to wrap `template` string in `_.template` function,
-      // if it's not available then wrap it with function that will
+      // Try to prepare `template` string in `_.template` function,
+      // if it's not available then prepare it with function that will
       // return the same value that is used as the argument.
       return _ && _.template ? _.template : Fiber.fn.template.fallback;
     }

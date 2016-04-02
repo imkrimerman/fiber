@@ -29,19 +29,25 @@ Fiber.Services.Transmitter = Fiber.fn.class.createWithExtensions({
    */
   channel: function(name) {
     var channel = this.get('channels.' + name);
+    if (! channel) return this.add(name);
+    return channel;
+  },
 
-    if (! channel) {
-      channel = Fiber.Events.copy();
-      this.set('channels.' + name, channel);
-    }
-
+  /**
+   * Adds new channel by `name`
+   * @param {string} name
+   * @returns {Fiber.Events}
+   */
+  add: function(name) {
+    var channel = Fiber.Events.instance();
+    this.set('channels.' + name, channel);
     return channel;
   },
 
   /**
    * Removes channel by name
    * @param {string} name
-   * @returns {Fiber.Services.Events.Transmitter}
+   * @returns {Fiber.Services.Transmitter}
    */
   forget: function(name) {
     delete this.channels[name];

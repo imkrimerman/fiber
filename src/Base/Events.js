@@ -264,10 +264,10 @@ Fiber.Events = _.extend(Backbone.Events, {
   },
 
   /**
-   * Copies Events Object
+   * Clones Events object instance
    * @returns {Fiber.Events}
    */
-  copy: function() {
+  instance: function() {
     return _.clone(this);
   },
 });

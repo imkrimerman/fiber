@@ -27,7 +27,7 @@ Fiber.Services.Commands.Command = Fiber.Bag.extend({
    * Properties keys that will be owned by the instance
    * @var {Array|Function}
    */
-  ownProps: ['name', 'handler', '__selfExecutable', '__throw'],
+  ownProps: ['name', 'handler', '__selfExecutable'],
 
   /**
    * Flag to set if command is self executable
