@@ -1,4 +1,4 @@
-Fiber.RouterCollection = Fiber.Collection.extend({
+Fiber.RouterCollection = BaseCollection.extend({
 
   /**
    * Properties keys that will be owned by the instance

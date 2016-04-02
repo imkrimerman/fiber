@@ -5,139 +5,36 @@
 Fiber.fn.class = {
 
   /**
-   * Class helper constants
-   * @type {Object}
-   */
-  constants: {
-    ALL_MIXINS: []
-  },
-
-  /**
-   * Deep properties configuration
-   * @var {Object}
-   */
-  deepProperties: {
-    rules: [_.isArray, _.isPlainObject],
-    exclude: ['fn'],
-    explore: [
-      {owner: Fiber, path: 'container.binding.items'},
-      {owner: Fiber, path: 'container.extensions.items'},
-      {owner: Fiber, path: 'Model.prototype', direct: true},
-      {owner: Fiber, path: 'View.prototype', direct: true},
-      {owner: Fiber, path: 'CollectionView.prototype', direct: true}
-    ],
-  },
-
-  /**
-   * Returns list of explored deep extend properties
-   * @return {Array}
-   */
-  exploreDeepProperties: function(explorables, rules, comparatorFn) {
-    var properties = [];
-    // check arguments or set default values
-    explorables = _.castArray(val(explorables, this.deepProperties.explore));
-    rules = _.castArray(val(rules, this.deepProperties.rules));
-    comparatorFn = val(comparatorFn, 'some', Fiber.fn.createIncludes(['some', 'any']));
-    // traverse through explorables collection
-    for (var i = 0; i < explorables.length; i ++) {
-      var explorable = explorables[i]
-        , holder = _.get(explorable.owner, explorable.path, {});
-      // if holder is not valid then continue
-      if (_.isEmpty(holder) || _.isFunction(holder) || ! _.isObject(holder)) continue;
-      // if we are not exploring deeply then wrap container container into array
-      if (explorable.direct) holder = [holder];
-      // traverse through the holder of the properties container
-      for (var key in holder) {
-        var explored = this.exploreDeepPropertiesInContainer(holder[key], rules, comparatorFn);
-        // explore properties in container using rules and comparator function
-        properties = properties.concat(explored);
-      }
-    }
-    return _.uniq(properties);
-  },
-
-  /**
-   * Explores deep properties in given `container`
-   * @param {Object} container
-   * @param {Array} rules
-   * @param {string} fn
-   * @param {Array|string} [exclude]
-   * @returns {Array}
-   */
-  exploreDeepPropertiesInContainer: function(container, rules, fn, exclude) {
-    var properties = [];
-    exclude = _.castArray(val(exclude, [], [_.isArray, _.isString]));
-    container = _.omit(container, exclude.concat(Fiber.fn.class.deepProperties.exclude));
-    _.each(container, function(value, prop) {
-      if (Fiber.fn.class.validateDeepProperty(value, rules, fn)) properties.push(prop);
-    });
-    return _.uniq(properties);
-  },
-
-  /**
-   * Validates deep property
-   * @param {*} property
-   * @param {Array|Function} rules
-   * @param {?string} [fn]
-   * @returns {boolean}
-   */
-  validateDeepProperty: function(property, rules, fn) {
-    if (! rules || ! property) return false;
-    fn = val(fn, 'every', Fiber.fn.createIncludes(['some', 'every']))
-    return _[fn](_.castArray(rules), function(rule) {
-      return rule(property);
-    });
-  },
-
-  /**
-   * Deeply extends properties to the given `child` object
-   * @param {Object} child - Child hash object to apply deep extend
-   * @param {Object|Function} [parent = {}] - Class or instance to extend from
-   * @param {?Array} [properties] - Properties to extend (optional), default: auto explored options
-   * @returns {Object|Array|*}
-   */
-  deepExtendProperties: function(child, parent, properties) {
-    if (! child) return child;
-    if (! parent) parent = {};
-    // if `properties` not provided or not is array, then we'll use Fiber global properties
-    properties = val(properties, Fiber.fn.class.exploreDeepProperties(), _.isArray);
-    // traverse each property
-    _.each(properties, function(property) {
-      // check and grab `property` from `parent` object prototype
-      var objProtoProp = _.has(parent.prototype, property) && parent.prototype[property];
-      // if we don't have given `property` in `child` or in `parent` object prototype
-      // then we'll return same `child` object
-      if (! _.has(child, property) || ! objProtoProp) return child;
-      // if `property` value is array then concatenate `parent` object with `child` object
-      if (_.isArray(child[property])) child[property] = objProtoProp.concat(child[property]);
-      // else if it's plain object then extend `child` object from `parent` object
-      else if (_.isPlainObject(child[property])) child[property] = _.extend({}, child[property], objProtoProp);
-    });
-    return child;
-  },
-
-  /**
    * Extend this Class to create a new one inheriting this one.
-   * Also add a helper __super__ object pointing to the parent prototypes methods.
-   * {@link https://github.com/sboudrias/class-extend|Check original version of class extend method on Github}
+   * Also adds `__super__` object pointing to the parent prototype and `__parent__`
+   * pointing to parent constructor.
    * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
    * @param  {?Object} [staticProps] - Static properties (available on the constructor)
    * @return {Function}
    */
   nativeExtend: function(parent, protoProps, staticProps) {
-    if (! parent) return parent;
-    var child;
+    var child, construct = function(constructor, parent) {
+      parent = val(parent, constructor, _.isObject);
+      return function() {
+        var created = constructor.apply(this, arguments);
+        return Fiber.fn.class.attachSuper(created, parent);
+      };
+    };
+    // if we don't have any parent then log error and return
+    if (! parent) {
+      Fiber.logs.system.error('Parent is not provided or not valid', parent)
+      return parent;
+    }
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
     // by us to simply call the parent's constructor.
-    if (! protoProps || ! _.has(protoProps, 'constructor'))
-      child = function() { return parent.apply(this, arguments); };
-    else child = protoProps.constructor;
+    if (! protoProps || ! _.has(protoProps, 'constructor')) child = construct(parent);
+    else child = construct(protoProps.constructor, parent);
     // Add static properties to the constructor function, if supplied.
     _.extend(child, parent, staticProps);
     // Set the prototype chain to inherit from `parent`
     child.prototype = Object.create(parent.prototype, {
-      constructor: { value: child, enumerable: false, writable: true, configurable: true }
+      constructor: {value: child, enumerable: false, writable: true, configurable: true}
     });
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);
@@ -160,7 +57,7 @@ Fiber.fn.class = {
   extend: function(Parent, proto, statics) {
     var fn = Fiber.fn.class, merge = Fiber.fn.merge;
     proto = merge(fn.mixProto(proto));
-    var deepProto = fn.deepExtendProperties(proto, Parent)
+    var deepProto = fn.deepProps.handle(proto, Parent)
     var mergedStatics = merge(fn.mixStatics(statics));
     return fn.nativeExtend(Parent, deepProto, mergedStatics);
   },
@@ -174,6 +71,7 @@ Fiber.fn.class = {
    * @returns {Function}
    */
   make: function(Parent, proto, statics) {
+    // check if `Parent` is valid, if not then set simple Fiber.Class as a `Parent`
     Parent = val(Parent, Fiber.Class);
     // If Parent is string, then try to resolve Class from dependency injection container
     if (_.isString(Parent) && Fiber.container.bound(Parent)) Parent = Fiber.container.make(Parent);
@@ -197,21 +95,77 @@ Fiber.fn.class = {
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
    */
-  createFullMixinClass: function(proto, statics) {
-    proto = Fiber.fn.merge(_.values(Fiber.getExtensions()), _.castArray(proto).concat(Backbone.Events));
-    return Fiber.fn.class.extend(this.fullMixinClassConstructor, proto, statics);
+  createClassWithExtensions: function(proto, statics) {
+    var mergeable = _.castArray(proto).concat(Fiber.Events)
+      , extensions = _.values(Fiber.getExtensionsList())
+      , Parent = Fiber.fn.class.createClassConstructor(extensions);
+
+    proto = Fiber.fn.merge(extensions, mergeable);
+    return Fiber.fn.class.extend(Parent, proto, statics);
   },
 
   /**
-   * Full mixin class default constructor
-   * @param {?Object} [options]
+   * Creates constructor for class with mixins that auto applies mixins on construct
+   * @param {Array.<Object>} mixins
+   * @returns {Function}
    */
-  fullMixinClassConstructor: function(options) {
-    Fiber.fn.class.handleOptions(this, options);
-    this.applyExtend(options);
-    this.applyOwnProps();
-    this.applyBinder();
-    Fiber.fn.apply(this, 'initialize', arguments);
+  createClassConstructor: function(extensions) {
+    var methods = [];
+
+    if (extensions) methods = _.map(extensions, function(extension) {
+      extension.getInitMethodName();
+    });
+
+    return function(options) {
+      Fiber.fn.class.handleOptions(this, options);
+      Fiber.initializeExtensions(this, methods);
+      Fiber.fn.apply(this, 'initialize', arguments);
+    };
+  },
+
+  /**
+   * Returns extensions list that associated with given `object`
+   * @param {Object} object
+   * @returns {Array|null}
+   */
+  getObjectExtensions: function(object) {
+    var key = Fiber.Globals.extensions.property;
+    if (! object[key]) return null;
+    return object[key];
+  },
+
+  /**
+   * Sets extensions list to the private registry of the `object`
+   * @param {Object} object
+   * @param {Array|string} extensionsList
+   * @returns {Array}
+   */
+  setObjectExtensions: function(object, extensionsList) {
+    var key = Fiber.Globals.extensions.property;
+    if (! object[key]) object[key] = [];
+    return object[key] = _.uniq(object[key].concat(_.castArray(extensionsList)));
+  },
+
+  /**
+   * Checks if object has extensions associated
+   * @param {Object} object
+   * @returns {boolean}
+   */
+  hasObjectExtensions: function(object) {
+    return _.has(object, Fiber.Globals.extensions.property);
+  },
+
+  /**
+   * Returns list of extensions initialize methods
+   * @param {Array|string} extension
+   * @returns {Array|string}
+   */
+  getExtensionsInitMethods: function(extension) {
+    if (extension instanceof Fiber.Extension) return extension.getInitMethodName();
+    var extensionObject = Fiber.getExtension(extension);
+    return _.map(_.castArray(extensionObject), function(obj) {
+      return obj.getInitMethodName();
+    });
   },
 
   /**
@@ -326,7 +280,7 @@ Fiber.fn.class = {
    */
   mix: function(object, mixin, override) {
     override = val(override, false);
-    // If function is given then it will be called with current Class.
+    // If mixin is function then it will be called with given `object`.
     if (_.isFunction(mixin)) return mixin(object);
     var method = 'defaultsDeep';
     if (override) method = 'extend';
@@ -378,9 +332,12 @@ Fiber.fn.class = {
     mixin = _.isString(mixin) ? Fiber.fn.class.getExtendMixin(mixin) : mixin;
     object = val(object, {});
     switch (true) {
-      case _.isArray(object): return object.concat(mixin);
-      case _.isPlainObject(object) || _.isFunction(object): return _.merge({}, object, mixin);
-      default: return object;
+      case _.isArray(object):
+        return object.concat(mixin);
+      case _.isPlainObject(object) || _.isFunction(object):
+        return _.merge({}, object, mixin);
+      default:
+        return object;
     }
   },
 
@@ -394,17 +351,27 @@ Fiber.fn.class = {
     var map = {
       proto: {
         fn: Fiber.fn.proto(protoExclude),
-        _apply: function(Class, method, args, context) {
+        apply: function(Class, method, args, context) {
           return Fiber.fn.apply(Class, method, args, context || this);
         }
       },
-
-      statics: {
-        extend: Fiber.fn.delegator.proxy(Fiber.fn.class.make)
-      }
+      statics: {extend: Fiber.fn.delegator.proxy(Fiber.fn.class.make)}
     };
 
     return val(key, false) ? map[key] : map;
+  },
+
+  /**
+   * Attaches `__super__` and `__parent__` objects to child
+   * @param {Object} child
+   * @param {Function|Object} parent
+   * @returns {Object}
+   */
+  attachSuper: function(child, parent) {
+    if (! parent) return child;
+    child.__super__ = parent.prototype;
+    child.__parent__ = parent;
+    return child;
   },
 
   /**
@@ -413,14 +380,13 @@ Fiber.fn.class = {
    * If method not found then null will be returned
    * @param {Object} object - Object to resolve method from
    * @param {string} method - Method key (string) to resolve
-   * @param {?boolean} [bind] - Flag to auto bind object context to method
+   * @param {?Object} [scope] - binds `scope` object to method
    * @returns {Function|null}
    */
-  resolveMethod: function(object, method, bind) {
-    bind = val(bind, true, _.isBoolean);
+  resolveMethod: function(object, method, scope) {
+    scope = val(scope, object, _.isObject);
     if (_.isString(method) && object[method] && _.isFunction(object[method])) {
-      var resolved = object[method];
-      return bind ? resolved.bind(object) : resolved;
+      return scope ? object[method].bind(scope) : object[method];
     }
     return null;
   },
@@ -435,7 +401,7 @@ Fiber.fn.class = {
    */
   createConditionMethods: function(object, methods, checkerMethod, condition) {
     methods = _.castArray(methods);
-    checkerMethod = this.prepareConditionCheckerMethod(object, checkerMethod);
+    checkerMethod = Fiber.fn.class.prepareConditionCheckerMethod(object, checkerMethod);
     condition = _.capitalize(val(condition, 'if'), true);
     for (var i = 0; i < methods.length; i ++) {
       var method = methods[i];
@@ -468,13 +434,22 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   handleOptions: function(scope, options, defaults, deep) {
+    if (! scope) Fiber.logs.system.error('Scope is not provided or not valid', scope);
     options = val(options, {}, _.isPlainObject);
+    return scope.options = Fiber.fn.class.handleOptionsDefaults(options, defaults, deep);
+  },
 
-    if (_.isPlainObject(defaults) && ! _.isEmpty(defaults))
-      if (deep) _.defaultsDeep(options, defaults);
-      else _.defaults(options, defaults);
-
-    scope.options = options;
+  /**
+   * Handles options defaults
+   * @param {Object} options
+   * @param {?Object} [defaults={}]
+   * @param {?boolean} [deep=false]
+   * @returns {Object}
+   */
+  handleOptionsDefaults: function(options, defaults, deep) {
+    if (! _.isPlainObject(defaults) || _.isEmpty(defaults)) return options;
+    if (deep) _.defaultsDeep(options, defaults);
+    else _.defaults(options, defaults);
     return options;
   },
 };

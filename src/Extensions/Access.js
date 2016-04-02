@@ -3,7 +3,7 @@
  * `lodash` methods to support deep access to the Class.
  * @var {Object}
  */
-var $Access = {
+var $Access = new Fiber.Extension({
 
   /**
    * Gets value by given `property` key. You can provide `defaults` value that
@@ -58,4 +58,4 @@ var $Access = {
     _.unset(this, property);
     return this;
   }
-};
+});

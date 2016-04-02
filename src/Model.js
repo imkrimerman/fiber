@@ -4,7 +4,7 @@
  * @extends {Backbone.Model}
  */
 Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
-  'NsEvents', 'Extend', 'Mixin', 'OwnProperties', 'Binder', {
+  'Extend', 'Mixin', 'OwnProps', 'Binder', {
 
     /**
      * Hidden fields.
@@ -44,7 +44,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * Properties keys that will be auto extended from initialize object
      * @var {Array|Function}
      */
-    extendable: ['collection', 'url', 'hidden', 'rules', 'eventsNs', 'eventsCatalog'],
+    extendable: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
@@ -119,7 +119,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {Object}
      */
     toJSON: function() {
-      return _.omit(this._apply(Backbone.Model, 'toJSON'), _.result(this, 'hidden'));
+      return _.omit(this.apply(Backbone.Model, 'toJSON'), _.result(this, 'hidden'));
     },
 
     /**
@@ -222,7 +222,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {*}
      */
     fetch: function(options) {
-      return this._apply(Backbone.Model, 'fetch', [
+      return this.apply(Backbone.Model, 'fetch', [
         _.extend({}, options || {}, {
           success: this.__whenSuccess.bind(this),
           error: this.__whenError.bind(this)
@@ -278,7 +278,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     destroy: function() {
       this.resetView();
-      return this._apply(Backbone.Model, 'destroy', arguments);
+      return this.apply(Backbone.Model, 'destroy', arguments);
     },
 
     /**

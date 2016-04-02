@@ -2,7 +2,13 @@
  * Fiber Own Properties extension.
  * @var {Object}
  */
-var $OwnProperties = {
+var $OwnProps = new Fiber.Extension({
+
+  /**
+   * Method name to call when extension is initiating
+   * @type {string|boolean}
+   */
+  initMethodName: 'applyOwnProps',
 
   /**
    * Properties keys that will be owned by the instance
@@ -25,4 +31,4 @@ var $OwnProperties = {
     }
     return this;
   }
-};
+});

@@ -2,7 +2,13 @@
  * Extend extension.
  * @type {Object}
  */
-var $Extend = {
+var $Extend = new Fiber.Extension({
+
+  /**
+   * Method name to call when extension is initiating
+   * @type {string|boolean}
+   */
+  initMethodName: 'applyExtend',
 
   /**
    * Properties keys that will be auto extended from initialize object
@@ -25,4 +31,4 @@ var $Extend = {
     }
     return this;
   }
-};
+});

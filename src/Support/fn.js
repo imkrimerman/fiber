@@ -17,6 +17,16 @@ Fiber.fn = {
   notDefined: '$__NULL__$',
 
   /**
+   * Returns support functions module
+   * @param {string} alias
+   * @returns {Object|null}
+   */
+  module: function(alias) {
+    if (! alias || ! Fiber.fn.hasOwnProperty(alias)) return null;
+    return Fiber.fn[alias];
+  },
+
+  /**
    * Returns value if not undefined or null,
    * otherwise returns defaults or $__NULL__$ value
    * @see https://github.com/imkrimerman/im.val (npm version)
@@ -101,7 +111,7 @@ Fiber.fn = {
    * @param {?boolean} [prepare=true]
    * @return {*}
    */
-  fireInvoke: function(Class, event, args, prepare) {
+  fireCall: function(Class, event, args, prepare) {
     if (val(prepare, true)) args = Fiber.fn.prepareInvokeArgs(args, {fire: [], invoke: []});
     var result = Fiber.fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.invoke);
     Fiber.fn.apply(Class, 'fire', [event].concat(args.fire));
@@ -117,7 +127,7 @@ Fiber.fn = {
    * @param {?Array} [lifeCycle]
    * @return {*}
    */
-  fireInvokeLifeCycle: function(Class, event, callback, args, lifeCycle) {
+  fireCallCycle: function(Class, event, callback, args, lifeCycle) {
     args = Fiber.fn.prepareInvokeArgs(args, {fire: [], invoke: [], callback: []})
     lifeCycle = val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
 
@@ -127,7 +137,7 @@ Fiber.fn = {
         , nowEvent = now[now.length - 1] === ':' ? now + event : now + ':' + event;
       if (now === '@callback' && _.isFunction(callback))
         result = callback.apply(Class, args.callback);
-      else Fiber.fn.fireInvoke(Class, nowEvent, args, false);
+      else Fiber.fn.fireCall(Class, nowEvent, args, false);
     }
 
     return result;
@@ -283,3 +293,41 @@ Fiber.fn.val.isDef = function(value) {
  * @inheritDoc
  */
 var val = Fiber.fn.val;
+
+/**
+ * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
+ * @type {_.each|*|(function((Array|Object), Function=): (Array|Object))}
+ */
+var each = _.each;
+
+/**
+ * Caches Backbone trigger method
+ * @type {Function}
+ */
+var trigger = Backbone.trigger;
+
+/**
+ * Adds backward compatibility for lodash `each` method
+ * @param {Array|Object} collection
+ * @param {Function} iteratee
+ * @param {?Object} [scope]
+ * @returns {*}
+ */
+_.each = function(collection, iteratee, scope) {
+  if (scope) iteratee = _.bind(iteratee, scope);
+  return each(collection, iteratee);
+};
+
+/**
+ * Replaces Backbone trigger method to give ability to listen to event without actual object to listen on
+ * @param {string} name
+ * @param {...args}
+ * @returns {Backbone}
+ */
+Backbone.trigger = function(name) {
+  var args = _.toArray(arguments);
+  if (arguments[1] !== this) args.splice(1, 0, this);
+  trigger.apply(Fiber.Globals.events.system, args);
+  trigger.apply(this, arguments);
+  return this;
+};

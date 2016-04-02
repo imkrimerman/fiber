@@ -1,4 +1,4 @@
-Fiber.LayoutManager = Fiber.fn.class.createFullMixinClass({
+Fiber.LayoutManager = Fiber.fn.class.createClassWithExtensions({
   /**
    * Returns current layout element
    * @returns {*}

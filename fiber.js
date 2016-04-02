@@ -39,49 +39,56 @@
 
   /**
    * Save the previous value of the `Fiber` variable, so that it can be
-   * restored later on, if `noConflict` is used.
+   * restored later on, if `noConflict` is used
    */
-  var prevFiber = root.Fiber;
+  var previousFiber = root.Fiber;
 
   /**
    * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
-   * to its previous owner. Returns a reference to this Fiber object.
+   * to its previous owner. Returns a reference to this Fiber object
    * @returns {Fiber}
    */
   Fiber.noConflict = function() {
-    root.Fiber = prevFiber;
+    root.Fiber = previousFiber;
     return this;
   };
 
   /**
-   * Add `lodash` to the Fiber.
+   * Add `lodash` to the Fiber
    * @type {Function}
    */
   Fiber._ = _;
 
   /**
-   * Exposed jQuery (or similar) from Backbone.
+   * Exposed jQuery (or similar) from Backbone
    * @type {Function}
    */
   Fiber.$ = $;
 
   /**
-   * Fiber Global object.
+   * Fiber Global object
    * @var {Object}
    */
-  Fiber.Globals = {};
+  Fiber.Globals = {
+    extensions: {
+      property: 'extensions',
+      all: 'ALL'
+    }
+  };
 
   /**
-   * Fiber Extensions object.
-   * @var {Object}
-   */
-  Fiber.Extensions = {};
-
-  /**
-   * Fiber Services object.
+   * Fiber Services holder
    * @var {Object}
    */
   Fiber.Services = {};
+
+  /**
+   * Object to use internally
+   * @type {Object}
+   */
+  Fiber.internal = {
+    events: {internal: _.extend({}, Backbone.Events)}
+  };
 
   <!-- inject:js -->
   <!-- endinject -->

@@ -20,43 +20,43 @@ var _ = require('lodash')
       configFile: __dirname + '/karma.conf.js'
     },
     files: [
-      // Helpers
-      './src/Helpers/Version.js',
-      './src/Helpers/fn.js',
-      './src/Helpers/Class.js',
-      './src/Helpers/Template.js',
-      './src/Helpers/Validation.js',
-      './src/Helpers/Delegator.js',
+      // Support
+      './src/Support/Version.js',
+      './src/Support/fn.js',
+      './src/Support/Class.js',
+      './src/Support/Template.js',
+      './src/Support/Validation.js',
+      './src/Support/Delegator.js',
 
       // Extensions
+      './src/Extensions/Extension.js',
       './src/Extensions/Access.js',
       './src/Extensions/Binder.js',
       './src/Extensions/Extend.js',
       './src/Extensions/Mixin.js',
-      './src/Extensions/OwnProperties.js',
+      './src/Extensions/OwnProps.js',
 
       // Base
       './src/Core.js',
       './src/Base/Class.js',
+      './src/Base/Events.js',
       './src/Base/Bag.js',
+      './src/Base/ErrorBag.js',
+      './src/Base/BaseCollection.js',
+      './src/Base/LinkedViews.js',
+      './src/Base/Listeners.js',
+      './src/Base/RouterCollection.js',
 
-      // Services
+      // Ioc Container
       './src/Container.js',
 
-      // Support
-      './src/Support/Collection.js',
-      './src/Support/ErrorBag.js',
-      './src/Support/LinkedViews.js',
-      './src/Support/Listeners.js',
-
-      // Base components
+      // Fiber components
       './src/Model.js',
       './src/Collection.js',
       './src/View.js',
       './src/CollectionView.js',
 
       // Routing
-      './src/Support/RouterCollection.js',
       './src/Routing/HistoryItem.js',
       './src/Routing/HistoryCollection.js',
       './src/Routing/Route.js',

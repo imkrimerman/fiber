@@ -10,14 +10,10 @@ Fiber.Class = Fiber.fn.class.createClass([Backbone.Events, {
    * @param {?Array|string} [extensions]
    */
   constructor: function(options, extensions) {
+    Fiber.fn.class.handleOptions(this, options);
     if (extensions) Fiber.applyExtension(extensions, this, true);
-    this.initialize.apply(this, arguments);
+    Fiber.fn.apply(this, 'initialize', [arguments]);
   },
-
-  /**
-   * Initializes class
-   */
-  initialize: function() {},
 
   /**
    * Applies Fiber extension to the Class

@@ -29,7 +29,7 @@ Fiber.HistoryCollection = Fiber.RouterCollection.extend({
    */
   add: function(models, options) {
     this.handleSize();
-    return this._apply(Fiber.RouterCollection, 'add', arguments);
+    return this.apply(Fiber.RouterCollection, 'add', arguments);
   },
 
   /**

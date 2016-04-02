@@ -75,6 +75,15 @@ Fiber.LinkedViews = BaseCollection.extend({
   },
 
   /**
+   * Checks if is linked
+   * @param {Object.<Fiber.View>} view
+   * @returns {boolean}
+   */
+  hasView: function(view) {
+    return ! _.isEmpty(this.get(view.cid));
+  },
+
+  /**
    * Removes linked `view`
    * @param {Object.<Fiber.View>} view
    * @returns {Object.<Fiber.View>}
@@ -86,22 +95,13 @@ Fiber.LinkedViews = BaseCollection.extend({
   },
 
   /**
-   * Checks if is linked
-   * @param {Object.<Fiber.View>} view
-   * @returns {boolean}
-   */
-  hasView: function(view) {
-    return ! _.isEmpty(this.get(view.cid));
-  },
-
-  /**
    * Resets linked views
    * @returns {Fiber.LinkedViews}
    */
   reset: function() {
     this.forgetParentView();
     this.stopListening();
-    this._apply(Backbone.View, 'reset', arguments);
+    this.apply(Backbone.View, 'reset', arguments);
     return this;
   },
 
@@ -118,26 +118,24 @@ Fiber.LinkedViews = BaseCollection.extend({
   /**
    * Starts listening to `view` events
    * @param {Object.<Fiber.View>} view
-   * @param {string} event
+   * @param {?string} [event='all']
    * @returns {Fiber.LinkedViews}
    */
   startListeningToView: function(view, event) {
     event = val(event, 'all', _.isString);
-    if (this.listenToViews)
-      this.listenTo(view, event, this.allEventsHandler.bind(this));
+    if (this.listenToViews) this.listenTo(view, event, this.allEventsHandler.bind(this));
     return this;
   },
 
   /**
    * Stops listening to `view` events
    * @param {Object.<Fiber.View>} view
-   * @param {string} event
+   * @param {?string} [event='all']
    * @returns {Fiber.LinkedViews}
    */
   stopListeningToView: function(view, event) {
     event = val(event, 'all', _.isString);
-    if (this.listenToViews)
-      this.stopListening(view, event, this.allEventsHandler.bind(this));
+    if (this.listenToViews) this.stopListening(view, event, this.allEventsHandler.bind(this));
     return this;
   }
 });

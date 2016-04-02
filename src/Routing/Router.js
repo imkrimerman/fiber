@@ -1,4 +1,4 @@
-Fiber.Router = Fiber.fn.class.createFullMixinClass([
+Fiber.Router = Fiber.fn.class.createClassWithExtensions([
   _.omit(Backbone.Router.prototype, ['routes', '_bindRoutes']), {
 
     /**
@@ -60,7 +60,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
       for (var collectionKey in this.collections) {
         var Collection = this.collections[collectionKey]
           , data = this.prepareCollectionData(options[collectionKey]);
-        this[collectionKey] = new Collection(data, { router: this });
+        this[collectionKey] = new Collection(data);
       }
       return this;
     },
@@ -70,7 +70,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
      * @return {Fiber.Router}
      */
     bindRoutes: function() {
-      this.routes.bind();
+      this.routes.bindTo(this);
       return this;
     },
 
@@ -83,7 +83,7 @@ Fiber.Router = Fiber.fn.class.createFullMixinClass([
      */
     execute: function(route, args) {
       var params = [route, args], result = true;
-      Fiber.fn.fireInvokeLifeCycle(this, 'execute', function() {
+      Fiber.fn.fireCallCycle(this, 'execute', function() {
         if (! this.executeRoute.apply(this, arguments)) result = false;
       }, { fire: params, invoke: params, callback: arguments });
       return result;

@@ -12,9 +12,9 @@ describe('Fiber.Extensions', function() {
     expect(extension).to.be.object;
     expect(extension).to.eql(this.ExtensionsRef.Access);
 
-    var extensions = Fiber.getExtension(['Access', 'NsEvents']);
+    var extensions = Fiber.getExtension(['Access', 'OwnProps']);
     expect(extensions).to.be.array;
-    expect(extensions).to.eql([this.ExtensionsRef.Access, this.ExtensionsRef.NsEvents]);
+    expect(extensions).to.eql([this.ExtensionsRef.Access, this.ExtensionsRef.OwnProps]);
 
     extensions = Fiber.getExtension(['Access', this.mixin]);
     expect(extensions).to.eql([this.ExtensionsRef.Access, this.mixin]);
@@ -64,8 +64,8 @@ describe('Fiber.Extensions', function() {
     for (var key in this.ExtensionsRef.Access)
       expect(object).to.have.property(key);
 
-    Fiber.applyExtension(['NsEvents', this.mixin], object);
-    for (var key in _.extend({}, this.ExtensionsRef.NsEvents, this.mixin))
+    Fiber.applyExtension(['OwnProps', this.mixin], object);
+    for (var key in _.extend({}, this.ExtensionsRef.OwnProps, this.mixin))
       expect(object).to.have.property(key);
 
     Fiber.applyExtension({method: true}, object);

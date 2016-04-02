@@ -2,7 +2,7 @@
  * Fiber Application Class
  * @class
  */
-Fiber.Application = Fiber.fn.class.createFullMixinClass({
+Fiber.Application = Fiber.fn.class.createClassWithExtensions({
 
   /**
    * Viewport instance
@@ -79,7 +79,7 @@ Fiber.Application = Fiber.fn.class.createFullMixinClass({
    * @return {Fiber.Application}
    */
   start: function() {
-    Fiber.fn.fireInvokeLifeCycle(this, 'start', function() {
+    Fiber.fn.fireCallCycle(this, 'start', function() {
       Fiber.history.start();
       this.fire('start', this);
     });
@@ -91,7 +91,7 @@ Fiber.Application = Fiber.fn.class.createFullMixinClass({
    * @returns {Fiber.Application}
    */
   stop: function() {
-    Fiber.fn.fireInvokeLifeCycle(this, 'stop', function() {
+    Fiber.fn.fireCallCycle(this, 'stop', function() {
       Fiber.history.stop();
       this.fire('stop', this);
     });

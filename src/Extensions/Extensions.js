@@ -1,9 +1,25 @@
 /**
- * Mixin extension.
- * Functions that provides including and mixining objects and array of objects
+ * `Extensions` extension. Brings power of mutability and mixins to the class.
+ * Automatically
  * @var {Object}
  */
-var $Mixin = {
+var $Extensions = new Fiber.Extension({
+
+  /**
+   * Method name to call when extension is initiating
+   * @type {string|boolean}
+   */
+  initMethod: 'applyMixin',
+
+  /**
+   * Applies mixins of the current object
+   */
+  applyMixin: function() {
+    var mixins = _.result(this, Fiber.Globals.extensions.property);
+    if (mixins && Fiber.fn.isArrayOf(mixins, 'object')) {
+      Fiber.applyExtension(this, Fiber.getExtension(mixins));
+    }
+  },
 
   /**
    * Adds given `mixin` to Fiber Class. Mixin can be object or function.
@@ -48,4 +64,4 @@ var $Mixin = {
   applyExtension: function(alias, override) {
     Fiber.applyExtension(alias, this, override);
   }
-};
+});

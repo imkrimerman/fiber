@@ -4,7 +4,7 @@
  * @extends {Backbone.View}
  */
 Fiber.View = Fiber.fn.class.make(Backbone.View, [
-  'NsEvents', 'Mixin', 'Extend', 'OwnProperties', 'Access', 'Binder', {
+  'Mixin', 'Extend', 'OwnProps', 'Access', 'Binder', {
 
     /**
      * Parent element to auto attach
@@ -249,7 +249,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
         selector = '';
       }
 
-      this._apply(Backbone.View, 'delegate', [event, selector, cb]);
+      this.apply(Backbone.View, 'delegate', [event, selector, cb]);
     },
 
     /**
@@ -299,10 +299,10 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     callRender: function(render) {
       var result;
-      Fiber.fn.fireInvokeLifeCycle(this, 'render', function() {
-        this._apply(this, '__beforeRender');
+      Fiber.fn.fireCallCycle(this, 'render', function() {
+        this.apply(this, '__beforeRender');
         result = render.call(this);
-        this._apply(this, '__afterRender');
+        this.apply(this, '__afterRender');
       }, {fire: this, invoke: render});
 
       this.__rendered = true;
@@ -313,8 +313,8 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * Removes view
      */
     remove: function() {
-      Fiber.fn.fireInvokeLifeCycle(this, 'remove', function() {
-        this._apply(Backbone.View, 'remove', {fire: this});
+      Fiber.fn.fireCallCycle(this, 'remove', function() {
+        this.apply(Backbone.View, 'remove', {fire: this});
       });
       this.__rendered = false;
     },

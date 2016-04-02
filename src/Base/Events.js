@@ -5,22 +5,41 @@
  * provides catalog to simplify registered events for the developers.
  * @class
  */
-Fiber.Events = Fiber.fn.class.createClass({
+Fiber.Events = Fiber.fn.class.createClassWithExtensions({
 
   /**
    * Events namespace
    * @var {string}
    */
-  eventsNs: '',
+  ns: '',
 
   /**
    * Events catalog to hold the events
    * @var {Object}
    */
-  eventsCatalog: {},
+  catalog: {},
 
   /**
-   * Fire `event` with namespace, `catalog` look up and given `payload`
+   * Properties keys that will be auto extended from initialize object
+   * @var {Array|Function|string}
+   */
+  extendable: ['ns', 'catalog'],
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @var {Array|Function}
+   */
+  ownProps: ['ns', 'catalog', '__responders'],
+
+  /**
+   * Responders holder
+   * @type {Object}
+   * @private
+   */
+  __responders: {},
+
+  /**
+   * Fires `event` with namespace (if available) and `catalog` alias look up
    * @param {string} event
    * @param {...args}
    * @returns {*}
@@ -31,34 +50,144 @@ Fiber.Events = Fiber.fn.class.createClass({
   },
 
   /**
-   * Every time namespaced `event` is fired invoke `action`. You can provide listenable
-   * to control object to listen to.
+   * Every time `event` is fired invokes `action`.
+   * You can provide listenable to listen to as last argument.
    * @param {string} event
    * @param {Function} action
    * @param {?Object} [listenable=this]
+   * @param {?Object} [scope=this]
    */
-  when: function(event, action, listenable) {
-    return this.listenTo(val(listenable, this), this.nsEvent(event), action);
+  when: function(event, action, listenable, scope) {
+    listenable = val(listenable, this);
+    var event = this.prepareEventName(event, listenable);
+    return this.listenTo(listenable, event, _.bind(action, val(scope, this)));
   },
 
   /**
-   * After first namespaced `event` is fired invoke `action` and remove action.
-   * You can provide listenable to control object to listen to.
+   * After first `event` is fired invoke `action` and remove it.
+   * You can provide listenable to listen to as last argument.
    * @param {string} event
    * @param {Function} action
    * @param {?Object} [listenable=this]
+   * @param {?Object} [scope=this]
    */
-  after: function(event, action, listenable) {
-    return this.listenToOnce(val(listenable, this), this.nsEvent(event), action);
+  after: function(event, action, listenable, scope) {
+    listenable = val(listenable, this);
+    var event = this.prepareEventName(event, listenable);
+    return this.listenToOnce(listenable, event, _.bind(action, val(scope, this)));
+  },
+
+  /**
+   * Adds global event `action` for the `event` with the given `scope`.
+   * Listens to the Fiber internal event system to give ability to set event listeners
+   * even if you don't know what object will be triggering event.
+   * @param {string} event
+   * @param {Function} action
+   * @param {?Object} [scope=this]
+   * @returns {*}
+   */
+  whenGlobal: function(event, action, scope) {
+    return Fiber.internal.events.on(event, _.bind(action, val(scope, this)));
+  },
+
+  /**
+   * Adds global event `action` for the `event` with the given `scope` and remove after first trigger.
+   * Listens to the Fiber internal event system to give ability to set event listeners
+   * even if you don't know what object will be triggering event.
+   * @param {string} event
+   * @param {Function} action
+   * @param {?Object} [scope=this]
+   * @returns {*}
+   */
+  afterGlobal: function(event, action, scope) {
+    return Fiber.internal.events.once(event, _.bind(action, val(scope, this)));
+  },
+
+  /**
+   * Stop listening global `event` with `action`.
+   * Listens to the Fiber internal event system to give ability to set event listeners
+   * even if you don't know what object will be triggering event.
+   * @param {string} event
+   * @param {Function} action
+   * @param {?Object} [scope=this]
+   * @returns {*}
+   */
+  stopGlobal: function(event, action, scope) {
+    return Fiber.internal.events.off(event, _.bind(action, val(scope, this)));
+  },
+
+  /**
+   * Adds response as an action call for the given `event`
+   * @param {string} event
+   * @param {Function} action
+   * @param {?Object} [scope=this]
+   * @returns {Fiber.Events}
+   */
+  respondTo: function(event, action, scope) {
+    if (~ event.indexOf('@'))
+      return this.setResponder(event, action, scope);
+  },
+
+  /**
+   * Sends event to the object and returns response
+   * @param {string} event
+   * @param {...args}
+   * @returns {*}
+   */
+  send: function(event) {
+    if (! this.hasResponder(event)) return void 0;
+    return this.callResponder(event, _.drop(_.toArray(arguments)));
+  },
+
+  /**
+   * Returns responder for the given event or defaults otherwise
+   * @param {string} event
+   * @param {?*} [defaults]
+   * @returns {*}
+   */
+  getResponder: function(event, defaults) {
+    return this.get('__responders.' + event, defaults);
+  },
+
+  /**
+   * Sets responder by `event`
+   * @param {string} event
+   * @param {Function} action
+   * @param {?Object} [scope=this]
+   * @returns {Fiber.Events}
+   */
+  setResponder: function(event, action, scope) {
+    return this.set('__responders.' + event, _.bind(action, val(scope, this)));
+  },
+
+  /**
+   * Checks if responders contain action for the given `event`
+   * @param {string} event
+   * @returns {boolean}
+   */
+  hasResponder: function(event) {
+    return this.has('__responders.' + event);
+  },
+
+  /**
+   * Calls responder action with `args` for the given `event`
+   * @param {string} event
+   * @param {?Array|*} [args=[]]
+   * @returns {*}
+   */
+  callResponder: function(event, args) {
+    var responder = this.getResponder(event);
+    if (! responder) return responder;
+    return responder.apply(responder, val(args, [], _.isArray));
   },
 
   /**
    * Sets events namespace
-   * @param {string} eventsNs
+   * @param {string} ns
    * @returns {*}
    */
-  setNs: function(eventsNs) {
-    this.eventsNs = eventsNs;
+  setNs: function(ns) {
+    this.ns = ns;
     return this;
   },
 
@@ -67,7 +196,7 @@ Fiber.Events = Fiber.fn.class.createClass({
    * @returns {string}
    */
   getNs: function() {
-    return this.eventsNs;
+    return this.ns;
   },
 
   /**
@@ -75,7 +204,7 @@ Fiber.Events = Fiber.fn.class.createClass({
    * @returns {boolean}
    */
   hasNs: function() {
-    return ! _.isEmpty(this.eventsNs);
+    return ! _.isEmpty(this.ns);
   },
 
   /**
@@ -85,10 +214,10 @@ Fiber.Events = Fiber.fn.class.createClass({
    */
   nsEvent: function(event) {
     var checkCatalog = true
-      , ns = this.eventsNs ? this.eventsNs + ':' : '';
-    // return passed event as is if first char is `@`, used to support native backbone events
+      , ns = ! _.isEmpty(this.ns) ? this.ns + ':' : '';
+    // returns passed event as is if first char is `@`, used to support native backbone events
     if (event[0] === '@') return event.slice(1);
-    // remove `!` if first char is `!`
+    // skip catalog look up by providing `!`
     else if (event[0] === '!') {
       event = event.slice(1);
       checkCatalog = false;
@@ -102,7 +231,7 @@ Fiber.Events = Fiber.fn.class.createClass({
    * @returns {string|*}
    */
   getCatalogEvent: function(event) {
-    return val(this.eventsCatalog[event], event);
+    return val(this.catalog[event], event);
   },
 
   /**
@@ -111,7 +240,7 @@ Fiber.Events = Fiber.fn.class.createClass({
    * @returns {boolean}
    */
   hasCatalogEvent: function(event) {
-    return _.has(this.eventsCatalog, event);
+    return _.has(this.catalog, event);
   },
 
   /**
@@ -121,7 +250,24 @@ Fiber.Events = Fiber.fn.class.createClass({
    * @returns {*}
    */
   setCatalogEvent: function(alias, event) {
-    this.eventsCatalog[alias] = event;
+    this.catalog[alias] = event;
     return this;
-  }
+  },
+
+  /**
+   * Prepares event name, handle ns event if listenable has event namespaces
+   * @param {string} event
+   * @param {Object} listenable
+   * @returns {string}
+   */
+  prepareEventName: function(event, listenable) {
+    listenable = val(listenable, this);
+    return _.has(listenable, 'nsEvent') ? listenable.nsEvent(event) : event;
+  },
 });
+
+/**
+ * Add more aliases for the `send` method
+ */
+Fiber.Events.prototype.retrieve = Fiber.Events.prototype.send;
+Fiber.Events.prototype.request = Fiber.Events.prototype.send;

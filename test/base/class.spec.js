@@ -16,7 +16,7 @@ describe('Fiber.Class', function() {
   it('should apply extensions', function() {
     this.base.applyExtension('Access');
     expectHasAllProps(this.base, Fiber.getExtension('Access'));
-    this.base.applyExtension(['NsEvents', 'Extend']);
-    expectHasAllProps(this.base, Fiber.fn.merge(Fiber.getExtension(['NsEvents', 'Extend'])));
+    this.base.applyExtension(['OwnProps', 'Extend']);
+    expectHasAllProps(this.base, Fiber.fn.merge(Fiber.getExtension(['OwnProps', 'Extend'])));
   });
 });

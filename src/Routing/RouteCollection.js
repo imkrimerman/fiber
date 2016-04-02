@@ -1,3 +1,8 @@
+/**
+ * Fiber Route Collection
+ * @class
+ * @extends {Fiber.RouterCollection}
+ */
 Fiber.RouteCollection = Fiber.RouterCollection.extend({
 
   /**
@@ -36,9 +41,10 @@ Fiber.RouteCollection = Fiber.RouterCollection.extend({
           prepared.push(clone);
         }
       }
-    } else prepared = models;
+    }
+    else prepared = models;
 
-    this._apply(Backbone.Collection, 'set', [prepared, options]);
+    this.apply(Backbone.Collection, 'set', [prepared, options]);
   },
 
   /**
@@ -47,7 +53,7 @@ Fiber.RouteCollection = Fiber.RouterCollection.extend({
    * @returns {Object.<Fiber.Route>|null}
    */
   getByAlias: function(alias) {
-    return this.findWhere({ alias: alias });
+    return this.findWhere({alias: alias});
   },
 
   /**

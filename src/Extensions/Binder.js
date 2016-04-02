@@ -2,7 +2,13 @@
  * Fiber Binder Extension
  * @var {Object}
  */
-var $Binder = {
+var $Binder = new Fiber.Extension({
+
+  /**
+   * Method name to call when extension is initiating
+   * @type {string|boolean}
+   */
+  initMethodName: 'applyBinder',
 
   /**
    * Methods list to bind
@@ -22,4 +28,4 @@ var $Binder = {
       if (_.isFunction(this[methods[i]]))
         this[methods[i]] = _.bind(this[methods[i]], this);
   }
-};
+});

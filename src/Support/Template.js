@@ -12,12 +12,6 @@ Fiber.fn.template = {
   engine: _.template,
 
   /**
-   * Fallback function that emulates template engine
-   * @var {Function}
-   */
-  fallback: function(val) { return val; },
-
-  /**
    * Templates string with given arguments
    * @returns {string}
    */
@@ -72,6 +66,12 @@ Fiber.fn.template = {
     if (! engine || engine === Fiber.fn.template.fallback) return false;
     return true;
   },
+
+  /**
+   * Fallback function that emulates template engine renderer
+   * @var {Function}
+   */
+  fallback: function(val) { return val; },
 
   /**
    * Returns fallback template engine. Tries to return lodash template or

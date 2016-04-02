@@ -202,6 +202,6 @@ Fiber.addExtension({
   Access: $Access,
   Binder: $Binder,
   Extend: $Extend,
-  Mixin: $Mixin,
-  OwnProperties: $OwnProperties
+  Mixin: $Extensions,
+  OwnProps: $OwnProps
 });

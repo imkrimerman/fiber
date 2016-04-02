@@ -43,8 +43,7 @@ Fiber.Listeners = BaseCollection.extend({
    */
   getHandler: function(event) {
     var listener = this.getByEvent(event);
-    if (_.isArray(listener))
-      return _.pluck(listener, 'attributes.handlers');
+    if (_.isArray(listener)) return _.pluck(listener, 'attributes.handlers');
     return listener.get('handlers');
   },
 
