@@ -21,20 +21,20 @@ describe('Fiber.Extensions', function() {
   });
 
   it('should `set`/`add` extension to Fiber', function() {
-    Fiber.setExtension('ext', this.mixin);
-    expect(this.ExtensionsRef.ext).to.eql(this.mixin);
+    Fiber.setExtension('extensionMapCall', this.mixin);
+    expect(this.ExtensionsRef.extensionMapCall).to.eql(this.mixin);
 
     Fiber.setExtension({
-      'ext': {},
+      "extensionMapCall": {},
       'new': {}
     }, true);
 
-    expect(this.ExtensionsRef.ext).to.eql({});
+    expect(this.ExtensionsRef.extensionMapCall).to.eql({});
     expect(this.ExtensionsRef).to.have.property('new');
     expect(this.ExtensionsRef.new).to.eql({});
 
-    Fiber.addExtension('ext', this.mixin);
-    expect(this.ExtensionsRef.ext).to.eql({});
+    Fiber.addExtension('extensionMapCall', this.mixin);
+    expect(this.ExtensionsRef.extensionMapCall).to.eql({});
   });
 
   it('should check if Fiber `has` extension by given alias', function() {
@@ -45,16 +45,16 @@ describe('Fiber.Extensions', function() {
   });
 
   it('should `forget` extension by alias', function() {
-    expect(this.ExtensionsRef.ext).to.eql({});
+    expect(this.ExtensionsRef.extensionMapCall).to.eql({});
     expect(this.ExtensionsRef.new).to.eql({});
 
-    Fiber.forgetExtension('ext');
-    expect(this.ExtensionsRef).not.to.have.property('ext');
+    Fiber.forgetExtension('extensionMapCall');
+    expect(this.ExtensionsRef).not.to.have.property('extensionMapCall');
     expect(this.ExtensionsRef.new).to.eql({});
 
-    Fiber.setExtension('ext', this.mixin);
-    Fiber.forgetExtension(['ext', 'new']);
-    expect(this.ExtensionsRef).not.to.have.property('ext');
+    Fiber.setExtension('extensionMapCall', this.mixin);
+    Fiber.forgetExtension(['extensionMapCall', 'new']);
+    expect(this.ExtensionsRef).not.to.have.property('extensionMapCall');
     expect(this.ExtensionsRef).not.to.have.property('new');
   });
 

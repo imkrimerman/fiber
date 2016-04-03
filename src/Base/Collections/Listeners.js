@@ -1,9 +1,9 @@
 /**
- * Fiber Listeners
+ * Listeners Collection, used internally
  * @class
- * @extends {BaseCollection}
+ * @extends {Collection}
  */
-Fiber.Listeners = BaseCollection.extend({
+var Listeners = Collection.extend({
 
   /**
    * Determine if event has listeners
@@ -11,7 +11,7 @@ Fiber.Listeners = BaseCollection.extend({
    * @returns {boolean}
    */
   hasEvent: function(event) {
-    return ! ! this.filterByEvent(event).length;
+    return !! this.filterByEvent(event).length;
   },
 
   /**

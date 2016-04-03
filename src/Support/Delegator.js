@@ -14,7 +14,7 @@ Fiber.fn.delegator = {
    */
   alias: function(Class, method, alias, toProto) {
     var castedAlias = _.castArray(alias);
-    var method = Fiber.fn.getMethod(Class, method);
+    var method = Fiber.fn.class.resolveMethod(Class, method);
     if (! method) return false;
     for (var i = 0; i < castedAlias.length; i ++) {
       var alias = castedAlias[i];
@@ -43,52 +43,70 @@ Fiber.fn.delegator = {
   },
 
   /**
-   * Proxies function
+   * Proxies function to the `scope`. If `scope` is string then
+   * it will be dynamically resolve from the bound object
    * @param {Function} fn
-   * @param {?Object} [scope=fn]
+   * @param {?Object|string} [scope=fn]
    * @returns {Function}
    */
   proxy: function(fn, scope) {
-    scope = val(scope, fn);
+    Fiber.fn.delegator.expectFnValid(fn);
     return function() {
+      scope = _.isString(scope) ? this[scope] : val(scope, fn);
       return fn.apply(scope, Fiber.fn.argsConcat(this, arguments));
     };
   },
 
   /**
-   * Creates proxy with strict number of arguments to accept
-   * @param {Object} owner - owner object of method
+   * Returns delegated object's method, that will dynamically resolve `attribute` from bound object
+   * @param {Object} object
+   * @param {string} method
+   * @param {string} attribute
+   * @returns {Function}
+   */
+  delegate: function(object, method, attribute) {
+    var fn = Fiber.fn.class.resolveMethod(object, method);
+    return Fiber.fn.delegator.proxy(fn, attribute);
+  },
+
+  /**
+   * Creates proxy for the utility mixin
    * @param {string} method - method to delegate
    * @param {?string} [attribute=ThisReference] - attribute to find and delegate to
    * @param {?number} [num=false] - number of arguments to take, if `false` will take all arguments
    * @returns {Function}
    */
-  strictProxy: function(owner, method, attribute, num) {
+  proxyUtilMixin: function(method, attribute, num) {
     num = val(num, false, _.isEmpty);
     return function() {
-      var args = _.drop(arguments);
+      var args = _.drop(arguments)
+        , fn = Fiber.fn.class.resolveMethod(_, method);
+
       attribute = _.isString(attribute) ? this[attribute] : this;
       args = Fiber.fn.argsConcatFlat(1, attribute, (num ? _.take(args, num) : args));
-      return owner[method].apply(owner, args);
+
+      if (_.isFunction(fn)) return fn.apply(_, args);
     };
   },
 
   /**
-   * Delegates methods of `Object` to the future `owner`
-   * @param {Object} Object
+   * Delegates utility mixin to the object
+   * @param {Object} object
+   * @param {string} attribute
+   * @param {Object|Function} owner
    * @param {Object} methods
-   * @param {?string} [attribute=ThisReference]
-   * @param {?Object|Function} [owner=_]
    * @returns {Object}
    */
-  delegate: function(Object, methods, attribute, owner) {
-    owner = owner || _;
+  delegateUtilMixin: function(object, attribute, methods) {
+    if (_.isPlainObject(methods)) return this;
 
     for (var method in methods) {
-      var len = methods[method], destruct = {name: method, len: len};
-      if (_.isArray(len)) destruct = _.zipObject(['name', 'len'], len);
-      if (! owner[method]) continue;
-      Object.prototype[destruct.name] = this.strictProxy(owner, method, attribute, destruct.len);
+      var len = methods[method]
+        , zip = {name: method, len: len};
+
+      if (_.isArray(len)) zip = _.zipObject(['name', 'len'], len);
+      if (! _[method]) continue;
+      object.prototype[zip.name] = Fiber.fn.delegator.proxyUtilMixin(method, attribute, zip.len);
     }
 
     return this;
@@ -96,19 +114,13 @@ Fiber.fn.delegator = {
 
   /**
    * Delegate utility mixin to the `owner` object
+   * @param {string} mixinKey
    * @param {Object} Object
-   * @param {Array|string} methods
-   * @param {Object|Function} owner
    * @param {?string} [attribute=ThisReference]
    * @returns {Object}
    */
-  utilMixin: function(Object, mixin, owner, attribute) {
-    var retrieved = this.getUtilMixin(mixin);
-
-    if (_.isPlainObject(retrieved))
-      this.delegate(Object, retrieved, owner, attribute);
-
-    return this;
+  utilMixin: function(mixinKey, Object, attribute) {
+    return this.delegateUtilMixin(Object, attribute, this.getUtilMixin(mixinKey));
   },
 
   /**
@@ -119,6 +131,21 @@ Fiber.fn.delegator = {
    */
   getUtilMixin: function(mixin, defaults) {
     return this.utils[mixin] || val(defaults, null);
+  },
+
+  /**
+   * Expects that `fn` is valid function, otherwise logs error and throws Exception
+   * @param {*} fn
+   * @param {?string} [method]
+   * @param {?Object} [object]
+   */
+  expectFnValid: function(fn, method, object) {
+    method = val(method, '', _.isString);
+    var args = ['Can\'t proxy method ' + (method ? ' ' + method : method) +
+                ', method is not available in the given object'];
+
+    if (object) args.push(object);
+    if (! _.isFunction(fn)) Fiber.logs.system.errorThrow.apply(Fiber.logs.system, args);
   },
 
   /**

@@ -14,7 +14,7 @@ Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function|string}
    */
-  extendable: ['registry'],
+  willExtend: ['registry'],
 
   /**
    * Properties keys that will be owned by the instance

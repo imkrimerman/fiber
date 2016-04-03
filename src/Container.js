@@ -145,6 +145,21 @@ Fiber.Container = Fiber.fn.class.create({
   },
 
   /**
+   * Returns all dependencies from the container or from the bag retrieved by the `key`
+   * @param {?string} [key]
+   * @param {*} [defaults=[]]
+   * @returns {Array}
+   */
+  all: function(key, defaults) {
+    var bagAll = _.bind(function(bag) {
+      return (this[bag] && this[bag].all()) || val(defaults, []);
+    }, this);
+
+    if (key) return bagAll(key);
+    return Fiber.fn.concat(this.bags.map(bagAll));
+  },
+
+  /**
    * Flushes Container
    * @return {Fiber.Container}
    */
@@ -197,10 +212,7 @@ Fiber.container = new Fiber.Container();
 /**
  * Adds default extensions to the Container
  */
-Fiber.addExtension({
-  Access: $Access,
-  Binder: $Binder,
-  Extend: $Extend,
-  Mixin: $Extensions,
-  OwnProps: $OwnProps
-});
+var extensions = [$Access, $Binder, $Extend, $Extensions, $OwnProps];
+Fiber.addExtension(_.zipObject(extensions.map(function(extension) {
+  return extension.getName();
+}), extensions));

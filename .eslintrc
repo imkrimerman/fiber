@@ -4,7 +4,7 @@
     "node": true,
     "amd": true
   },
-  "Globals": {
+  "Constants": {
     "Fiber": true,
     "Backbone": true,
     "_": true,

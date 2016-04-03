@@ -1,9 +1,9 @@
 /**
  * Fiber Collection
  * @class
- * @extends {BaseCollection}
+ * @extends {Collection}
  */
-Fiber.Collection = BaseCollection.extend([
+Fiber.Collection = Collection.extend([
   'Extensions', 'Binder', {
 
     /**
@@ -16,13 +16,13 @@ Fiber.Collection = BaseCollection.extend([
      * Properties keys that will be auto extended from initialize object
      * @type {Array|Function}
      */
-    extendable: ['model', 'url', 'ns', 'catalog'],
+    willExtend: ['model', 'url', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
      * @type {Array|Function}
      */
-    ownProp: ['ns', 'catalog'],
+    ownProps: ['ns', 'catalog'],
 
     /**
      * Constructor
@@ -31,7 +31,7 @@ Fiber.Collection = BaseCollection.extend([
      */
     constructor: function(models, options) {
       Fiber.fn.class.handleOptions(this, options);
-      Fiber.initializeExtensions(this);
+      Fiber.initializeExtensions(this, options);
       this.extendModel(options.modelOptions);
       this.__parent__.apply(this, arguments);
     },

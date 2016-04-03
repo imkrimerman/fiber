@@ -71,7 +71,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function|string}
    */
-  extendable: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
+  willExtend: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
   /**
    * Properties keys that will be owned by the instance

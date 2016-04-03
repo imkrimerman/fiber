@@ -1,9 +1,9 @@
 /**
  * Fiber History Collection
  * @class
- * @extends {Fiber.RouterCollection}
+ * @extends {RouterCollection}
  */
-Fiber.HistoryCollection = Fiber.RouterCollection.extend({
+Fiber.HistoryCollection = RouterCollection.extend({
 
   /**
    * Default Model
@@ -29,7 +29,7 @@ Fiber.HistoryCollection = Fiber.RouterCollection.extend({
    */
   add: function(models, options) {
     this.handleSize();
-    return this.apply(Fiber.RouterCollection, 'add', arguments);
+    return this.apply(RouterCollection, 'add', arguments);
   },
 
   /**

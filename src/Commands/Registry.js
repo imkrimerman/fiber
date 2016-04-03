@@ -2,7 +2,7 @@
  * Fiber Command Bus Registry
  * @class
  */
-Fiber.Services.Commands.Registry = Fiber.Collection.extend({
+Fiber.Commands.Registry = Fiber.Collection.extend({
 
   /**
    * Default Registry model

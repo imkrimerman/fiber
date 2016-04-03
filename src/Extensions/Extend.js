@@ -1,8 +1,13 @@
 /**
- * Extend extension.
+ * Extend Extension
+ *
+ * Extension that automatically merges bound context with provided object.
+ * Can be configured using willExtend property of the context or with
+ * options.willExtend property that can be array or string.
+ *
  * @type {Object}
  */
-var $Extend = new Fiber.Extension({
+var $Extend = new Fiber.Extension('Extend', {
 
   /**
    * Method name to call when extension is initiating
@@ -11,24 +16,27 @@ var $Extend = new Fiber.Extension({
   initMethod: 'applyExtend',
 
   /**
-   * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function|string}
+   * Properties keys that will be auto extended from the initialization object
+   * @type {Array|Function|string|boolean}
    */
-  extendable: [],
+  willExtend: [],
 
   /**
-   * Extends options object. Only options from `extendable` keys array will be extended.
+   * Extends options object. Only options from `willExtend` keys array will be extended.
    * @param {Object} options
    * @returns {*}
    */
   applyExtend: function(options) {
     options = val(options, {});
-    var extendable = _.result(this, 'extendable');
-    if (_.isString(extendable) && extendable === 'all') return _.extend(this, options);
-    else if (_.isArray(extendable)) {
-      if (_.isArray(options.extendable)) extendable = extendable.concat(options.extendable);
-      return _.extend(this, _.pick(options, _.compact(extendable)));
-    }
-    return this;
+    var willExtend = _.result(this, 'willExtend')
+      , passedWillExtend = options.willExtend && _.castArray(options.willExtend) || [];
+
+    if (! willExtend) return this;
+
+    if (_.isBoolean(willExtend) && willExtend || _.isString(willExtend) && willExtend === 'all')
+      return _.extend(this, options);
+
+    willExtend = willExtend.concat(passedWillExtend);
+    return _.extend(this, _.pick(options, _.compact(willExtend)));
   }
 });

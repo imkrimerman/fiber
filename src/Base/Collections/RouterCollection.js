@@ -1,4 +1,8 @@
-Fiber.RouterCollection = BaseCollection.extend({
+/**
+ * Base Router Collection
+ * @class
+ */
+var RouterCollection = Collection.extend({
 
   /**
    * Properties keys that will be owned by the instance
@@ -10,7 +14,7 @@ Fiber.RouterCollection = BaseCollection.extend({
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function|string}
    */
-  extendable: ['router'],
+  willExtend: ['router'],
 
   /**
    * Router instance
@@ -21,7 +25,7 @@ Fiber.RouterCollection = BaseCollection.extend({
   /**
    * Sets current router
    * @param {Object.<Fiber.Router>} router
-   * @returns {Fiber.RouterCollection}
+   * @returns {RouterCollection}
    */
   setRouter: function(router) {
     this.router = router;

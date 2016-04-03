@@ -2,7 +2,7 @@
  * Fiber Command Handler
  * @class
  */
-Fiber.Services.Commands.Handler = Fiber.fn.class.create([
+Fiber.Commands.Handler = Fiber.fn.class.create([
   Fiber.Events, {
 
     /**

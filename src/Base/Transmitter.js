@@ -1,26 +1,16 @@
 /**
  * Fiber Transmitter Service
  * @class
+ * @extends {Fiber.Bag}
  */
-Fiber.Transmitter = Fiber.fn.class.createWithExtensions({
+Fiber.Transmitter = Fiber.Bag.extend({
 
   /**
-   * Transmitter channels
-   * @type {Object}
+   * Key that will dynamically created to store items
+   * @type {string|Function}
+   * @private
    */
-  channels: {},
-
-  /**
-   * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function|string}
-   */
-  extendable: ['channels'],
-
-  /**
-   * Properties keys that will be owned by the instance
-   * @type {Array|Function}
-   */
-  ownProps: ['channels'],
+  __holderKey: 'channels',
 
   /**
    * Returns events channel, if one is not exists with given `name`, it will be created
@@ -28,29 +18,19 @@ Fiber.Transmitter = Fiber.fn.class.createWithExtensions({
    * @returns {Fiber.Events}
    */
   channel: function(name) {
-    var channel = this.get('channels.' + name);
-    if (! channel) return this.add(name);
+    var channel = this.get(this.getHolder() + '.' + name);
+    if (! channel) return this.create(name);
     return channel;
   },
 
   /**
-   * Adds new channel by `name`
+   * Creates new channel by `name`
    * @param {string} name
    * @returns {Fiber.Events}
    */
-  add: function(name) {
+  create: function(name) {
     var channel = Fiber.Events.instance();
-    this.set('channels.' + name, channel);
+    this.set(this.getHolder() + '.' + name, channel);
     return channel;
-  },
-
-  /**
-   * Removes channel by name
-   * @param {string} name
-   * @returns {Fiber.Transmitter}
-   */
-  forget: function(name) {
-    delete this.channels[name];
-    return this;
   },
 });

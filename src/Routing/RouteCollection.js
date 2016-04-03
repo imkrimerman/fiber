@@ -1,9 +1,9 @@
 /**
  * Fiber Route Collection
  * @class
- * @extends {Fiber.RouterCollection}
+ * @extends {RouterCollection}
  */
-Fiber.RouteCollection = Fiber.RouterCollection.extend({
+Fiber.RouteCollection = RouterCollection.extend({
 
   /**
    * Default collection model

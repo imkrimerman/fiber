@@ -8,7 +8,7 @@ Fiber.fn = {
    * List of properties to exclude when mixin functions to Class prototype
    * @type {Array}
    */
-  protoExclude: ['proto'],
+  protoExclude: ['proto', 'protoExclude'],
 
   /**
    * Value that represents not defined state.
@@ -93,20 +93,11 @@ Fiber.fn = {
    * @returns {*}
    */
   apply: function(Class, method, args, context) {
-    var method = Fiber.fn.getMethod(Class, method);
-    args = ! _.isArguments(args) ? _.castArray(args) : args;
+    context = val(context, Class, _.isObject);
+    var method = Fiber.fn.class.getMethod(Class, method);
+    if (val(args) === val.notDefined) args = [];
+    else args = ! _.isArguments(args) ? _.castArray(args) : args;
     if (_.isFunction(method)) return method.apply(context, args);
-  },
-
-  /**
-   * Returns Class method or void otherwise
-   * @param {Object} Class
-   * @param {string} method
-   * @returns {Function|undefined}
-   */
-  getMethod: function(Class, method) {
-    var proto = Class.prototype || Class
-    return proto && proto[method] || void 0;
   },
 
   /**
@@ -212,25 +203,33 @@ Fiber.fn = {
    * @returns {Object}
    */
   transform: function(object, iteratee, thisArg) {
-    thisArg = val(thisArg, this);
+    thisArg = val(thisArg, object);
     for (var key in object)
       object[key] = iteratee.call(thisArg, object[key], key, object);
     return object;
   },
 
   /**
-   * Sets `value` as global variable by the given `key`
+   * Sets `value` as global variable by the given `key` to the root
    * @param {string} key
    * @param {*} value
    * @param {?boolean} [force=false]
-   * @returns {*}
+   * @returns {boolean}
    */
   globalize: function(key, value, force) {
-    force = val(force, false, _.isBoolean);
+    if (! Fiber.Constants.allowGlobals) {
+      Fiber.logs.system.info(key + ' will not be globalized. Global variables are not allowed.')
+      return false;
+    }
+
     var hasKey = root && _.has(root, key) || false;
-    if ((hasKey && force) || ! hasKey)
-      return window[key] = value;
-    return value;
+
+    if ((hasKey && val(force, false, _.isBoolean)) || ! hasKey) {
+      root[key] = value;
+      return true;
+    }
+
+    return false;
   },
 
   /**
@@ -282,6 +281,15 @@ Fiber.fn = {
   },
 
   /**
+   * Concatenates arrays
+   * @param {Array[]} arrays
+   * @returns {Array}
+   */
+  concat: function(arrays) {
+    return Array.prototype.concat.apply([], arrays);
+  },
+
+  /**
    * Returns object for Class prototype. Integrates support helpers to Fiber Classes
    * @param {?Array} [exclude] - Array of properties to exclude from functions object
    * @returns {Object}
@@ -301,8 +309,47 @@ Fiber.fn = {
     };
   },
 
-  expect: function() {
-//    return
+  /**
+   * Assertion helper
+   * @param {boolean} statement
+   * @param {string} errorMsg
+   * @throws Will throw `Error` if statement is not true
+   */
+  expect: function(statement, errorMsg) {
+    if (! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
+  },
+
+  /**
+   * Gets value by the given `fn` key.
+   * If `scope` is provided, then value will be retrieved from `scope` by `fn` property and reset to `fn`
+   * If `fn` value is function then it will be called with `args`.
+   * @param {string|Function|*} fn
+   * @param {?Object} [scope]
+   * @param {?boolean} [own=false]
+   * @param {?Array} [args=[]]
+   * @returns {*}
+   */
+  result: function(fn, scope, own, defaults) {
+    var inScope = val(scope, false, _.isObject);
+    own = val(own, false, _.isBoolean);
+    if (inScope) fn = own ? _.get(scope, fn, null) : scope[fn];
+    if (_.isFunction(fn)) fn = inScope && fn.apply(scope) || (fn.apply(fn));
+    return val(fn, defaults, _.negate(_.isUndefined));
+  },
+
+  /**
+   * Traverses through given extensions and calls method on it
+   * @param {Object.<Fiber.Extension>|Array} extension
+   * @param {string} method
+   * @param {?boolean} [first=false]
+   * @returns {Array}
+   */
+  extensionMapCall: function(extension, method, first) {
+    if (! method) return _.castArray(extension);
+    var mapped = _.castArray(extension).map(function(one) {
+      return one instanceof Fiber.Extension ? Fiber.fn.apply(one, method) : one;
+    });
+    return val(first, false) ? mapped[0] : mapped;
   },
 };
 
@@ -362,7 +409,7 @@ _.each = function(collection, iteratee, scope) {
 Backbone.trigger = function(name) {
   var args = _.toArray(arguments);
   if (arguments[1] !== this) args.splice(1, 0, this);
-  trigger.apply(Fiber.Globals.events.system, args);
+  trigger.apply(Fiber.Constants.events.system, args);
   trigger.apply(this, arguments);
   return this;
 };

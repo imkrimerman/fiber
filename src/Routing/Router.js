@@ -40,14 +40,11 @@ Fiber.Router = Fiber.fn.class.createWithExtensions([
      * @param {?Object} [options={}]
      */
     constructor: function(options) {
-      options = val(options, {}, _.isPlainObject);
-      this.options = options;
-      this.applyExtend(options);
-      this.applyOwnProps();
-      this.applyBinder();
+      options = Fiber.fn.class.handleOptions(this, options);
+      Fiber.initializeExtensions(this, options);
       this.createCollections(options);
       this.bindRoutes();
-      this.initialize.apply(this, arguments);
+      Fiber.fn.apply(this, 'initialize', [arguments]);
     },
 
     /**

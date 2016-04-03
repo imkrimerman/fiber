@@ -1,9 +1,9 @@
 /**
- * Fiber Linked Views
+ * Linked Views Collection, used internally
  * @class
- * @extends {BaseCollection}
+ * @extends {Collection}
  */
-Fiber.LinkedViews = BaseCollection.extend({
+Fiber.LinkedViews = Collection.extend({
 
   /**
    * Parent View
@@ -15,19 +15,19 @@ Fiber.LinkedViews = BaseCollection.extend({
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function}
    */
-  extendable: ['parentView'],
+  willExtend: ['parentView'],
 
   /**
    * Properties keys that will be owned by the instance
    * @type {Array|Function}
    */
-  ownProp: ['parentView'],
+  ownProps: ['parentView'],
 
   /**
    * Events namespace
    * @type {string}
    */
-  eventsNs: 'linked',
+  ns: 'linked',
 
   /**
    * Listen to views and propagate events

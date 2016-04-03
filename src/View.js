@@ -4,7 +4,7 @@
  * @extends {Backbone.View}
  */
 Fiber.View = Fiber.fn.class.make(Backbone.View, [
-  'Mixin', 'Extend', 'OwnProps', 'Access', 'Binder', {
+  'Extensions', 'Extend', 'OwnProps', 'Access', 'Binder', {
 
     /**
      * Parent element to auto attach
@@ -60,7 +60,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      * Properties keys that will be auto extended from initialize object
      * @type {Array|Function|string}
      */
-    extendable: [
+    willExtend: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events',
       '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', 'transmit'
     ],
@@ -200,10 +200,10 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     /**
      * Creates listeners collection from given `listeners`
      * @param {Object} listeners
-     * @returns {Object.<Fiber.Listeners>}
+     * @returns {Object.<Listeners>}
      */
     prepareListeners: function(listeners) {
-      return this.listeners = new Fiber.Listeners(this.splitEvents(listeners));
+      return this.listeners = new Listeners(this.splitEvents(listeners));
     },
 
     /**

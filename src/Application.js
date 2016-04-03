@@ -38,9 +38,7 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
    */
   constructor: function(options) {
     options = this.handleOptions(options);
-    this.applyExtend(options);
-    this.applyOwnProps();
-    this.applyBinder();
+    Fiber.initializeExtensions(this, options);
     this.bootstrap(options);
     this.bindEvents();
     Fiber.fn.apply(this, 'initialize', arguments);

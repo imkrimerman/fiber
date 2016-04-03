@@ -3,22 +3,35 @@
  * Automatically
  * @type {Object}
  */
-var $Extensions = new Fiber.Extension({
+var $Extensions = new Fiber.Extension('Extensions', {
 
   /**
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  initMethod: 'applyMixin',
+  initMethod: 'applyExtensions',
 
   /**
-   * Applies mixins of the current object
+   * Extensions to auto resolve and initialize. On construct Fiber will resolve
+   * this extensions list, include and initialize resolved extensions
+   * @type {Array|Function}
    */
-  applyMixin: function() {
-    var mixins = _.result(this, Fiber.Globals.extensions.property);
-    if (mixins && Fiber.fn.isArrayOf(mixins, 'object')) {
-      Fiber.applyExtension(this, Fiber.getExtension(mixins));
-    }
+  extensions: [],
+
+  /**
+   * Extensions state holder
+   * @type {Object}
+   */
+  __extensionsState: {},
+
+  /**
+   * Applies extensions of the current object
+   * @param {?Array} [extensions]
+   */
+  applyExtensions: function(extensions) {
+    this.__extensionsState = {};
+    extensions = val(extensions, false, _.isArray) || _.result(this, Fiber.Constants.extensions.property);
+    if (extensions) this.includeExtension(extensions);
   },
 
   /**
@@ -26,7 +39,7 @@ var $Extensions = new Fiber.Extension({
    * Also you can provide `override` boolean to force override properties.
    * @param {Object|Function} mixin
    * @param {?boolean} [override=false]
-   * @returns {*}
+   * @returns {Object}
    */
   mix: function(mixin, override) {
     Fiber.fn.class.mix(this, mixin, override);
@@ -38,7 +51,7 @@ var $Extensions = new Fiber.Extension({
    * Also you can provide `override` boolean to force override properties.
    * @param {Object} object
    * @param {?boolean} [override=false]
-   * @returns {*}
+   * @returns {Object}
    */
   mixTo: function(object, override) {
     Fiber.fn.class.mix(object, this, override);
@@ -50,18 +63,20 @@ var $Extensions = new Fiber.Extension({
    * Also you can provide `override` boolean to force override properties.
    * @param {Object|Function|Array} mixin
    * @param {?boolean} [override=false]
-   * @returns {*}
+   * @returns {Object}
    */
   include: function(mixin, override) {
     return Fiber.fn.class.include(this, mixin, override);
   },
 
   /**
-   * Applies Fiber extension to the Class to provide more flexibility
+   * Includes Fiber extension to the Class to provide more flexibility
    * @param {string} alias
    * @param {?boolean} [override=false]
+   * @return {Object}
    */
-  applyExtension: function(alias, override) {
+  includeExtension: function(alias, override) {
     Fiber.applyExtension(alias, this, override);
+    return this;
   }
 });

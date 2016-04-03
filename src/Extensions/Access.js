@@ -3,7 +3,7 @@
  * `lodash` methods to support deep access to the Class.
  * @type {Object}
  */
-var $Access = new Fiber.Extension({
+var $Access = new Fiber.Extension('Access', {
 
   /**
    * Gets value by given `property` key. You can provide `defaults` value that
@@ -38,7 +38,7 @@ var $Access = new Fiber.Extension({
   },
 
   /**
-   * Gets value by given `property` key, if `property` value is function then it will be called.
+   * Gets value by the given `property` key, if `property` value is function then it will be called.
    * You can provide `defaults` value that will be returned if value is not found
    * by the given key. If `defaults` is not provided that defaults will be set to `null`
    * @param {string} property
@@ -63,4 +63,4 @@ var $Access = new Fiber.Extension({
 /**
  * Add access mixin to the Fiber
  */
-_.extend(Fiber, $Access.getCapsule());
+_.extend(Fiber, $Access.getCode());

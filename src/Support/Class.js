@@ -5,6 +5,21 @@
 Fiber.fn.class = {
 
   /**
+   * Creates pre constructor function to execute constructor and attach inheritance chain
+   * @param {Function} constructor
+   * @param {Object} parentClass
+   * @returns {FiberClassPreConstructor}
+   */
+  createPreConstructor: function (constructor, parentClass) {
+    parentClass = val(parentClass, constructor, _.isObject);
+    return function FiberClass() {
+      Fiber.fn.class.attachSuper(this, parentClass);
+      constructor.apply(this, arguments);
+      return this;
+    };
+  },
+
+  /**
    * Extend this Class to create a new one inheriting this one.
    * Also adds `__super__` object pointing to the parent prototype and `__parent__`
    * pointing to parent constructor.
@@ -13,17 +28,11 @@ Fiber.fn.class = {
    * @return {Function}
    */
   nativeExtend: function(parent, protoProps, staticProps) {
-    var child, construct = function(constructor, parent) {
-      parent = val(parent, constructor, _.isObject);
-      return function() {
-        constructor.apply(this, arguments);
-        return Fiber.fn.class.attachSuper(this, parent);
-      };
-    };
+    var child, construct = Fiber.fn.class.createPreConstructor;
     // if we don't have any parent then log error and return
     if (! parent) {
-      Fiber.logs.system.error('Parent is not provided or not valid', parent)
-      return parent;
+      Fiber.logs.system.debug('Parent is not provided or not valid, setting to simple function', parent);
+      parent = _.noop;
     }
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
@@ -55,11 +64,10 @@ Fiber.fn.class = {
    * @returns {Function}
    */
   extend: function(Parent, proto, statics) {
-    var fn = Fiber.fn.class, merge = Fiber.fn.merge;
-    proto = merge(fn.mixProto(proto));
-    var deepProto = fn.deepProps.handle(proto, Parent)
-    var mergedStatics = merge(fn.mixStatics(statics));
-    return fn.nativeExtend(Parent, deepProto, mergedStatics);
+    proto = Fiber.fn.merge(Fiber.fn.class.mixProto(proto));
+    var deepProto = Fiber.fn.deepProps.handle(proto, Parent)
+      , mergedStatics = Fiber.fn.merge(Fiber.fn.class.mixStatics(statics));
+    return Fiber.fn.class.nativeExtend(Parent, deepProto, mergedStatics);
   },
 
   /**
@@ -72,11 +80,12 @@ Fiber.fn.class = {
    */
   make: function(Parent, proto, statics) {
     // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
-    Parent = val(Parent, Fiber.fn.class.create());
+    Parent = val(Parent, Fiber.Class);
     // If Parent is string, then try to resolve Class from dependency injection container
     if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent)) {
       Parent = Fiber.container.make(Parent);
     }
+    //todo: add all container bags resolve, not only extensions
     // Finally call extend method with right Parent, proto and statics
     return Fiber.fn.class.extend(Parent, Fiber.getExtension(proto), Fiber.getExtension(statics));
   },
@@ -99,8 +108,12 @@ Fiber.fn.class = {
    */
   createWithExtensions: function(proto, statics) {
     var mergeable = _.castArray(proto).concat(Fiber.Events)
-      , extensions = Fiber.getExtensionsList(false, 'Extension')
+      , extensions = Fiber.getExtensionsList()
       , Parent = Fiber.fn.class.createConstructor(extensions);
+
+    extensions = _.values(extensions).map(function(extension) {
+      return extension.getCode();
+    });
 
     proto = Fiber.fn.merge(extensions, mergeable);
     return Fiber.fn.class.extend(Parent, proto, statics);
@@ -112,15 +125,10 @@ Fiber.fn.class = {
    * @returns {Function}
    */
   createConstructor: function(extensions) {
-    var methods = [];
-
-    if (extensions) methods = _.map(extensions, function(extension) {
-      return extension.getInitMethodName();
-    });
-
     return function(options) {
       Fiber.fn.class.handleOptions(this, options);
-      Fiber.initializeExtensions(this, methods);
+      Fiber.initializeExtensions(this, options, extensions);
+      Fiber.fn.class.setExtensions(this, extensions);
       Fiber.fn.apply(this, 'initialize', arguments);
     };
   },
@@ -131,7 +139,7 @@ Fiber.fn.class = {
    * @returns {Array|null}
    */
   getExtensions: function(object) {
-    var key = Fiber.Globals.extensions.property;
+    var key = Fiber.Constants.extensions.property;
     if (! object[key]) return null;
     return object[key];
   },
@@ -139,13 +147,14 @@ Fiber.fn.class = {
   /**
    * Sets extensions list to the private registry of the `object`
    * @param {Object} object
-   * @param {Array|string} extensionsList
+   * @param {Array|string} list
    * @returns {Array}
    */
-  setExtensions: function(object, extensionsList) {
-    var key = Fiber.Globals.extensions.property;
-    if (! object[key]) object[key] = [];
-    return object[key] = _.uniq(object[key].concat(_.castArray(extensionsList)));
+  setExtensions: function(object, list) {
+    var key = Fiber.Constants.extensions.property;
+    if (! _.has(object, key)) object[key] = [];
+    if (! _.isString(list) && ! Fiber.fn.isArrayOf(list, 'string')) return object[key];
+    return object[key] = _.compact(_.uniq(object[key].concat(_.castArray(list))));
   },
 
   /**
@@ -154,20 +163,31 @@ Fiber.fn.class = {
    * @returns {boolean}
    */
   hasExtensions: function(object) {
-    return _.has(object, Fiber.Globals.extensions.property);
+    return _.has(object, Fiber.Constants.extensions.property);
   },
 
   /**
-   * Returns list of extensions initialize methods
-   * @param {Array|string} extension
-   * @returns {Array|string}
+   * Sets extension state of the object
+   * @param {Object} object
+   * @param {string} name
+   * @param {string|boolean} state
    */
-  getExtensionsInitMethods: function(extension) {
-    if (extension instanceof Fiber.Extension) return extension.getInitMethodName();
-    var extensionObject = Fiber.getExtension(extension);
-    return _.map(_.castArray(extensionObject), function(obj) {
-      return obj.getInitMethodName();
-    });
+  markExtensionState: function(object, name, state) {
+    var prop = Fiber.Constants.extensions.stateProperty;
+    if (! _.has(object, prop)) object[prop] = $Access.getCode()[prop];
+    object[prop][name] = state;
+  },
+
+  /**
+   * Returns extension state of the `object`
+   * @param {Object} object
+   * @param {string} name
+   * @returns {string|boolean}
+   */
+  getExtensionState: function(object, name) {
+    var prop = Fiber.Constants.extensions.stateProperty;
+    if (! _.has(object, prop) || ! _.has(object[prop], name)) return void 0;
+    return object[name][prop];
   },
 
   /**
@@ -179,7 +199,7 @@ Fiber.fn.class = {
    */
   composeView: function(View, options) {
     if (! (Fiber.fn.class.isBackbone(View)))
-      throw new Error('View cannot be composed', [View, options]);
+      Fiber.logs.system.errorThrow('View cannot be composed', View, options);
 
     options = val(options, {}, _.isPlainObject);
 
@@ -397,9 +417,34 @@ Fiber.fn.class = {
   resolveMethod: function(object, method, scope) {
     scope = val(scope, object, _.isObject);
     if (_.isString(method) && object[method] && _.isFunction(object[method])) {
-      return scope ? object[method].bind(scope) : object[method];
+      var fn = Fiber.fn.class.getMethod(object, method);
+      return scope ? fn.bind(scope) : fn;
     }
     return null;
+  },
+
+  /**
+   * Returns Class method or void otherwise
+   * @param {Object|Function} object
+   * @param {string} method
+   * @returns {Function|null}
+   */
+  getMethod: function(object, method) {
+    object = object.prototype || object;
+    return _.get(object, method);
+  },
+
+  /**
+   * Returns value of the object's `property`
+   * @param {Object} object
+   * @param {string} property
+   * @param {?boolean} [own=true]
+   * @returns {*}
+   */
+  getProperty: function(object, property, own) {
+    object = object.prototype || object;
+    own = val(own, true, _.isBoolean);
+    return Fiber.fn.result(property, object, own);
   },
 
   /**

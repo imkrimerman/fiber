@@ -66,49 +66,40 @@
   Fiber.$ = $;
 
   /**
-   * Fiber Global object
+   * Fiber Constants
    * @var {Object}
    */
-  Fiber.Globals = {
-
-    /**
-     * Extensions globals
-     * @type {Object}
-     */
+  Fiber.Constants = {
+    // todo: add debug helpers to fiber
+    allowGlobals: false,
     extensions: {
-
-      /**
-       * Property to use to keep extensions in classes
-       * @type {string}
-       */
       property: 'extensions',
-
+      optionsProperty: 'extensionsList',
+      stateProperty: '__extensionsState'
     },
-
-    /**
-     * Log globals
-     * @type {Object}
-     */
+    bag: {
+      holderKey: 'items'
+    },
     log: {
       levels: ['trace', 'debug', 'info', 'warn', 'error'],
       default: 'error',
     }
   };
 
+  // todo: think about class states and how this can be useful
+
   /**
-   * Fiber Services holder
+   * Fiber Commands
    * @var {Object}
    */
-  Fiber.Services = {
-    Commands: {}
-  };
+  Fiber.Commands = {},
 
   /**
    * Object to use internally
    * @type {Object}
    */
   Fiber.internal = {
-    events: {internal: _.extend({}, Backbone.Events)}
+    events: _.extend({}, Backbone.Events)
   };
 
   <!-- inject:js -->

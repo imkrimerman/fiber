@@ -6,7 +6,7 @@
  *
  * @type {Object}
  */
-Fiber.Events = _.extend(Backbone.Events, {
+Fiber.Events = _.extend({}, Backbone.Events, {
 
   /**
    * Events namespace
@@ -24,7 +24,7 @@ Fiber.Events = _.extend(Backbone.Events, {
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function|string}
    */
-  extendable: ['ns', 'catalog'],
+  willExtend: ['ns', 'catalog'],
 
   /**
    * Properties keys that will be owned by the instance
@@ -276,10 +276,10 @@ Fiber.Events = _.extend(Backbone.Events, {
   /**
    * Includes current Events to the given `object`
    * @param {Object} object
-   * @returns {*|Object|Function}
+   * @returns {Object}
    */
   includeTo: function(object) {
-    return Fiber.fn.class.mix(object, this);
+    return Fiber.fn.class.mix(object, this.instance());
   },
 });
 
@@ -287,6 +287,5 @@ Fiber.Events = _.extend(Backbone.Events, {
  * Add more aliases for the `send` method
  */
 Fiber.fn.delegator.aliasMany(Fiber.Events, {
-  send: ['retrieve', 'request'],
-  respondTo: ['respond', 'responder']
+  send: 'request', respondTo: 'respond'
 });

@@ -5,13 +5,13 @@ describe('Fiber.Extensions.Extend', function() {
     Fiber.applyExtension('Extend', this.obj);
   });
 
-  it('should add `extendable` property (by default []) to object', function() {
-    expect(this.obj).to.have.property('extendable');
-    expect(this.obj.extendable).to.eql([]);
+  it('should add `willExtend` property (by default []) to object', function() {
+    expect(this.obj).to.have.property('willExtend');
+    expect(this.obj.willExtend).to.eql([]);
   });
 
-  it('should `apply` extend only to allowed `extendable` options', function() {
-    this.obj.extendable = ['opt'];
+  it('should `apply` extend only to allowed `willExtend` options', function() {
+    this.obj.willExtend = ['opt'];
     this.obj.applyExtend({
       opt: 'test',
       non: 'value'

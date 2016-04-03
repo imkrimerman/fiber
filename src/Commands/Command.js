@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Bag}
  */
-Fiber.Services.Commands.Command = Fiber.Bag.extend({
+Fiber.Commands.Command = Fiber.Bag.extend({
 
   /**
    * Command name
@@ -15,7 +15,7 @@ Fiber.Services.Commands.Command = Fiber.Bag.extend({
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function|string}
    */
-  extendable: ['name'],
+  willExtend: ['name'],
 
   /**
    * Properties keys that will be owned by the instance

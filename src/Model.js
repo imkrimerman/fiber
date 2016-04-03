@@ -4,7 +4,7 @@
  * @extends {Backbone.Model}
  */
 Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
-  'Extend', 'Mixin', 'OwnProps', 'Binder', {
+  'Extend', 'Extensions', 'OwnProps', 'Binder', {
 
     /**
      * Hidden fields.
@@ -26,25 +26,10 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     errorBag: null,
 
     /**
-     * Events namespace
-     * @type {string}
-     */
-    eventsNs: '',
-
-    /**
-     * Events catalog
-     * @type {Object}
-     */
-    eventsCatalog: {
-      fetchSuccess: 'fetch:success',
-      fetchError: 'fetch:error'
-    },
-
-    /**
      * Properties keys that will be auto extended from initialize object
      * @type {Array|Function}
      */
-    extendable: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog'],
+    willExtend: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
@@ -58,22 +43,28 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @param {?Object} [options={}]
      */
     constructor: function(attributes, options) {
-      this.options = options;
+      options = Fiber.fn.class.handleOptions(this, options);
+      this.attributes = {};
+      this.cid = _.uniqueId(this.cidPrefix + '-');
       this.errorBag = new Fiber.ErrorBag();
       this.resetView();
-      var attrs = attributes || {};
-      options || (options = {});
-      this.cid = _.uniqueId(this.cidPrefix + '-');
-      this.attributes = {};
-      this.applyExtend(options);
-      this.applyOwnProps();
-      this.applyBinder();
-      if (options.parse) attrs = this.parse(attrs, options) || {};
-      attrs = _.defaultsDeep({}, attrs, _.result(this, 'defaults'));
-      this.listenTo(this, 'invalid', this.whenInvalid.bind(this));
-      this.set(attrs, options);
+
+      attributes = val(attributes, {});
+      options = val(options, {});
+
+      Fiber.initializeExtensions(this);
+      if (options.parse) attributes = this.parse(attributes, options) || {};
+
+      attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));
+      this.set(attributes, options);
+
       this.changed = {};
-      this.initialize.apply(this, arguments);
+
+      this.listenTo(this, 'invalid', function() {
+        Fiber.fn.apply(this, 'whenInvalid', arguments);
+      });
+
+      Fiber.fn.apply(this, 'initialize', arguments);
     },
 
     /**
@@ -217,20 +208,6 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     },
 
     /**
-     * Fetches model data
-     * @param {Object} options
-     * @returns {*}
-     */
-    fetch: function(options) {
-      return this.apply(Backbone.Model, 'fetch', [
-        _.extend({}, options || {}, {
-          success: this.__whenSuccess.bind(this),
-          error: this.__whenError.bind(this)
-        })
-      ]);
-    },
-
-    /**
      * Sends request using jQuery `ajax` method with the given `options`
      * @param {Object} options
      * @returns {*}
@@ -238,30 +215,6 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
     request: function(options) {
       return Fiber.$.ajax(options);
     },
-
-    /**
-     * Fetch success handler
-     * @param {Object.<Fiber.Model>} model
-     * @param {Object} response
-     * @param {?Object} [options]
-     */
-    whenSuccess: function(model, response, options) {},
-
-    /**
-     * Fetch error handler
-     * @param {Object.<Fiber.Model>} model
-     * @param {Object} response
-     * @param {?Object} [options]
-     */
-    whenError: function(model, response, options) {},
-
-    /**
-     * Validation error handler
-     * @param {Object.<Fiber.Model>} model
-     * @param {Object} response
-     * @param {?Object} [options]
-     */
-    whenInvalid: function(model, errors, options) {},
 
     /**
      * Checks if Model is fetchable
@@ -280,37 +233,5 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       this.resetView();
       return this.apply(Backbone.Model, 'destroy', arguments);
     },
-
-    /**
-     * Private success handler
-     * @param {Object.<Fiber.Model>} model
-     * @param {Object} response
-     * @param {?Object} [options]
-     * @private
-     */
-    __whenSuccess: function(model, response, options) {
-      this.whenSuccess.apply(this, arguments);
-      this.fire('fetchSuccess', {
-        model: model,
-        response: response,
-        options: options
-      });
-    },
-
-    /**
-     * Private error handler
-     * @param {Object.<Fiber.Model>} model
-     * @param {Object} response
-     * @param {?Object} [options]
-     * @private
-     */
-    __whenError: function(model, response, options) {
-      this.whenError.apply(this, arguments);
-      this.fire('fetchError', {
-        model: model,
-        response: response,
-        options: options
-      });
-    }
   }
 ]);

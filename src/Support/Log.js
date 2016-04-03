@@ -14,21 +14,65 @@ Fiber.Log = Fiber.fn.class.create({
   writer: console.log,
 
   /**
+   * Available log levels
+   * @type {Array}
+   */
+  levels: Fiber.Constants.log.levels.slice(),
+
+  /**
+   * Constructs log
+   * @param {string} [level=Fiber.Constants.log.default]
+   * @param {?Function} [writer=console.log]
+   */
+  constructor: function(level, writer) {
+    Fiber.fn.class.handleOptions(this, {level: level, writer: writer});
+    this.setLevel(level);
+    this.setWriter(writer);
+  },
+
+  /**
    * Returns current log level
    * @type {string|null}
    */
-  get level () {
+  getLevel: function() {
     return this.__level || null;
   },
 
   /**
    * Sets log level
    * @param {string} level
+   * @return {Fiber.Log}
    */
-  set level (level) {
-    level = val(level, Fiber.Globals.log.default);
-    if (level && _.includes(Fiber.Globals.log.levels, level))
-      this.__level = level;
+  setLevel: function(level) {
+    level = val(level, Fiber.Constants.log.default);
+    if (level && _.includes(this.levels, level)) this.__level = level;
+    return this;
+  },
+
+  /**
+   * Sets log writer function
+   * @param {Function} writer
+   * @returns {Fiber.Log}
+   */
+  setWriter: function(writer) {
+    this.writer = val(writer, this.writer, _.isFunction);
+    return this;
+  },
+
+  /**
+   * Returns writer function
+   * @returns {Function}
+   */
+  getWriter: function() {
+    return this.writer;
+  },
+
+  /**
+   * Determine if log has valid writer
+   * @returns {boolean}
+   */
+  hasWriter: function() {
+    return !!this.getWriter();
   },
 
   /**
@@ -37,7 +81,7 @@ Fiber.Log = Fiber.fn.class.create({
    */
   initialize: function(options) {
     options = Fiber.fn.class.handleOptions(this, options);
-    this.level = (options.level || Fiber.Globals.log.default);
+    this.setLevel(options.level || Fiber.Constants.log.default);
   },
 
   /**
@@ -58,7 +102,7 @@ Fiber.Log = Fiber.fn.class.create({
    * @return {*}
    */
   callWriter: function(args) {
-    args = val(args, [], _.isArray).concat([this.level, this]);
+    args = val(args, [], _.isArray).concat([this.getLevel(), this]);
     return Fiber.fn.fireCallCyclic(this, 'write', this.writer, {
       fire: args, call: args
     });
@@ -90,7 +134,7 @@ Fiber.Log = Fiber.fn.class.create({
    * @returns {boolean}
    */
   isAllowedToWrite: function(level) {
-    if (! level) return false;
+    if (! level || ! this.hasWriter()) return false;
     var index = this.levels.indexOf(level);
     if (index === - 1) return false;
     var currentLevelIndex = this.levels.indexOf(this.level);
@@ -102,8 +146,8 @@ Fiber.Log = Fiber.fn.class.create({
 /**
  * Adds log level methods "debug", "info", "warn", "error"
  */
-for (var i = 0; i < Fiber.Globals.log.levels.length; i ++) {
-  var level = Fiber.Globals.log.levels[i];
+for (var i = 0; i < Fiber.Constants.log.levels.length; i ++) {
+  var level = Fiber.Constants.log.levels[i];
   Fiber.Log.prototype[level] = function() {
     return this.write.apply(this, [level].concat(_.toArray(arguments)));
   };
