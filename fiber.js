@@ -74,8 +74,8 @@
     allowGlobals: false,
     extensions: {
       property: 'extensions',
+      private: '__extensions',
       optionsProperty: 'extensionsList',
-      stateProperty: '__extensionsState'
     },
     bag: {
       holderKey: 'items'
@@ -83,6 +83,9 @@
     log: {
       levels: ['trace', 'debug', 'info', 'warn', 'error'],
       default: 'error',
+    },
+    template: {
+      engine: _.template
     }
   };
 

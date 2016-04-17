@@ -12,6 +12,18 @@ var $Extensions = new Fiber.Extension('Extensions', {
   initMethod: 'applyExtensions',
 
   /**
+   * Properties keys that will be auto extended from the initialization object
+   * @type {Array|Function|string|boolean}
+   */
+  willExtend: ['extensions'],
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @type {Array|Function}
+   */
+  ownProps: ['extensions', '__extensionsState'],
+
+  /**
    * Extensions to auto resolve and initialize. On construct Fiber will resolve
    * this extensions list, include and initialize resolved extensions
    * @type {Array|Function}
@@ -29,7 +41,6 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @param {?Array} [extensions]
    */
   applyExtensions: function(extensions) {
-    this.__extensionsState = {};
     extensions = val(extensions, false, _.isArray) || _.result(this, Fiber.Constants.extensions.property);
     if (extensions) this.includeExtension(extensions);
   },

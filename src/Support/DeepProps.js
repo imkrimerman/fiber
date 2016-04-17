@@ -13,6 +13,7 @@ Fiber.fn.deepProps = {
     explore: [
       {owner: Fiber, path: 'container.binding.items'},
       {owner: Fiber, path: 'container.extensions.items'},
+      {owner: Fiber, path: 'Events', direct: true},
       {owner: Fiber, path: 'Model.prototype', direct: true},
       {owner: Fiber, path: 'View.prototype', direct: true},
       {owner: Fiber, path: 'CollectionView.prototype', direct: true}

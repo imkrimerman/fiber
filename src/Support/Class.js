@@ -167,30 +167,6 @@ Fiber.fn.class = {
   },
 
   /**
-   * Sets extension state of the object
-   * @param {Object} object
-   * @param {string} name
-   * @param {string|boolean} state
-   */
-  markExtensionState: function(object, name, state) {
-    var prop = Fiber.Constants.extensions.stateProperty;
-    if (! _.has(object, prop)) object[prop] = $Access.getCode()[prop];
-    object[prop][name] = state;
-  },
-
-  /**
-   * Returns extension state of the `object`
-   * @param {Object} object
-   * @param {string} name
-   * @returns {string|boolean}
-   */
-  getExtensionState: function(object, name) {
-    var prop = Fiber.Constants.extensions.stateProperty;
-    if (! _.has(object, prop) || ! _.has(object[prop], name)) return void 0;
-    return object[name][prop];
-  },
-
-  /**
    * Composes View with provided options
    * @param {Function} View
    * @param {?Object} [options]
@@ -313,9 +289,11 @@ Fiber.fn.class = {
     override = val(override, false);
     // If mixin is function then it will be called with given `object`.
     if (_.isFunction(mixin)) return mixin(object);
-    var method = 'defaultsDeep';
-    if (override) method = 'extend';
-    _[method](object, mixin);
+    else if (_.isPlainObject(mixin)) {
+      var method = 'defaultsDeep';
+      if (override) method = 'extend';
+      _[method](object, mixin);
+    }
     return object;
   },
 

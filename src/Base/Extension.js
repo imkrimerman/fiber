@@ -22,17 +22,11 @@ Fiber.Extension = Fiber.fn.class.create({
    * @param {Object} code
    * @param {string|boolean} initMethod
    */
-  constructor: function(name, code, initMethod) {
-    if (_.isString(code) && arguments.length > 2) {
-      var tmpInitMethod = code;
-      code = initMethod;
-      initMethod = tmpInitMethod;
-    }
-
+  constructor: function(name, code) {
     this.setName(name);
     this.setCode(code);
-    this.setInitMethod(code.initMethod || initMethod || this.initMethod);
-    if (_.has(code, 'initMethod')) delete code.initMethod;
+    this.setInitMethod(code.initMethod || this.initMethod);
+    delete code.initMethod;
   },
 
   /**

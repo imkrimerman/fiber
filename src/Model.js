@@ -109,8 +109,11 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * Converts Model to JSON
      * @returns {Object}
      */
-    toJSON: function() {
-      return _.omit(this.apply(Backbone.Model, 'toJSON'), _.result(this, 'hidden'));
+    toJSON: function(options) {
+      options = _.defaults({}, val(options, {}, _.isPlainObject), {removeHidden: true});
+      var jsonModel = this.apply(Backbone.Model, 'toJSON', [options]);
+      if (options.removeHidden) return _.omit(jsonModel, _.result(this, 'hidden'));
+      return jsonModel;
     },
 
     /**

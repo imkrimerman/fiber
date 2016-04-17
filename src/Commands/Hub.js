@@ -61,20 +61,23 @@ Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
    */
   execute: function(command) {
     if (_.isString(command)) command = this.registry.get(command);
-    if (! command) return Fiber.logs.system.errorReturn('Can\'t execute command', command, this);
     // if we also have handler for the command
-    if (command.has('handler')) {
+    if (command instanceof Fiber.Commands.Command) {
+      // if we don't have any handler, then let's try to execute command,
+      if (! command.has('handler')) return command.executeIfAllowed();
       // then lets retrieve it
       var Handler = command.get('handler'), handler;
-      // If is function then just call it with `command` and return
+      // if is function then just call it with `command` and return
       if (_.isFunction(Handler)) return Handler(command);
-      // if is Class constructor then let's instantiate new Handler with `command` as argument
-      else if (Fiber.fn.class.isClass(Handler)) handler = new Handler(command);
-      // Trigger handle method on command
-      return handler.handle(command);
+      // if is Class constructor
+      if (Fiber.fn.class.isClass(Handler)) {
+        // then let's instantiate new Handler with `command` as argument
+        handler = new Handler(command);
+        // and trigger handle method on command
+        return handler.handle(command, this);
+      }
     }
-    // if we don't have any handler, then let's try to execute command,
-    return command.executeIfAllowed();
+    return Fiber.logs.system.errorReturn('Can\'t execute command', command, this);
   },
 
   /**

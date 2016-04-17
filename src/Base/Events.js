@@ -2,35 +2,42 @@
  * Fiber Events
  *
  * Build in events brings namespaces to the event and also
- * provides catalog to simplify registered events for the developers.
+ * provides catalog to simplify registered events and add ability to create event alias.
  *
  * @type {Object}
  */
 Fiber.Events = _.extend({}, Backbone.Events, {
 
   /**
-   * Events namespace
-   * @type {string}
-   */
-  ns: '',
-
-  /**
-   * Events catalog to hold the events
+   * Events configuration
    * @type {Object}
    */
-  catalog: {},
+  eventsConfig: {
+
+    /**
+     * Events namespace
+     * @type {string}
+     */
+    ns: '',
+
+    /**
+     * Events catalog to hold the events
+     * @type {Object}
+     */
+    catalog: {}
+  },
 
   /**
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function|string}
    */
-  willExtend: ['ns', 'catalog'],
+  willExtend: ['eventsConfig'],
 
   /**
    * Properties keys that will be owned by the instance
    * @type {Array|Function}
    */
-  ownProps: ['ns', 'catalog', '__responders'],
+  ownProps: ['eventsConfig', '__responders'],
 
   /**
    * Responders holder
@@ -187,7 +194,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   setNs: function(ns) {
-    this.ns = ns;
+    this.eventsConfig.ns = ns;
     return this;
   },
 
@@ -196,7 +203,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {string}
    */
   getNs: function() {
-    return this.ns;
+    return this.eventsConfig.ns;
   },
 
   /**
@@ -204,7 +211,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {boolean}
    */
   hasNs: function() {
-    return ! _.isEmpty(this.ns);
+    return ! _.isEmpty(this.eventsConfig.ns);
   },
 
   /**
@@ -214,7 +221,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    */
   nsEvent: function(event) {
     var checkCatalog = true
-      , ns = ! _.isEmpty(this.ns) ? this.ns + ':' : '';
+      , ns = ! _.isEmpty(this.eventsConfig.ns) ? this.eventsConfig.ns + ':' : '';
     // returns passed event as is if first char is `@`, used to support native backbone events
     if (event[0] === '@') return event.slice(1);
     // skip catalog look up by providing `!`
@@ -231,7 +238,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {string|*}
    */
   getCatalogEvent: function(event) {
-    return val(this.catalog[event], event);
+    return val(this.eventsConfig.catalog[event], event);
   },
 
   /**
@@ -240,7 +247,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {boolean}
    */
   hasCatalogEvent: function(event) {
-    return _.has(this.catalog, event);
+    return _.has(this.eventsConfig.catalog, event);
   },
 
   /**
@@ -250,7 +257,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   setCatalogEvent: function(alias, event) {
-    this.catalog[alias] = event;
+    this.eventsConfig.catalog[alias] = event;
     return this;
   },
 

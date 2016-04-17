@@ -10,13 +10,7 @@ var Collection = Fiber.fn.class.extend(Backbone.Collection, [
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function}
    */
-  willExtend: ['model', 'url', 'ns', 'catalog'],
-
-  /**
-   * Properties keys that will be owned by the instance
-   * @type {Array|Function}
-   */
-  ownProps: ['ns', 'catalog'],
+  willExtend: ['model', 'url'],
 
   /**
    * Constructor

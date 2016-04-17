@@ -51,6 +51,12 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     transmit: {},
 
     /**
+     * Views manager instance
+     * @type {Object.<Fiber.ViewsManager>}
+     */
+    viewsManager: null,
+
+    /**
      * Rendered flag
      * @type {boolean}
      */
@@ -71,7 +77,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     ownProps: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '__rendered',
-      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'transmit'
+      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'transmit', 'viewsManager'
     ],
 
     /**
@@ -82,6 +88,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
       this.options = options;
       this.cid = _.uniqueId('view-');
       this.linked = new Fiber.LinkedViews();
+      this.viewsManager = new Fiber.ViewsManager();
       this.applyExtend(options);
       this.applyOwnProps();
       this.applyBinder();
@@ -156,9 +163,41 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
     makeTemplateData: function(additional) {
       var data = this.result('templateData', {});
       if (this.model) data = _.extend({}, data, this.model.toJSON());
-      _.isPlainObject(additional) && _.extend(data, additional);
+      _.isPlainObject(additional) && (data = _.extend({}, data, additional));
       data.self = this;
       return data;
+    },
+
+    /**
+     * Shows sub view at the given selector
+     * @param {string} selector
+     * @param {Object.<Fiber.View>} view
+     * @returns {Fiber.View}
+     */
+    showView: function(selector, view) {
+      this.viewsManager.show(selector, view);
+      return this;
+    },
+
+    /**
+     * Shuts down sub view and cleans up
+     * @param {string} selector
+     * @returns {Fiber.View}
+     */
+    closeView: function(selector) {
+      this.viewsManager.close(selector);
+      return this;
+    },
+
+    /**
+     * Refreshes view at the given selector
+     * @param {string} selector
+     * @param {?boolean} [hard=false]
+     * @returns {Fiber.View}
+     */
+    refreshView: function(selector, hard) {
+      this.viewsManager.refresh(selector, hard);
+      return this;
     },
 
     /**
@@ -299,11 +338,12 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
      */
     callRender: function(render) {
       var result;
+
       Fiber.fn.fireCallCyclic(this, 'render', function() {
         this.apply(this, '__beforeRender');
         result = render.call(this);
         this.apply(this, '__afterRender');
-      }, {fire: this, invoke: render});
+      }, {fire: this, call: render});
 
       this.__rendered = true;
       return result;

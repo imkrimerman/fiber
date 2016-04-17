@@ -17,6 +17,18 @@ var $Binder = new Fiber.Extension('Binder', {
   bindMethods: [],
 
   /**
+   * Properties keys that will be auto extended from the initialization object
+   * @type {Array|Function|string|boolean}
+   */
+  willExtend: ['bindMethods'],
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @type {Array|Function}
+   */
+  ownProps: ['bindMethods'],
+
+  /**
    * Binds methods to this
    */
   applyBinder: function() {

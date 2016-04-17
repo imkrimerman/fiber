@@ -5,10 +5,7 @@
  * @returns {Array|string}
  */
 Fiber.getExtension = function(alias, method) {
-  var retrieved;
-
   if (! Fiber.has('container')) return alias;
-
   method = val(method, 'getCode');
 
   if (_.isArray(alias)) return _.map(_.castArray(alias), function(one) {
@@ -16,10 +13,9 @@ Fiber.getExtension = function(alias, method) {
   });
 
   if (! _.isString(alias)) return alias;
-
-  if (! (retrieved = Fiber.container.extensions.get(alias, null))) return null;
-
-  return _.isString(alias) ? Fiber.fn.extensionMapCall(retrieved, method)[0] : alias;
+  var retrieved = Fiber.container.extensions.get(alias, null);
+  if (! retrieved) return null;
+  return _.isString(alias) ? Fiber.fn.extensionMapCall(retrieved, method, true) : alias;
 };
 
 /**
@@ -90,12 +86,15 @@ Fiber.forgetExtension = function(alias) {
  * @param {Array|string} alias
  * @param {Object} object
  * @param {?boolean} [override=false]
+ * @param {?Object} [options={}]
  * @returns {Fiber}
  */
-Fiber.applyExtension = function(alias, object, override) {
+Fiber.applyExtension = function(alias, object, override, options) {
   var extension = Fiber.getExtensionCode(alias);
   Fiber.fn.class.include(object, extension, override);
   Fiber.fn.class.setExtensions(object, alias);
+  if (! Fiber.has('container')) this.applyExtensions();
+  else Fiber.initializeExtensions(object, options, extension);
   return this;
 };
 
@@ -111,7 +110,7 @@ Fiber.getExtensionCode = function(alias) {
 };
 
 /**
- * Returns extension code
+ * Returns extension initialize method
  * @param {Array|string} alias
  * @returns {Array|Object}
  */
@@ -119,6 +118,17 @@ Fiber.getExtensionInitMethod = function(alias) {
   var extension = Fiber.getExtension(alias, false)
     , extensionInit = Fiber.fn.extensionMapCall(extension, 'getInitMethod');
   return _.isArray(extension) ? extensionInit : extensionInit[0];
+};
+
+/**
+ * Returns extension initialize method map
+ * @param {Array|string} alias
+ * @returns {Object}
+ */
+Fiber.getExtensionInitMethodMap = function(alias) {
+  var extension = Fiber.getExtension(alias, false)
+    , extensionInit = Fiber.fn.extensionMapCall(extension, 'getInitMethod');
+  return _.zipObject(alias, extensionInit);
 };
 
 /**
@@ -138,29 +148,29 @@ Fiber.getExtensionsNames = function() {
  * @param {?Array} [list]
  * @returns {boolean}
  */
-Fiber.initializeExtensions = function(object, options, list) {
-  var optionsList = val(options, {})[Fiber.Constants.extensions.optionsProperty]
-    , hasListInOptions = _.isArray(optionsList) || _.isString(optionsList);
+  Fiber.initializeExtensions = function(object, options, list) {
+    var optionsList = val(options, {})[Fiber.Constants.extensions.optionsProperty]
+      , hasListInOptions = _.isArray(optionsList) || _.isString(optionsList);
 
-  if (list) {
-    list = _.castArray(list);
-    if (hasListInOptions) list = list.concat(_.castArray(optionsList));
-  }
-  else {
-    if (hasListInOptions) list = _.castArray(optionsList);
-    else list = Fiber.fn.class.getExtensions(object);
-  }
+    if (list) {
+      list = _.castArray(list);
+      if (hasListInOptions) list = list.concat(_.castArray(optionsList));
+    }
+    else {
+      if (hasListInOptions) list = _.castArray(optionsList);
+      else list = Fiber.fn.class.getExtensions(object);
+    }
 
-  if (! list) return false;
+    if (! list) return false;
 
-  var initMethods = _.compact(Fiber.getExtensionInitMethod(list));
-  for (var i = 0; i < initMethods.length; i ++) {
-//    Fiber.fn.class.markExtensionState(object, '');
-    if (initMethods[i] === false) continue;
-    var method = Fiber.fn.class.resolveMethod(object, initMethods[i]);
-    if (method) method(options);
-  }
-};
+    var initMethodsMap = Fiber.getExtensionInitMethodMap(list)
+
+    for (var name in initMethodsMap) {
+      if (initMethodsMap[name] == null) continue;
+      var method = Fiber.fn.class.resolveMethod(object, initMethodsMap[name]);
+      if (method) method(options);
+    }
+  };
 
 /**
  * Returns all extensions
@@ -192,3 +202,9 @@ Fiber.logs = {
   debug: new Fiber.Log({level: Fiber.Constants.log.levels.debug}),
   system: new Fiber.Log({level: Fiber.Constants.log.levels.error})
 };
+
+/**
+ * Fiber Environment
+ * @type {Object.<Fiber.Bag>}
+ */
+Fiber.Env = new Fiber.Bag();

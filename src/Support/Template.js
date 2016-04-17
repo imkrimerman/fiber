@@ -9,7 +9,7 @@ Fiber.fn.template = {
    * @type {Function}
    * @private
    */
-  engine: _.template,
+  engine: Fiber.Constants.template.engine,
 
   /**
    * Templates string with given arguments
