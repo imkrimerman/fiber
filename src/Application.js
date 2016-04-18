@@ -58,7 +58,7 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
    * @param {Array} args
    */
   whenRouteExecute: function(composed, route) {
-    this.viewport.show(composed);
+    this.viewport.show(composed, route.get('layout'));
   },
 
   /**

@@ -17,4 +17,13 @@ Fiber.Viewport = Fiber.View.extend({
    */
   layout: null,
 
+  show: function(view, layout) {
+
+  },
+
+  close: function() {},
+
+  changeLayoutTo: function(layout) {},
+
+  changeViewTo: function(view) {},
 });
