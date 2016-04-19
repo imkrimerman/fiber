@@ -53,6 +53,7 @@ var _ = require('lodash')
       // Fiber components
       './src/Model.js',
       './src/Collection.js',
+      './src/ViewsManager.js',
       './src/View.js',
       './src/CollectionView.js',
       // Services
@@ -69,7 +70,7 @@ var _ = require('lodash')
       './src/Routing/MiddlewareCollection.js',
       './src/Routing/Router.js',
       // Layout
-      './src/Layout/Manager.js',
+      './src/Layout.js',
       // Application
       './src/Viewport.js',
       './src/Application.js',

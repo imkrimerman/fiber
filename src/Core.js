@@ -202,9 +202,3 @@ Fiber.logs = {
   debug: new Fiber.Log({level: Fiber.Constants.log.levels.debug}),
   system: new Fiber.Log({level: Fiber.Constants.log.levels.error})
 };
-
-/**
- * Fiber Environment
- * @type {Object.<Fiber.Bag>}
- */
-Fiber.Env = new Fiber.Bag();

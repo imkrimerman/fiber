@@ -31,6 +31,12 @@ Fiber.Layout = Fiber.View.extend({
     return this.getContentElement() instanceof Fiber.$;
   },
 
+  renderToContentElement: function(view) {
+    this.viewsManager.show(this.contentSelector, view);
+    this.linked.addView(view);
+    return this;
+  },
+
   __afterRender: function() {
     this.setContentElement(this.contentSelector);
     this.apply(this.__parent__, '__afterRender', arguments);

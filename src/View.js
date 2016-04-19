@@ -88,7 +88,6 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
       this.options = options;
       this.cid = _.uniqueId('view-');
       this.linked = new Fiber.LinkedViews();
-      this.viewsManager = new Fiber.ViewsManager();
       this.applyExtend(options);
       this.applyOwnProps();
       this.applyBinder();
@@ -97,6 +96,7 @@ Fiber.View = Fiber.fn.class.make(Backbone.View, [
       this.__handleEventsUi();
       this.__wrapRender();
       this._ensureElement();
+      this.viewsManager = new Fiber.ViewsManager(this.$el);
       this.initialize.apply(this, arguments);
       this.$el.data('fiber.view', this);
     },

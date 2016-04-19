@@ -13,14 +13,22 @@ Fiber.Bag = Fiber.Class.extend({
   __holderKey: Fiber.Constants.bag.holderKey,
 
   /**
+   * Properties keys that will be owned by the instance
+   * @type {Array|Function}
+   */
+  ownProps: ['__holderKey'],
+
+  /**
    * Constructs Bag
    * @param {Object} [storeable] - Items to set to the Bag
    */
   constructor: function(storeable) {
-    $OwnProps.applyMethod($OwnProps.getInitMethod(), ['__holderKey'], this);
+    $OwnProps.applyMethod($OwnProps.getInitMethod(), null, this);
 
     var holderKey = this.getHolderKey();
     if (! this.hasHolderKey()) this.setHolderKey(holderKey);
+
+    this.setHolder(holderKey, storeable);
 
     Fiber.fn.delegator.utilMixin('object', this, holderKey);
     Fiber.fn.apply(this, 'initialize', [arguments]);
