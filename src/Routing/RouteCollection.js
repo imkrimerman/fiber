@@ -23,11 +23,11 @@ Fiber.RouteCollection = RouterCollection.extend({
    * @param {?Object} [options={}]
    */
   set: function(models, options) {
-    options = val(options, {});
+    options = $val(options, {});
     var prepared = [];
 
     if (! options.remove) {
-      models = _.castArray(models);
+      models = $fn.castArr(models);
 
       for (var i = 0; i < models.length; i ++) {
         var model = models[i];

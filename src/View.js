@@ -3,7 +3,7 @@
  * @class
  * @extends {Backbone.View}
  */
-Fiber.View = fn.class.make(Backbone.View, [
+Fiber.View = $fn.class.make(Backbone.View, [
   'Extensions', 'Extend', 'OwnProps', 'Access', 'Binder', Fiber.Events, {
 
     /**
@@ -150,7 +150,7 @@ Fiber.View = fn.class.make(Backbone.View, [
      */
     renderTemplate: function(template, data) {
       data = this.makeTemplateData(data);
-      if (_.isString(template)) return fn.template.compile(template, data);
+      if (_.isString(template)) return $fn.template.compile(template, data);
       if (_.isFunction(template)) template = template(data);
       return template;
     },
@@ -339,7 +339,7 @@ Fiber.View = fn.class.make(Backbone.View, [
     callRender: function(render) {
       var result;
 
-      fn.fireCallCyclic(this, 'render', function() {
+      $fn.fireCallCyclic(this, 'render', function() {
         this.apply(this, '__beforeRender');
         result = render.call(this);
         this.apply(this, '__afterRender');
@@ -353,7 +353,7 @@ Fiber.View = fn.class.make(Backbone.View, [
      * Removes view
      */
     remove: function() {
-      fn.fireCallCyclic(this, 'remove', function() {
+      $fn.fireCallCyclic(this, 'remove', function() {
         this.apply(Backbone.View, 'remove', {fire: this});
       });
       this.__rendered = false;

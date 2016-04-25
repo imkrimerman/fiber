@@ -9,7 +9,7 @@ Fiber.fn.template = {
    * @type {Function}
    * @private
    */
-  engine: Const.template.engine,
+  engine: $Const.template.engine,
 
   /**
    * Fallback function that emulates template engine renderer
@@ -31,7 +31,7 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   prepare: function(template) {
-    var engine = fn.template.getEngine()
+    var engine = $fn.template.getEngine()
       // lets use all arguments and path them into the engine
       , prepared = engine.apply(engine, arguments);
     // adds static render function to the prepared template
@@ -47,8 +47,8 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   getEngine: function() {
-    var engine = fn.template.engine;
-    if (! engine) return fn.template.getFallback();
+    var engine = $fn.template.engine;
+    if (! engine) return $fn.template.getFallback();
     return engine;
   },
 
@@ -59,7 +59,7 @@ Fiber.fn.template = {
    */
   setEngine: function(engine) {
     if (! _.isFunction(engine)) return this;
-    fn.template.engine = engine;
+    $fn.template.engine = engine;
     return this;
   },
 
@@ -68,8 +68,8 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasEngine: function() {
-    var engine = fn.template.getEngine();
-    if (! engine || engine === fn.template.fallback) return false;
+    var engine = $fn.template.getEngine();
+    if (! engine || engine === $fn.template.fallback) return false;
     return true;
   },
 
@@ -83,10 +83,10 @@ Fiber.fn.template = {
       // Try to prepare `template` string in `_.template` function,
       // if it's not available then prepare it with function that will
       // return the same value that is used as the argument.
-      return _ && _.template ? _.template : fn.template.fallback;
+      return _ && _.template ? _.template : $fn.template.fallback;
     });
 
-    if (_.isError(result)) return fn.template.fallback;
+    if (_.isError(result)) return $fn.template.fallback;
     return result;
   },
 

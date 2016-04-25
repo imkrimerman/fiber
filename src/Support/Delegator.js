@@ -13,12 +13,12 @@ Fiber.fn.delegator = {
    * @returns {boolean}
    */
   alias: function(Class, method, alias, toProto) {
-    var castedAlias = _.castArray(alias);
-    var method = fn.class.resolveMethod(Class, method);
+    var castedAlias = $fn.castArr(alias);
+    var method = $fn.class.resolveMethod(Class, method);
     if (! method) return false;
     for (var i = 0; i < castedAlias.length; i ++) {
       var alias = castedAlias[i];
-      if (val(toProto, false) && Class.prototype) Class.prototype[alias] = method;
+      if ($val(toProto, false) && Class.prototype) Class.prototype[alias] = method;
       else Class[alias] = method;
     }
     return true;
@@ -34,26 +34,26 @@ Fiber.fn.delegator = {
   aliasMany: function(Class, aliases, toProto) {
     var result = [];
     for (var originalName in aliases) {
-      var aliasList = _.castArray(aliases[originalName]);
+      var aliasList = $fn.castArr(aliases[originalName]);
       result.push(_.every(aliasList, function(alias) {
-        return fn.delegator.alias(Class, originalName, alias, toProto);
+        return $fn.delegator.alias(Class, originalName, alias, toProto);
       }));
     }
-    return fn.inArrayAllSame(result);
+    return $fn.inArrayAllSame(result);
   },
 
   /**
    * Proxies function to the `scope`. If `scope` is string then
    * it will be dynamically resolve from the bound object
-   * @param {Function} fn
-   * @param {?Object|string} [scope=fn]
+   * @param {Function} method
+   * @param {?Object|string} [scope=method]
    * @returns {Function}
    */
-  proxy: function(fn, scope) {
-    fn.delegator.expectFnValid(fn);
+  proxy: function(method, scope) {
+    $fn.delegator.expectFn(method);
     return function() {
-      scope = _.isString(scope) ? this[scope] : val(scope, fn);
-      return fn.apply(scope, fn.argsConcat(this, arguments));
+      scope = _.isString(scope) ? this[scope] : $val(scope, method);
+      return method.apply(scope, $fn.argsConcat(this, arguments));
     };
   },
 
@@ -65,8 +65,8 @@ Fiber.fn.delegator = {
    * @returns {Function}
    */
   delegate: function(object, method, attribute) {
-    var fn = fn.class.resolveMethod(object, method);
-    return fn.delegator.proxy(fn, attribute);
+    var method = $fn.class.resolveMethod(object, method);
+    return $fn.delegator.proxy(method, attribute);
   },
 
   /**
@@ -77,15 +77,15 @@ Fiber.fn.delegator = {
    * @returns {Function}
    */
   proxyUtilMixin: function(method, attribute, num) {
-    num = val(num, false, _.isEmpty);
+    num = $val(num, false, _.isEmpty);
     return function() {
       var args = _.drop(arguments)
-        , fn = fn.class.resolveMethod(_, method);
+        , method = $fn.class.resolveMethod(_, method);
 
       attribute = _.isString(attribute) ? this[attribute] : this;
-      args = fn.argsConcatFlat(1, attribute, (num ? _.take(args, num) : args));
+      args = $fn.argsConcatFlat(1, attribute, (num ? _.take(args, num) : args));
 
-      if (_.isFunction(fn)) return fn.apply(_, args);
+      if (_.isFunction(method)) return method.apply(_, args);
     };
   },
 
@@ -106,7 +106,7 @@ Fiber.fn.delegator = {
 
       if (_.isArray(len)) zip = _.zipObject(['name', 'len'], len);
       if (! _[method]) continue;
-      object.prototype[zip.name] = fn.delegator.proxyUtilMixin(method, attribute, zip.len);
+      object.prototype[zip.name] = $fn.delegator.proxyUtilMixin(method, attribute, zip.len);
     }
 
     return this;
@@ -130,22 +130,22 @@ Fiber.fn.delegator = {
    * @returns {Object|null|*}
    */
   getUtilMixin: function(mixin, defaults) {
-    return this.utils[mixin] || val(defaults, null);
+    return this.utils[mixin] || $val(defaults, null);
   },
 
   /**
-   * Expects that `fn` is valid function, otherwise logs error and throws Exception
-   * @param {*} fn
-   * @param {?string} [method]
+   * Expects that `method` is a valid function, otherwise logs error and throws Exception
+   * @param {?string|Function} [method]
    * @param {?Object} [object]
    */
-  expectFnValid: function(fn, method, object) {
-    method = val(method, '', _.isString);
+  expectFn: function(method, object) {
+    if (_.isFunction(method)) return;
+    method = $val(method, '', _.isString);
     var args = ['Can\'t proxy method ' + (method ? ' ' + method : method) +
                 ', method is not available in the given object'];
 
     if (object) args.push(object);
-    if (! _.isFunction(fn)) Fiber.internal.log.errorThrow.apply(Fiber.internal.log, args);
+    if (! _.isFunction(method)) $Log.errorThrow.apply($Log, args);
   },
 
   /**

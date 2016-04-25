@@ -1,4 +1,4 @@
-Fiber.Router = fn.class.createWithExtensions([
+Fiber.Router = $fn.class.createWithExtensions([
   _.omit(Backbone.Router.prototype, ['routes', '_bindRoutes']), {
 
     /**
@@ -40,11 +40,11 @@ Fiber.Router = fn.class.createWithExtensions([
      * @param {?Object} [options={}]
      */
     constructor: function(options) {
-      options = fn.class.handleOptions(this, options);
-      fn.extensions.init(this, options);
+      options = $fn.class.handleOptions(this, options);
+      $fn.extensions.init(this, options);
       this.createCollections(options);
       this.bindRoutes();
-      fn.apply(this, 'initialize', [arguments]);
+      $fn.apply(this, 'initialize', [arguments]);
     },
 
     /**
@@ -53,7 +53,7 @@ Fiber.Router = fn.class.createWithExtensions([
      * @return {Fiber.Router}
      */
     createCollections: function(options) {
-      options = val(options, {}, _.isPlainObject);
+      options = $val(options, {}, _.isPlainObject);
       for (var collectionKey in this.collections) {
         var Collection = this.collections[collectionKey]
           , data = this.prepareCollectionData(options[collectionKey]);
@@ -80,7 +80,7 @@ Fiber.Router = fn.class.createWithExtensions([
      */
     execute: function(route, args) {
       var params = [route, args], result = true;
-      fn.fireCallCyclic(this, 'execute', function() {
+      $fn.fireCallCyclic(this, 'execute', function() {
         if (! this.executeRoute.apply(this, arguments)) result = false;
       }, {fire: params, invoke: params, callback: arguments});
       return result;

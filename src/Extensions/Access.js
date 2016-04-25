@@ -63,7 +63,7 @@ var $Access = new Fiber.Extension('Access', {
 /**
  * Register Extension
  */
-fn.extensions.register($Access);
+$fn.extensions.register($Access);
 
 /**
  * Add access mixin to the Fiber

@@ -2,7 +2,7 @@
  * Fiber support function
  * @type {Object}
  */
-var fn = Fiber.fn = {
+$fn = Fiber.fn = {
 
   /**
    * List of properties to exclude when mixin functions to Class prototype
@@ -22,8 +22,8 @@ var fn = Fiber.fn = {
    * @returns {Object|null}
    */
   module: function(alias) {
-    if (! alias || ! fn.hasOwnProperty(alias)) return null;
-    return fn[alias];
+    if (! alias || ! $fn.hasOwnProperty(alias)) return null;
+    return $fn[alias];
   },
 
   /**
@@ -38,11 +38,11 @@ var fn = Fiber.fn = {
    */
   val: function(value, defaults, checker, match) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
-    defaults = arguments.length > 1 ? defaults : fn.notDefined;
+    defaults = arguments.length > 1 ? defaults : $fn.notDefined;
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
     // if value check was made and it's not valid then return `defaults`
-    if (! fn.valCheck(value, checker, match)) return defaults;
+    if (! $fn.valCheck(value, checker, match)) return defaults;
     // if value not specified return defaults, otherwise return value;
     return value != null ? value : defaults;
   },
@@ -58,7 +58,7 @@ var fn = Fiber.fn = {
     match = _.isString(match) ? match : 'every';
     // if value and checker is specified then use it to additionally check value
     if (! _.isArray(checkers) && ! _.isFunction(checkers)) return true;
-    return _[match](_.castArray(checkers), function(check) {
+    return _[match]($fn.castArr(checkers), function(check) {
       if (_.isFunction(check) && value != null) {
         // if `check` returns true then we are good
         if (check(value)) return true;
@@ -78,14 +78,14 @@ var fn = Fiber.fn = {
    * @returns {*}
    */
   valCb: function(value, defaults, cb, checker, match) {
-    return val(cb, _.noop, _.isFunction)(val(value, defaults, checker, match));
+    return $val(cb, _.noop, _.isFunction)($val(value, defaults, checker, match));
   },
 
   /**
    * Applies `val` checker function and extends checked value with `extender` if allowed.
    * @param {*} value - value to check
    * @param {Object} extender - object to extend with
-   * @param {?Function|string} [fn=_.extend] - function to use to merge the objects (can be lodash method name or
+   * @param {?Function|string} [method=_.extend] - function to use to merge the objects (can be lodash method name or
    * function)
    * @param {?Function} [checker] - function to call to check validity
    * @param {?string} [match='every'] - function to use ('every', 'some')
@@ -93,15 +93,15 @@ var fn = Fiber.fn = {
    * otherwise creates new object and merges checked value with extender
    * @returns {Object|Function}
    */
-  valMerge: function(value, extender, fn, checker, match, toOwn) {
-    fn = val(fn, _.extend, [_.isFunction, _.isString], 'some');
-    if (_.isString(fn) && _.has(_, fn)) fn = _[fn];
-    if (! val.isDef(checker)) checker = _.isPlainObject;
-    toOwn = val(toOwn, false, _.isBoolean);
-    return fn.valCb(value, {}, function(checked) {
+  valMerge: function(value, extender, method, checker, match, toOwn) {
+    method = $val(method, _.extend, [_.isFunction, _.isString], 'some');
+    if (_.isString(method) && _.has(_, method)) method = _[method];
+    if (! $val.isDef(checker)) checker = _.isPlainObject;
+    toOwn = $val(toOwn, false, _.isBoolean);
+    return $fn.valCb(value, {}, function(checked) {
       var args = toOwn ? [checked, extender] : [{}, checked, extender];
-      if (! fn.isExtendable(args)) return checked;
-      return fn.apply(_, args);
+      if (! $fn.isExtendable(args)) return checked;
+      return method.apply(_, args);
     }, checker, match);
   },
 
@@ -114,9 +114,9 @@ var fn = Fiber.fn = {
     if (arguments.length > 1) array = _.toArray(arguments);
     if (! _.isArray(array)) return array;
     array = _.compact(array);
-    if (fn.isArrayOf(array, 'array'))
+    if ($fn.isArrayOf(array, 'array'))
       return _.flattenDeep(array);
-    else if (fn.isArrayOf(array, 'object'))
+    else if ($fn.isArrayOf(array, 'object'))
       return _.extend.apply(_, [{}].concat(array));
     return array;
   },
@@ -130,10 +130,10 @@ var fn = Fiber.fn = {
    * @returns {*}
    */
   apply: function(Class, method, args, scope) {
-    scope = val(scope, Class, _.isObject);
-    var method = fn.class.getMethod(Class, method);
-    if (val(args) === val.notDefined) args = [];
-    else args = ! _.isArguments(args) ? _.castArray(args) : args;
+    scope = $val(scope, Class, _.isObject);
+    var method = $fn.class.getMethod(Class, method);
+    if ($val(args) === $val.notDefined) args = [];
+    else args = ! _.isArguments(args) ? $fn.castArr(args) : args;
     if (_.isFunction(method)) return method.apply(scope, args);
   },
 
@@ -145,7 +145,7 @@ var fn = Fiber.fn = {
    * @returns {*}
    */
   applyFn: function(fn, args, scope) {
-    return fn.apply({fn: fn}, 'fn', args, scope);
+    return fn.apply({fn: fn}, '$fn', args, scope);
   },
 
   /**
@@ -157,9 +157,9 @@ var fn = Fiber.fn = {
    * @return {*}
    */
   fireCall: function(Class, event, args, prepare) {
-    if (val(prepare, true)) args = fn.prepareCallArgs(args, {fire: [], call: []});
-    var result = fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
-    fn.apply(Class, 'fire', [event].concat(args.fire));
+    if ($val(prepare, true)) args = $fn.prepareCallArgs(args, {fire: [], call: []});
+    var result = $fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
+    $fn.apply(Class, 'fire', [event].concat(args.fire));
     return result;
   },
 
@@ -173,8 +173,8 @@ var fn = Fiber.fn = {
    * @return {*}
    */
   fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
-    args = fn.prepareCallArgs(args, {fire: [], call: [], callback: []})
-    lifeCycle = val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
+    args = $fn.prepareCallArgs(args, {fire: [], call: [], callback: []})
+    lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
 
     var result;
 
@@ -183,7 +183,7 @@ var fn = Fiber.fn = {
         , nowEvent = now[now.length - 1] === ':' ? now + event : now + ':' + event;
 
       if (now === '@callback' && _.isFunction(callback)) result = callback.apply(Class, args.callback);
-      else fn.fireCall(Class, nowEvent, args, false);
+      else $fn.fireCall(Class, nowEvent, args, false);
     }
 
     return result;
@@ -210,10 +210,10 @@ var fn = Fiber.fn = {
    * @returns {*|Object|stream}
    */
   prepareCallArgs: function(args, defaults) {
-    var prepared = _.extend({}, defaults || {}, val(args, {}, _.isPlainObject));
-    return fn.transform(prepared, function(val) {
+    var prepared = _.extend({}, defaults || {}, $val(args, {}, _.isPlainObject));
+    return $fn.transform(prepared, function(val) {
       if (_.isArguments(val)) return val;
-      return _.castArray(val);
+      return $fn.castArr(val);
     });
   },
 
@@ -230,14 +230,14 @@ var fn = Fiber.fn = {
 
     function bindFn(mixin) {
       if (! _.isFunction(mixin)) return mixin;
-      return _.bind.apply(_, [mixin, thisArg].concat(val(partials, [])));
+      return _.bind.apply(_, [mixin, thisArg].concat($val(partials, [])));
     };
 
-    mixins = _.castArray(mixins);
+    mixins = $fn.castArr(mixins);
 
     for (var i = 0; i < mixins.length; i ++) {
       if (_.isPlainObject(mixins[i]) || _.isArray(mixins[i]))
-        mixins[i] = fn.transform(_.clone(mixins[i]), bindFn);
+        mixins[i] = $fn.transform(_.clone(mixins[i]), bindFn);
       else mixins[i] = bindFn(mixins[i]);
     }
 
@@ -251,7 +251,7 @@ var fn = Fiber.fn = {
    * @returns {Object}
    */
   transform: function(object, iteratee, thisArg) {
-    thisArg = val(thisArg, object);
+    thisArg = $val(thisArg, object);
     for (var key in object)
       object[key] = iteratee.call(thisArg, object[key], key, object);
     return object;
@@ -265,14 +265,14 @@ var fn = Fiber.fn = {
    * @returns {boolean}
    */
   globalize: function(key, value, force) {
-    if (! Const.allowGlobals) {
-      Fiber.internal.log.info(key + ' will not be globalized. Global variables are not allowed.')
+    if (! $Const.allowGlobals) {
+      $Log.info(key + ' will not be globalized. Global variables are not allowed.')
       return false;
     }
 
     var hasKey = root && _.has(root, key) || false;
 
-    if ((hasKey && val(force, false, _.isBoolean)) || ! hasKey) {
+    if ((hasKey && $val(force, false, _.isBoolean)) || ! hasKey) {
       root[key] = value;
       return true;
     }
@@ -288,7 +288,7 @@ var fn = Fiber.fn = {
    * @returns {*|boolean}
    */
   isArrayOf: function(array, of, method) {
-    method = val(method, 'every', _.isString);
+    method = $val(method, 'every', _.isString);
     return _.isArray(array) && _[method](array, _['is' + _.capitalize(of)]);
   },
 
@@ -313,7 +313,7 @@ var fn = Fiber.fn = {
     var args = _.toArray(arguments);
     for (var i = 0; i < args.length; i ++)
       if (_.isArguments(args[i])) args[i] = _.toArray(args[i]);
-    return js.arr.concat.apply([], args);
+    return $JS.arr.concat.apply([], args);
   },
 
   /**
@@ -324,8 +324,8 @@ var fn = Fiber.fn = {
    * @returns {Array}
    */
   argsConcatFlat: function(level) {
-    var concatenated = fn.argsConcat.apply(fn, _.drop(arguments));
-    return _.flattenDepth(concatenated, val(level, 1, _.isNumber));
+    var concatenated = $fn.argsConcat.apply($fn, _.drop(arguments));
+    return _.flattenDepth(concatenated, $val(level, 1, _.isNumber));
   },
 
   /**
@@ -336,8 +336,8 @@ var fn = Fiber.fn = {
    * @returns {Array}
    */
   concat: function() {
-    var makeUnique = val(_.last(arguments), true, _.isBoolean);
-    var args = js.arr.concat.apply([], _.toArray(arguments).map(_.castArray));
+    var makeUnique = $val(_.last(arguments), true, _.isBoolean);
+    var args = $JS.arr.concat.apply([], _.toArray(arguments).map($fn.castArr));
     return makeUnique ? _.uniq(args) : args;
   },
 
@@ -347,7 +347,7 @@ var fn = Fiber.fn = {
    * @returns {Object}
    */
   proto: function(exclude) {
-    return _.omit(fn, fn.protoExclude.concat(val(exclude, [], _.isArray)));
+    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], _.isArray)));
   },
 
   /**
@@ -372,21 +372,21 @@ var fn = Fiber.fn = {
   },
 
   /**
-   * Gets value by the given `fn` key.
-   * If `scope` is provided, then value will be retrieved from `scope` by `fn` property and reset to `fn`
-   * If `fn` value is function then it will be called with `args`.
-   * @param {string|Function|*} fn
+   * Gets value by the given `method` key.
+   * If `scope` is provided, then value will be retrieved from `scope` by `method` property and reset to `method`
+   * If `method` value is function then it will be called with `args`.
+   * @param {string|Function|*} method
    * @param {?Object} [scope]
    * @param {?boolean} [own=false]
    * @param {?Array} [args=[]]
    * @returns {*}
    */
-  result: function(fn, scope, own, defaults) {
-    var inScope = val(scope, false, _.isObject);
-    own = val(own, false, _.isBoolean);
-    if (inScope) fn = own ? _.get(scope, fn, null) : scope[fn];
-    if (_.isFunction(fn)) fn = inScope && fn.apply(scope) || (fn.apply(fn));
-    return val(fn, defaults, _.negate(_.isUndefined));
+  result: function(method, scope, own, defaults) {
+    var inScope = $val(scope, false, _.isObject);
+    own = $val(own, false, _.isBoolean);
+    if (inScope) method = own ? _.get(scope, method, null) : scope[method];
+    if (_.isFunction(method)) method = inScope && method.apply(scope) || (method.apply(method));
+    return $val(method, defaults, _.negate(_.isUndefined));
   },
 
   /**
@@ -397,7 +397,7 @@ var fn = Fiber.fn = {
    */
   isExtendable: function(object) {
     if (arguments.length > 1) object = _.toArray(arguments);
-    return _.every(_.castArray(object), function(one) {
+    return _.every($fn.castArr(object), function(one) {
       return _.isObject(one) && (_.isFunction(one.extend) || _.isPlainObject(one));
     });
   },
@@ -457,9 +457,9 @@ var fn = Fiber.fn = {
    * @returns {*|Object}
    */
   copyProps: function(destination, source, props, deep) {
-    var fn = val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
+    var method = $val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
     for (var i = 0; i < props.length; i ++) if (_.has(source, props[i]))
-      destination[props[i]] = _[fn](source[props[i]]);
+      destination[props[i]] = _[method](source[props[i]]);
     return destination;
   },
 
@@ -469,7 +469,7 @@ var fn = Fiber.fn = {
    * @returns {Array}
    */
   castArr: function(object) {
-    return _.castArray(object);
+    return _.isArray(object) ? object : [object];
   },
 
   /**
@@ -490,6 +490,32 @@ var fn = Fiber.fn = {
   getFileName: function() {
     return location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
   },
+
+  /**
+   * Loads script into the document
+   * @param {string} src
+   * @param {?Function} [cb]
+   */
+  loadScript: function(src, cb) {
+    cb = $val(cb, _.noop, _.isFunction);
+
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = src;
+
+    if (script.readyState) {
+      script.onreadystatechange = function () {
+        var state = this.readyState;
+        if (state === 'loaded' || state === 'complete') {
+          script.onreadystatechange = null;
+          cb();
+        }
+      };
+    } else script.onload = cb;
+
+    document.getElementsByTagName('head')[0].appendChild(script);
+  },
+
 };
 
 /**
@@ -497,7 +523,7 @@ var fn = Fiber.fn = {
  * @type {string}
  * @static
  */
-fn.val.notDefined = fn.notDefined;
+$fn.val.notDefined = $fn.notDefined;
 
 /**
  * Checks if value is defined
@@ -505,62 +531,19 @@ fn.val.notDefined = fn.notDefined;
  * @returns {boolean}
  * @static
  */
-fn.val.isDef = function(value) {
+$fn.val.isDef = function(value) {
   if (! arguments.length) return false;
-  return fn.val(value) !== fn.notDefined;
+  return $fn.val(value) !== $fn.notDefined;
 };
 
 /**
  * @inheritDoc
  * @type {Fiber.fn.val}
  */
-var val = fn.val
+$val = $fn.val;
 
 /**
  * @inheritDoc
  * @type {Fiber.fn.valMerge}
  */
-, valMerge = fn.valMerge
-
-/**
- * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
- * @type {_.each|*|(function((Array|Object), Function=): (Array|Object))}
- */
-, each = _.each
-
-/**
- * Caches Backbone trigger method
- * @type {Function}
- */
-, trigger = Backbone.trigger;
-
-/**
- * Add alias for `some` function
- */
-_.mixin({any: _.some});
-
-/**
- * Adds backward compatibility for lodash `each` method
- * @param {Array|Object} collection
- * @param {Function} iteratee
- * @param {?Object} [scope]
- * @returns {*}
- */
-_.each = _.forEach = function(collection, iteratee, scope) {
-  if (scope) iteratee = _.bind(iteratee, scope);
-  return each(collection, iteratee);
-};
-
-/**
- * Replaces Backbone trigger method to give ability to listen to event without actual object to listen on
- * @param {string} name
- * @param {...args}
- * @returns {Backbone}
- */
-Backbone.trigger = function(name) {
-  var args = _.toArray(arguments);
-  if (arguments[1] !== this) args.splice(1, 0, this);
-  trigger.apply(Const.events.system, args);
-  trigger.apply(this, arguments);
-  return this;
-};
+$valMerge = $fn.valMerge;

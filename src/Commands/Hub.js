@@ -2,7 +2,7 @@
  * Fiber Command Hub
  * @class
  */
-Fiber.Commands.Hub = fn.class.createWithExtensions({
+Fiber.Commands.Hub = $fn.class.createWithExtensions({
 
   /**
    * Commands Registry
@@ -27,7 +27,7 @@ Fiber.Commands.Hub = fn.class.createWithExtensions({
    * @param {?Object} [options={}]
    */
   constructor: function(options) {
-    options = val(options, {}, _.isPlainObject);
+    options = $val(options, {}, _.isPlainObject);
     this.createRegistry(options.commands);
     this.__parent__.apply(this, arguments);
   },
@@ -39,7 +39,7 @@ Fiber.Commands.Hub = fn.class.createWithExtensions({
    * @returns {Fiber.Commands.Hub}
    */
   link: function(name, command, handler) {
-    this.registry.add({name: name, command: command, handler: val(handler, null)});
+    this.registry.add({name: name, command: command, handler: $val(handler, null)});
     return this;
   },
 
@@ -70,14 +70,14 @@ Fiber.Commands.Hub = fn.class.createWithExtensions({
       // if is function then just call it with `command` and return
       if (_.isFunction(Handler)) return Handler(command);
       // if is Class constructor
-      if (fn.class.is(Handler)) {
+      if ($fn.class.is(Handler)) {
         // then let's instantiate new Handler with `command` as argument
         handler = new Handler(command);
         // and trigger handle method on command
         return handler.handle(command, this);
       }
     }
-    return Fiber.internal.log.errorReturn('Can\'t execute command', command, this);
+    return $Log.errorReturn('Can\'t execute command', command, this);
   },
 
   /**
@@ -87,6 +87,6 @@ Fiber.Commands.Hub = fn.class.createWithExtensions({
    * @returns {Backbone.Collection|e.Collection|*}
    */
   createRegistry: function(models, options) {
-    return this.registry = new Fiber.Commands.Registry(val(models, [], _.isArray), options);
+    return this.registry = new Fiber.Commands.Registry($val(models, [], _.isArray), options);
   }
 });

@@ -24,10 +24,10 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
    */
   applyOwnProps: function(props, merge) {
     var appliedNew = [];
-    merge = val(merge, true, _.isBoolean);
+    merge = $val(merge, true, _.isBoolean);
 
     var hasProps = _.result(this, 'ownProps', [])
-      , givenProps = val(props, [], [_.isArray, _.isFunction], 'some');
+      , givenProps = $val(props, [], [_.isArray, _.isFunction], 'some');
 
     if (_.isFunction(givenProps)) givenProps = givenProps();
     if (merge) givenProps = hasProps.concat(givenProps);
@@ -59,4 +59,4 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 /**
  * Register Extension
  */
-fn.extensions.register($OwnProps);
+$fn.extensions.register($OwnProps);

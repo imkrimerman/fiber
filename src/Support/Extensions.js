@@ -25,11 +25,11 @@ Fiber.fn.extensions = {
   get: function(alias, retrieveCode) {
     if (! Fiber.has('container')) return alias;
 
-    if (_.isArray(alias)) return _.map(_.castArray(alias), function(one) {
-      return fn.extensions.get(one, retrieveCode);
+    if (_.isArray(alias)) return _.map($fn.castArr(alias), function(one) {
+      return $fn.extensions.get(one, retrieveCode);
     });
 
-    var method = val(retrieveCode, true, _.isBoolean) ? 'getCodeCapsule' : null;
+    var method = $val(retrieveCode, true, _.isBoolean) ? 'getCodeCapsule' : null;
 
     if (! _.isString(alias)) return alias;
     if (! Fiber.has('container')) return null;
@@ -37,7 +37,7 @@ Fiber.fn.extensions = {
     var retrieved = this.__access().get(alias, null);
 
     if (! retrieved) return null;
-    return _.isString(alias) ? fn.extensions.mapCall(retrieved, method, true) : alias;
+    return _.isString(alias) ? $fn.extensions.mapCall(retrieved, method, true) : alias;
   },
 
   /**
@@ -52,11 +52,11 @@ Fiber.fn.extensions = {
     if (_.isPlainObject(alias)) _.each(alias, function(oneExt, oneExtAlias) {
       // Allow passing multiple extensions `{'name': extension}`,
       // `override` will go next instead of `extension` argument
-      fn.extensions.set(oneExtAlias, oneExt, extension);
+      $fn.extensions.set(oneExtAlias, oneExt, extension);
     });
     else {
-      if (fn.extensions.has(alias) && ! val(override, false)) return this;
-      if (fn.extensions.isNot(extension)) extension = new Fiber.Extension(extension);
+      if ($fn.extensions.has(alias) && ! $val(override, false)) return this;
+      if ($fn.extensions.isNot(extension)) extension = new Fiber.Extension(extension);
       extension.name = alias;
       this.__access().set(alias, extension);
     }
@@ -71,9 +71,9 @@ Fiber.fn.extensions = {
    */
   has: function(alias, method) {
     if (! Fiber.has('container')) return false;
-    method = val(method, 'every', _.isString);
+    method = $val(method, 'every', _.isString);
     if (_.isArray(alias)) return _[method](alias, function(one) {
-      return fn.extensions.has(one);
+      return $fn.extensions.has(one);
     });
     return this.__access().has(alias);
   },
@@ -106,8 +106,8 @@ Fiber.fn.extensions = {
    * @returns {Object}
    */
   omit: function(exclude) {
-    var extensions = fn.extensions.all();
-    exclude = _.castArray(val(exclude, []));
+    var extensions = $fn.extensions.all();
+    exclude = $fn.castArr($val(exclude, []));
     return _.isEmpty(exclude) ? extensions : _.omit(extensions, exclude);
   },
 
@@ -118,8 +118,8 @@ Fiber.fn.extensions = {
    * @returns {Object|Array}
    */
   list: function(asObj, exclude) {
-    var extensions = fn.extensions.omit(exclude);
-    return val(asObj, false, _.isBoolean) ? extensions : _.values(extensions);
+    var extensions = $fn.extensions.omit(exclude);
+    return $val(asObj, false, _.isBoolean) ? extensions : _.values(extensions);
   },
 
   /**
@@ -131,7 +131,7 @@ Fiber.fn.extensions = {
    * @returns {*}
    */
   call: function(extension, method, args, scope) {
-    return fn.apply(extension, method, args, scope);
+    return $fn.apply(extension, method, args, scope);
   },
 
   /**
@@ -143,11 +143,11 @@ Fiber.fn.extensions = {
    * @returns {Fiber}
    */
   apply: function(alias, object, options) {
-    var extension = fn.extensions.get(alias);
+    var extension = $fn.extensions.get(alias);
     if (! extension) return this;
-    fn.class.include(object, extension, options.override);
-    fn.extensions.setIncluded(object, alias);
-    fn.extensions.init(object, options);
+    $fn.class.include(object, extension, options.override);
+    $fn.extensions.setIncluded(object, alias);
+    $fn.extensions.init(object, options);
     return this;
   },
 
@@ -161,14 +161,14 @@ Fiber.fn.extensions = {
    */
   init: function(object, options) {
     var defaultOpts = {override: false, list: [], args: {}};
-    options = valMerge(options, defaultOpts, 'defaults');
+    options = $valMerge(options, defaultOpts, 'defaults');
 
-    if (_.isEmpty(options.list)) options.list = fn.extensions.getIncluded(object) || [];
-    var initMethodsMap = _.zipObject(options.list, fn.extensions.mapCall(options.list, 'getInitMethod'));
+    if (_.isEmpty(options.list)) options.list = $fn.extensions.getIncluded(object) || [];
+    var initMethodsMap = _.zipObject(options.list, $fn.extensions.mapCall(options.list, 'getInitMethod'));
 
     for (var name in initMethodsMap) {
       if (! initMethodsMap[name]) continue;
-      var method = fn.class.resolveMethod(object, initMethodsMap[name]);
+      var method = $fn.class.resolveMethod(object, initMethodsMap[name]);
       if (_.isFunction(method)) method(options.args[name]);
     }
   },
@@ -183,12 +183,12 @@ Fiber.fn.extensions = {
   detect: function(object, returnExtensions) {
     if (! _.isObject(object)) return [];
     var detected = [];
-    returnExtensions = val(returnExtensions, false, _.isBoolean);
-    _.each(fn.extensions.all(), function(extension, key) {
+    returnExtensions = $val(returnExtensions, false, _.isBoolean);
+    _.each($fn.extensions.all(), function(extension, key) {
       var extensionProps = _.keys(extension.getCodeCapsule());
-      if (fn.expectHasAllProps(object, extensionProps)) {
+      if ($fn.expectHasAllProps(object, extensionProps)) {
         if (! returnExtensions) return detected.push(key);
-        detected.push(fn.extensions.get(key));
+        detected.push($fn.extensions.get(key));
       }
     });
     return detected;
@@ -204,7 +204,7 @@ Fiber.fn.extensions = {
    */
   makeCall: function(alias, method, args, scope) {
     var extension = Fiber.getExtension(alias, false)
-      , result = fn.extensions.mapCall(extension, method, false, args, scope);
+      , result = $fn.extensions.mapCall(extension, method, false, args, scope);
     return _.isArray(extension) ? result : _.first(result);
   },
 
@@ -219,10 +219,10 @@ Fiber.fn.extensions = {
    * @returns {Array}
    */
   mapCall: function(extension, method, first, args, scope) {
-    var casted = _.castArray(extension)
-      , boundCall = _.unary(_.partialRight(fn.extensions.call, method, args, scope));
+    var casted = $fn.castArr(extension)
+      , boundCall = _.unary(_.partialRight($fn.extensions.call, method, args, scope));
 
-    first = val(first, false);
+    first = $val(first, false);
     if (method) casted = casted.map(boundCall);
     return first ? _.first(casted) : casted;
   },
@@ -233,7 +233,7 @@ Fiber.fn.extensions = {
    * @returns {string|Array}
    */
   getName: function(alias) {
-    return fn.extensions.makeCall(alias, 'getName');
+    return $fn.extensions.makeCall(alias, 'getName');
   },
 
   /**
@@ -242,7 +242,7 @@ Fiber.fn.extensions = {
    * @returns {Object|Array.<Object>}
    */
   getCodeCapsule: function(alias) {
-    return fn.extensions.makeCall(alias, 'getCodeCapsule');
+    return $fn.extensions.makeCall(alias, 'getCodeCapsule');
   },
 
   /**
@@ -251,7 +251,7 @@ Fiber.fn.extensions = {
    * @returns {Object|Array.<Object>}
    */
   getInitMethod: function(alias) {
-    return fn.extensions.makeCall(alias, 'getInitMethod');
+    return $fn.extensions.makeCall(alias, 'getInitMethod');
   },
 
   /**
@@ -261,7 +261,7 @@ Fiber.fn.extensions = {
    * @returns {Object|Array.<Object>}
    */
   getInitMethodMap: function(aliases) {
-    return _.zipObject(aliases, fn.extensions.getInitMethod(aliases));
+    return _.zipObject(aliases, $fn.extensions.getInitMethod(aliases));
   },
 
   /**
@@ -270,7 +270,7 @@ Fiber.fn.extensions = {
    * @returns {Array|void}
    */
   getIncluded: function(object) {
-    return object[Const.extensions.private];
+    return object[$Const.extensions.private];
   },
 
   /**
@@ -281,11 +281,11 @@ Fiber.fn.extensions = {
    * @returns {*}
    */
   setIncluded: function(object, list, reset) {
-    var hoistingKey = Const.extensions.hoisting
-      , extensionKey = Const.extensions.private;
-    if (fn.class.is(object)) object[hoistingKey] = fn.concat(extensionKey, object[hoistingKey] || []);
+    var hoistingKey = $Const.extensions.hoisting
+      , extensionKey = $Const.extensions.private;
+    if ($fn.class.is(object)) object[hoistingKey] = $fn.concat(extensionKey, object[hoistingKey] || []);
     if (reset || ! _.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
-    return object[extensionKey] = fn.concat(object[extensionKey], list);
+    return object[extensionKey] = $fn.concat(object[extensionKey], list);
   },
 
   /**
@@ -296,10 +296,10 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   hasIncluded: function(object, list, match) {
-    var key = Const.extensions.private
-      , fn = val(match, 'every', fn.createIncludes(['every', 'some']));
+    var key = $Const.extensions.private
+      , method = $val(match, 'every', $fn.createIncludes(['every', 'some']));
     if (! _.has(object, key) || ! _.isArray(object[key])) return false;
-    return _[fn](function(one) { return ~list.indexOf(one); });
+    return _[method](function(one) { return ~list.indexOf(one); });
   },
 
   /**
@@ -311,15 +311,15 @@ Fiber.fn.extensions = {
     if (arguments.length > 1) {
       var args = _.compact(_.toArray(arguments)), result = [];
       for (var i = 0; i < args.length; i ++)
-        result = result.concat(fn.extensions.findIncluded(args[i]));
-      return fn.concat.apply(null, result);
+        result = result.concat($fn.extensions.findIncluded(args[i]));
+      return $fn.concat.apply(null, result);
     }
 
     if (! _.isObject(object)) return [];
     var found = [];
-    _.each(_.castArray(object), function(obj) {
+    _.each($fn.castArr(object), function(obj) {
       if (_.isString(obj)) found.push(obj);
-      else if (fn.extensions.is(obj)) found.push(obj.getName());
+      else if ($fn.extensions.is(obj)) found.push(obj.getName());
     });
     return found;
   },
@@ -339,7 +339,7 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   unregister: function(alias) {
-    if (fn.extensions.is(Fiber.Extension)) alias = alias.getName();
+    if ($fn.extensions.is(Fiber.Extension)) alias = alias.getName();
     if (! _.isString(alias)) return false;
     _.unset(this.__registry, alias);
     return true;
@@ -360,7 +360,7 @@ Fiber.fn.extensions = {
    * @returns {Fiber.fn.extensions}
    */
   setRegistry: function(registry) {
-    this.__registry = val(registry, this.__registry, _.isPlainObject);
+    this.__registry = $val(registry, this.__registry, _.isPlainObject);
     return this;
   },
 
@@ -397,7 +397,7 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   isClass: function(extension) {
-    return fn.class.is(extension) && fn.extensions.is(extension.prototype);
+    return $fn.class.is(extension) && $fn.extensions.is(extension.prototype);
   },
 
   /**
@@ -406,7 +406,7 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   isNot: function(extension) {
-    return ! fn.extensions.is(extension);
+    return ! $fn.extensions.is(extension);
   },
 
   /**
@@ -415,6 +415,6 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   isNotClass: function(extension) {
-    return ! fn.extensions.is(extension);
+    return ! $fn.extensions.is(extension);
   }
 };

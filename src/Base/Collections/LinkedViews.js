@@ -122,7 +122,7 @@ Fiber.LinkedViews = Collection.extend({
    * @returns {Fiber.LinkedViews}
    */
   startListeningToView: function(view, event) {
-    event = val(event, 'all', _.isString);
+    event = $val(event, 'all', _.isString);
     if (this.listenToViews) this.listenTo(view, event, this.allEventsHandler.bind(this));
     return this;
   },
@@ -134,7 +134,7 @@ Fiber.LinkedViews = Collection.extend({
    * @returns {Fiber.LinkedViews}
    */
   stopListeningToView: function(view, event) {
-    event = val(event, 'all', _.isString);
+    event = $val(event, 'all', _.isString);
     if (this.listenToViews) this.stopListening(view, event, this.allEventsHandler.bind(this));
     return this;
   }

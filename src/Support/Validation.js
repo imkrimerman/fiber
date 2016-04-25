@@ -30,8 +30,8 @@ Fiber.fn.validation = {
     // if model doesn't have any rules, then we are okey to return true
     if (_.isEmpty(rules)) return true;
     // otherwise ensure arguments have default values
-    options = val(options, {});
-    attributes = val(attributes, model.attributes);
+    options = $val(options, {});
+    attributes = $val(attributes, model.attributes);
     // If attributes are empty, then we are okey to return true
     if (_.isEmpty(attributes)) return true;
 
@@ -65,12 +65,12 @@ Fiber.fn.validation = {
         else if (_.isArray(rule.validators)) validators = rule.validators;
         // And If is string, then try to resolve validation method from model
         else if (_.isString(rule.validators) && model[rule.validators])
-          validators.push(fn.class.resolveMethod(model, rule.validators));
+          validators.push($fn.class.resolveMethod(model, rule.validators));
 
         // validation runner to support recursive validators grouping
         var runValidation = function(validators) {
           return _[rule.match](validators, function(validator) {
-            if (_.isString(validator)) validator = fn.class.resolveMethod(model, validator);
+            if (_.isString(validator)) validator = $fn.class.resolveMethod(model, validator);
             if (_.isFunction(validator)) return validator(attribute, rule, model, options);
             if (_.isArray(validator)) return runValidation(validator);
             return false;
@@ -113,6 +113,6 @@ Fiber.fn.validation = {
    * @memberof Fiber.fn.validation#
    */
   ensureRuleDefaults: function(rule) {
-    return _.defaults(val(rule, {}), this.ruleDefaults);
+    return _.defaults($val(rule, {}), this.ruleDefaults);
   }
 };

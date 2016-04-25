@@ -2,7 +2,7 @@
  * Fiber Inverse Of Control Container
  * @class
  */
-Fiber.Container = fn.class.create({
+Fiber.Container = $fn.class.create({
 
   /**
    * The container's bindings bag.
@@ -39,7 +39,7 @@ Fiber.Container = fn.class.create({
    */
   constructor: function() {
     this.flush();
-    fn.apply(this, 'initialize', [arguments]);
+    $fn.apply(this, 'initialize', [arguments]);
   },
 
   /**
@@ -62,7 +62,7 @@ Fiber.Container = fn.class.create({
    */
   bind: function(abstract, concrete, shared) {
     var container = 'bindings';
-    if (val(shared, false)) container = 'shared';
+    if ($val(shared, false)) container = 'shared';
     if (_.isArray(abstract)) {
       this.alias(abstract[0], abstract[1]);
       abstract = abstract[0];
@@ -124,10 +124,35 @@ Fiber.Container = fn.class.create({
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete || ! _.isFunction(concrete)) Fiber.internal.log.errorThrow('[Resolution Exception]: ' + abstract +
-                                                                              ', not a Class constructor or function.');
-    if (fn.class.is(concrete)) return this.instantiate(concrete, parameters);
-    return concrete.apply(val(scope, this), this.resolve(parameters).concat([this]));
+    if (! concrete || ! _.isFunction(concrete)) $Log.errorThrow('[Resolution Exception]: ' + abstract +
+                                                                ', not a Class constructor or function.');
+    if ($fn.class.is(concrete)) return this.instantiate(concrete, parameters);
+    return concrete.apply($val(scope, this), this.resolve(parameters).concat([this]));
+  },
+
+  /**
+   * Resolves and injects dependencies to the given function using arguments parsing
+   * NOTE: This is not secure and safe way to use Dependency Injection. Variables can be minified and obfuscated.
+   * @param {Function} fn
+   * @returns {Function}
+   */
+  inject: function(fn) {
+    if (! _.isFunction(fn)) $Log.errorThrow('Cannot inject dependencies, provided `fn` is not a Function');
+    var injectKey = $Const.ioc.private;
+    if (fn[injectKey]) return fn[injectKey];
+
+    var resolved = []
+      , strFn = fn.toString().replace($Const.ioc.regex.STRIP_COMMENTS, '')
+      , args = strFn.match($Const.ioc.regex.ARGS);
+
+    _.each(args[1].split($Const.ioc.regex.ARG_SPLIT), function(arg) {
+      arg.replace($Const.ioc.regex.ARG, function(all, underscore, name) {
+        if (_.isString(name) && _.startsWith(name, '$', 0)) name = name.slice(1, name.length);
+        resolved.push(name);
+      });
+    });
+
+    return fn[injectKey] = Fiber.make(resolved);
   },
 
   /**
@@ -137,7 +162,7 @@ Fiber.Container = fn.class.create({
    * @returns {*|Object}
    */
   instantiate: function(concrete, parameters) {
-    return fn.class.createInstance(concrete, this.resolve(parameters));
+    return $fn.class.createInstance(concrete, this.resolve(parameters));
   },
 
   /**
@@ -147,7 +172,7 @@ Fiber.Container = fn.class.create({
    */
   resolve: function(dependencies) {
     var resolved = [];
-    dependencies = _.castArray(dependencies);
+    dependencies = $fn.castArr(dependencies);
     for (var i = 0; i < dependencies.length; i ++) {
       var dep = dependencies[i];
       if (_.isString(dep) && this.bound(dep)) dep = this.make(dep);
@@ -164,11 +189,11 @@ Fiber.Container = fn.class.create({
    */
   all: function(key, defaults) {
     var bagAll = _.bind(function(bag) {
-      return (this[bag] && this[bag].all()) || val(defaults, []);
+      return (this[bag] && this[bag].all()) || $val(defaults, []);
     }, this);
 
     if (key) return bagAll(key);
-    return fn.concat(this.bags.map(bagAll), false);
+    return $fn.concat(this.bags.map(bagAll), false);
   },
 
   /**
@@ -213,7 +238,7 @@ Fiber.Container = fn.class.create({
 /**
  * Adds conditional methods to the Container
  */
-fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'extension'], 'bound');
+$fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'extension'], 'bound');
 
 /**
  * Create default Fiber Inverse Of Control Container
@@ -224,4 +249,4 @@ Fiber.container = new Fiber.Container();
 /**
  * Adds build in extensions to the Container
  */
-Fiber.addExtension(fn.extensions.getRegistry());
+Fiber.addExtension($fn.extensions.getRegistry());

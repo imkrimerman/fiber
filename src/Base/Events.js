@@ -66,9 +66,9 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @param {?Object} [scope=this]
    */
   when: function(event, action, listenable, scope) {
-    listenable = val(listenable, this);
+    listenable = $val(listenable, this);
     var event = this.prepareEventName(event, listenable);
-    return this.listenTo(listenable, event, _.bind(action, val(scope, this)));
+    return this.listenTo(listenable, event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -80,9 +80,9 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @param {?Object} [scope=this]
    */
   after: function(event, action, listenable, scope) {
-    listenable = val(listenable, this);
+    listenable = $val(listenable, this);
     var event = this.prepareEventName(event, listenable);
-    return this.listenToOnce(listenable, event, _.bind(action, val(scope, this)));
+    return this.listenToOnce(listenable, event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -95,7 +95,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   whenGlobal: function(event, action, scope) {
-    return Fiber.internal.events.on(event, _.bind(action, val(scope, this)));
+    return Fiber.internal.events.on(event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -108,7 +108,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   afterGlobal: function(event, action, scope) {
-    return Fiber.internal.events.once(event, _.bind(action, val(scope, this)));
+    return Fiber.internal.events.once(event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -121,7 +121,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   stopGlobal: function(event, action, scope) {
-    return Fiber.internal.events.off(event, _.bind(action, val(scope, this)));
+    return Fiber.internal.events.off(event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -164,7 +164,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {Fiber.Events}
    */
   setResponder: function(event, action, scope) {
-    return this.set('__responders.' + event, _.bind(action, val(scope, this)));
+    return this.set('__responders.' + event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -184,8 +184,8 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    */
   callResponder: function(event, args) {
     var responder = this.getResponder(event);
-    args = val(args, []);
-    if (! _.isArray(args) && ! _.isArguments(args)) args = _.castArray(args);
+    args = $val(args, []);
+    if (! _.isArray(args) && ! _.isArguments(args)) args = $fn.castArr(args);
     if (! responder) return responder;
     return responder.apply(responder, args);
   },
@@ -240,7 +240,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {string|*}
    */
   getCatalogEvent: function(event) {
-    return val(this.eventsConfig.catalog[event], event);
+    return $val(this.eventsConfig.catalog[event], event);
   },
 
   /**
@@ -270,7 +270,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {string}
    */
   prepareEventName: function(event, listenable) {
-    listenable = val(listenable, this);
+    listenable = $val(listenable, this);
     return _.has(listenable, 'nsEvent') ? listenable.nsEvent(event) : event;
   },
 
@@ -288,6 +288,26 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {Object}
    */
   includeTo: function(object) {
-    return fn.class.mix(object, this.instance());
+    return $fn.class.mix(object, this.instance());
   },
 });
+
+/**
+ * Cached Backbone trigger method
+ * @type {Function}
+ */
+$trigger = Backbone.trigger;
+
+/**
+ * Replaces Backbone trigger method to give ability to listen to event without actual object to listen on
+ * @param {string} name
+ * @param {...args}
+ * @returns {Backbone}
+ */
+Backbone.trigger = function(name) {
+  var args = _.toArray(arguments);
+  if (arguments[1] !== this) args.splice(1, 0, this);
+  $trigger.apply(Fiber.internal.events, args);
+  $trigger.apply(this, arguments);
+  return this;
+};

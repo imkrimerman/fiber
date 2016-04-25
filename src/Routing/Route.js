@@ -88,7 +88,7 @@ Fiber.Route = Fiber.Model.extend({
       return composer(options);
     };
 
-    if (val(setAsHandler, true, _.isBoolean)) {
+    if ($val(setAsHandler, true, _.isBoolean)) {
       this.set('handler', handler, {silent: true});
       this.setComposedState(true);
     }
@@ -102,7 +102,7 @@ Fiber.Route = Fiber.Model.extend({
    */
   composeView: function(options) {
     var View = options.View || this.ViewClass
-    return fn.class.composeView(View, options);
+    return $fn.class.composeView(View, options);
   },
 
   /**

@@ -2,7 +2,7 @@
  * Deep properties explorer
  * @type {Object}
  */
-fn.deepProps = {
+$fn.deepProps = {
 
   /**
    * Deep properties configuration
@@ -41,7 +41,7 @@ fn.deepProps = {
    * @param {Array|string} list
    */
   set props(list) {
-    this.__props = fn.concat(this.__props, list);
+    this.__props = $fn.concat(this.__props, list);
   },
 
   /**
@@ -51,9 +51,9 @@ fn.deepProps = {
   explore: function(explorables, rules, comparatorFn) {
     var properties = [];
     // check arguments or set default values
-    explorables = _.castArray(val(explorables, this.rules.explore));
-    rules = _.castArray(val(rules, fn.deepProps.rules.condition));
-    comparatorFn = val(comparatorFn, 'some', fn.createIncludes(['some', 'any']));
+    explorables = $fn.castArr($val(explorables, this.rules.explore));
+    rules = $fn.castArr($val(rules, $fn.deepProps.rules.condition));
+    comparatorFn = $val(comparatorFn, 'some', $fn.createIncludes(['some', 'any']));
     // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
       var explorable = explorables[i]
@@ -64,8 +64,8 @@ fn.deepProps = {
       if (explorable.direct) holder = [holder];
       // traverse through the holder of the properties container
       for (var key in holder) {
-        var explored = fn.deepProps.exploreInObject(
-          fn.extensions.mapCall(holder[key], 'getCodeCapsule', true), rules, comparatorFn
+        var explored = $fn.deepProps.exploreInObject(
+          $fn.extensions.mapCall(holder[key], 'getCodeCapsule', true), rules, comparatorFn
         );
         // explore properties in container using rules and comparator function
         properties = properties.concat(explored);
@@ -78,17 +78,17 @@ fn.deepProps = {
    * Explores deep properties in given `object`
    * @param {Object} container
    * @param {Array} rules
-   * @param {string} fn
+   * @param {string} method
    * @param {Array|string} [exclude]
    * @returns {Array}
    */
-  exploreInObject: function(container, rules, fn, exclude) {
+  exploreInObject: function(container, rules, method, exclude) {
     var properties = [];
-    exclude = _.castArray(val(exclude, [], [_.isArray, _.isString]));
+    exclude = $fn.castArr($val(exclude, [], [_.isArray, _.isString]));
     _.each(_.keys(container), function(key) { key[0] === '_' && key[1] === '_' && exclude.push(key); });
-    container = _.omit(container, exclude.concat(fn.deepProps.rules.exclude));
+    container = _.omit(container, exclude.concat($fn.deepProps.rules.exclude));
     _.each(container, function(value, prop) {
-      if (fn.deepProps.validate(value, rules, fn)) properties.push(prop);
+      if ($fn.deepProps.validate(value, rules, method)) properties.push(prop);
     });
     return _.uniq(properties);
   },
@@ -97,13 +97,13 @@ fn.deepProps = {
    * Validates deep property
    * @param {*} property
    * @param {Array|Function} rules
-   * @param {?string} [fn]
+   * @param {?string} [method]
    * @returns {boolean}
    */
-  validate: function(property, rules, fn) {
+  validate: function(property, rules, method) {
     if (! rules || ! property) return false;
-    fn = val(fn, 'every', fn.createIncludes(['some', 'every']))
-    return _[fn](_.castArray(rules), function(rule) {
+    method = $val(method, 'every', $fn.createIncludes(['some', 'every']))
+    return _[method]($fn.castArr(rules), function(rule) {
       return rule(property);
     });
   },
@@ -119,7 +119,7 @@ fn.deepProps = {
     if (! child) return child;
     if (! parent) parent = {};
     // if `properties` not provided or not is array, then we'll use Fiber global properties
-    properties = val(properties, fn.deepProps.explore(), _.isArray);
+    properties = $val(properties, $fn.deepProps.explore(), _.isArray);
     // traverse each property
     _.each(properties, function(property) {
       // check and grab `property` from `parent` object prototype

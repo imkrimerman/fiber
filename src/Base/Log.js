@@ -2,13 +2,13 @@
  * Fiber Logger
  * @class
  */
-Fiber.Log = fn.class.create({
+Fiber.Log = $fn.class.create({
 
   /**
    * Available log levels
    * @type {Array}
    */
-  levels: Const.log.levels.slice().reverse(),
+  levels: $Const.log.levels.slice().reverse(),
 
   /**
    * Flag to hold if we are using colors in console
@@ -36,7 +36,7 @@ Fiber.Log = fn.class.create({
    * @type {string}
    * @private
    */
-  __level: Const.log.default,
+  __level: $Const.log.default,
 
   /**
    * Writer object
@@ -86,7 +86,7 @@ Fiber.Log = fn.class.create({
    * @param {?Object} [options]
    */
   constructor: function(options) {
-    options = fn.class.handleOptions(this, options, {
+    options = $fn.class.handleOptions(this, options, {
       level: this.__level,
       writer: this.__writer,
       colors: this.colors
@@ -263,7 +263,7 @@ Fiber.Log = fn.class.create({
    * @return {Fiber.Log}
    */
   setLevel: function(level) {
-    level = val(level, Const.log.default);
+    level = $val(level, $Const.log.default);
     if (level && _.includes(this.levels, level)) this.__level = level;
     return this;
   },
@@ -292,7 +292,7 @@ Fiber.Log = fn.class.create({
    * @returns {Fiber.Log}
    */
   setWriter: function(writer) {
-    this.__writer = val(writer, this.__writer, _.isObject);
+    this.__writer = $val(writer, this.__writer, _.isObject);
     return this;
   },
 
@@ -321,7 +321,7 @@ Fiber.Log = fn.class.create({
   callWriter: function(level, args) {
     var details = this.renderDetails()
       , method = this.colors && _.includes(this.__list, level) ? this.__list[level] : this.__method;
-    args = [details].concat(val(args, [], _.isArray));
+    args = [details].concat($val(args, [], _.isArray));
     this.__callWriter(method, args);
     return this;
   },
@@ -339,9 +339,9 @@ Fiber.Log = fn.class.create({
       index = null;
     }
 
-    var fn = this.__profiling[key];
-    if (_.isString(fn)) this.__callWriter(fn, args);
-    else if (_.isArray(fn) && _.isNumber(index) && index < fn.length) this.__callWriter(fn[index], args);
+    var method = this.__profiling[key];
+    if (_.isString(method)) this.__callWriter(method, args);
+    else if (_.isArray(method) && _.isNumber(index) && index < method.length) this.__callWriter(method[index], args);
     return this;
   },
 
@@ -352,7 +352,7 @@ Fiber.Log = fn.class.create({
    */
   errorThrow: function() {
     this.callWriter(this.getLevel(), arguments);
-    throw fn.class.createInstance(Error, arguments);
+    throw $fn.class.createInstance(Error, arguments);
   },
 
   /**
@@ -387,7 +387,7 @@ Fiber.Log = fn.class.create({
    * @returns {Fiber.Log}
    */
   setColorsState: function(state) {
-    this.colors = val(state, true, _.isBoolean);
+    this.colors = $val(state, true, _.isBoolean);
     return this;
   },
 
@@ -413,7 +413,7 @@ Fiber.Log = fn.class.create({
    * @returns {Fiber.Log}
    */
   setTimestampState: function(state) {
-    this.timestamp = val(state, true, _.isBoolean);
+    this.timestamp = $val(state, true, _.isBoolean);
     return this;
   },
 
@@ -430,7 +430,7 @@ Fiber.Log = fn.class.create({
       if (key === 'timestamp' && ! this.timestamp) return;
       html.push(this.renderTemplate(template, data));
     }.bind(this));
-    return html.join(val(delimiter, ' ', _.isString));
+    return html.join($val(delimiter, ' ', _.isString));
   },
 
   /**
@@ -452,10 +452,10 @@ Fiber.Log = fn.class.create({
     var date = new Date();
     return _.extend({}, {
       timestamp: date.toTimeString().slice(0, 8),
-      filename: fn.getFileName(),
+      filename: $fn.getFileName(),
       msg: '',
       self: this
-    }, val(data, {}, _.isPlainObject));
+    }, $val(data, {}, _.isPlainObject));
   },
 
   /**
@@ -474,21 +474,21 @@ Fiber.Log = fn.class.create({
 
   /**
    * Calls raw writer
-   * @param {string} fn
+   * @param {string} method
    * @param {?Array} [args]
    * @returns {*}
    * @private
    */
-  __callWriter: function(fn, args) {
-    return fn.apply(this.__writer, fn, args);
+  __callWriter: function(method, args) {
+    return method.apply(this.__writer, method, args);
   },
 });
 
 /**
- * Adds log level methods 'trace', 'debug', 'info', 'warn', 'error'
+ * Adds log level methods `trace`, `debug`, `info`, `warn`, `error` to the Log Class prototype
  */
-for (var i = 0; i < Const.log.levels.length; i ++) {
-  var level = Const.log.levels[i];
+for (var i = 0; i < $Const.log.levels.length; i ++) {
+  var level = $Const.log.levels[i];
   Fiber.Log.prototype[level] = function(level) {
     return function() {
       return this.write.apply(this, [level].concat(_.toArray(arguments)));
@@ -497,13 +497,13 @@ for (var i = 0; i < Const.log.levels.length; i ++) {
 }
 
 /**
- * Create build in logger
+ * Add system logger
  * @type {Object.<Fiber.Log>}
  */
-Fiber.internal.log = new Fiber.Log();
+Fiber.system.log = $Log = new Fiber.Log();
 
 /**
- * Create build in profiler
+ * Create system profiler
  * @type {Object.<Fiber.Log>}
  */
-Fiber.internal.profiler = new Fiber.Log({level: 'debug'});
+Fiber.system.profiler = new Fiber.Log({level: 'info'});

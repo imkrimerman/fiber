@@ -27,9 +27,9 @@ var $Extend = new Fiber.Extension('Extend', {
    * @returns {*}
    */
   applyExtend: function(options) {
-    options = val(options, {});
+    options = $val(options, {});
     var willExtend = _.result(this, 'willExtend')
-      , passedWillExtend = options.willExtend && _.castArray(options.willExtend) || [];
+      , passedWillExtend = options.willExtend && $fn.castArr(options.willExtend) || [];
 
     if (! willExtend) return this;
 
@@ -44,4 +44,4 @@ var $Extend = new Fiber.Extension('Extend', {
 /**
  * Register Extension
  */
-fn.extensions.register($Extend);
+$fn.extensions.register($Extend);

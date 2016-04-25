@@ -30,7 +30,7 @@ Fiber.Viewport = Fiber.View.extend({
   },
 
   close: function(options) {
-    options = _.defaults({}, val(options, {}, _.isPlainObject), {view: true, layout: false});
+    options = _.defaults({}, $val(options, {}, _.isPlainObject), {view: true, layout: false});
     if (options.view) this.removeView();
     if (options.layout) this.removeLayout();
     return this;
@@ -49,8 +49,8 @@ Fiber.Viewport = Fiber.View.extend({
 
   renderViewToLayout: function(view) {
     if (! this.hasLayout())
-      Fiber.internal.log.errorThrow('`renderViewToLayout` should be called' +
-                                   ' only if layout is available', this.layout, this);
+      $Log.errorThrow('`renderViewToLayout` should be called' +
+                      ' only if layout is available', this.layout, this);
 
     if (! this.layout.isRendered()) {
       this.renderLayout(this.layout);
@@ -90,13 +90,13 @@ Fiber.Viewport = Fiber.View.extend({
   },
 
   setView: function(view) {
-    return this.view = val(view, this.view, function(val) {
+    return this.view = $val(view, this.view, function(val) {
       return val instanceof Fiber.View;
     });
   },
 
   setLayout: function(layout) {
-    return this.layout = val(layout, this.layout, function(val) {
+    return this.layout = $val(layout, this.layout, function(val) {
       return val instanceof Fiber.Layout;
     });
   },

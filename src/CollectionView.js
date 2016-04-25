@@ -198,7 +198,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {Object.<Fiber.Collection>}
    */
   createCollection: function(models, options) {
-    options = val(options, {}, _.isPlainObject);
+    options = $val(options, {}, _.isPlainObject);
     options.comparator = this.comparator;
     return this.collection = new this.CollectionClass(models, options);
   },

@@ -11,7 +11,7 @@ Fiber.Bag = Fiber.Class.extend([
      * @type {string|Function}
      * @private
      */
-    __holderKey: Const.bag.holderKey,
+    __holderKey: $Const.bag.holderKey,
 
     /**
      * Properties keys that will be owned by the instance
@@ -24,15 +24,15 @@ Fiber.Bag = Fiber.Class.extend([
      * @param {Object} [storeable] - Items to set to the Bag
      */
     constructor: function(storeable) {
-      fn.extensions.init(this);
+      $fn.extensions.init(this);
 
       var holderKey = this.getHolderKey();
       if (! this.hasHolderKey()) this.setHolderKey(holderKey);
 
       this.setHolder(holderKey, storeable);
 
-      fn.delegator.utilMixin('object', this, holderKey);
-      fn.apply(this, 'initialize', [arguments]);
+      $fn.delegator.utilMixin('object', this, holderKey);
+      $fn.apply(this, 'initialize', [arguments]);
     },
 
     /**
@@ -145,7 +145,7 @@ Fiber.Bag = Fiber.Class.extend([
      * @returns {Fiber.Bag}
      */
     setHolder: function(holderKey, storable) {
-      this[holderKey] = val(storable, {}, _.isPlainObject);
+      this[holderKey] = $val(storable, {}, _.isPlainObject);
       return this;
     },
 
@@ -166,7 +166,7 @@ Fiber.Bag = Fiber.Class.extend([
     copyHolder: function(holderKey, deep) {
       var holder = this[holderKey];
       if (! _.isPlainObject(holder)) return {};
-      return _[val(deep, false) ? 'cloneDeep' : 'clone'](holder);
+      return _[$val(deep, false) ? 'cloneDeep' : 'clone'](holder);
     },
 
     /**

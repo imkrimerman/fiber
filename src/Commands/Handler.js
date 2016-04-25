@@ -11,7 +11,7 @@ Fiber.Commands.Handler = Fiber.Class.extend({
    */
   constructor: function(command) {
     this.command = command;
-    this.handle = fn.wrapFireCallCyclic(this.handle, 'handle', {
+    this.handle = $fn.wrapFireCallCyclic(this.handle, 'handle', {
       fire: [this.command, this], call: [this.command, this]
     });
   },
@@ -22,6 +22,6 @@ Fiber.Commands.Handler = Fiber.Class.extend({
    * @returns {Fiber.Services.Commands.Handler}
    */
   handle: function() {
-    Fiber.internal.log.errorThrow('Handler should implement it\'s own `handle` method');
+    $Log.errorThrow('Handler should implement it\'s own `handle` method');
   }
 });

@@ -35,7 +35,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @param {?Array} [extensions]
    */
   applyExtensions: function(extensions) {
-    extensions = val(extensions, false, _.isArray) || _.result(this, 'extensions');
+    extensions = $val(extensions, false, _.isArray) || _.result(this, 'extensions');
     if (extensions) this.includeExtension(extensions);
   },
 
@@ -47,7 +47,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @returns {Object}
    */
   mix: function(mixin, override) {
-    fn.class.mix(this, mixin, override);
+    $fn.class.mix(this, mixin, override);
     return this;
   },
 
@@ -59,7 +59,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @returns {Object}
    */
   mixTo: function(object, override) {
-    fn.class.mix(object, this, override);
+    $fn.class.mix(object, this, override);
     return this;
   },
 
@@ -71,7 +71,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @returns {Object}
    */
   include: function(mixin, override) {
-    return fn.class.include(this, mixin, override);
+    return $fn.class.include(this, mixin, override);
   },
 
   /**
@@ -90,4 +90,4 @@ var $Extensions = new Fiber.Extension('Extensions', {
 /**
  * Register Extension
  */
-fn.extensions.register($Extensions);
+$fn.extensions.register($Extensions);

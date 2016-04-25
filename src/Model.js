@@ -3,7 +3,7 @@
  * @class
  * @extends {Backbone.Model}
  */
-Fiber.Model = fn.class.make(Backbone.Model, [
+Fiber.Model = $fn.class.make(Backbone.Model, [
   'Extend', 'Extensions', 'OwnProps', 'Binder', {
 
     /**
@@ -43,17 +43,17 @@ Fiber.Model = fn.class.make(Backbone.Model, [
      * @param {?Object} [options={}]
      */
     constructor: function(attributes, options) {
-      options = fn.class.handleOptions(this, options);
+      options = $fn.class.handleOptions(this, options);
 
       this.attributes = {};
       this.cid = _.uniqueId(this.cidPrefix + '-');
       this.errorBag = new Fiber.ErrorBag();
       this.resetView();
 
-      attributes = val(attributes, {});
-      options = val(options, {});
+      attributes = $val(attributes, {});
+      options = $val(options, {});
 
-      fn.extensions.init(this);
+      $fn.extensions.init(this);
       if (options.parse) attributes = this.parse(attributes, options) || {};
 
       attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));
@@ -62,10 +62,10 @@ Fiber.Model = fn.class.make(Backbone.Model, [
       this.changed = {};
 
       this.listenTo(this, 'invalid', function() {
-        fn.apply(this, 'whenInvalid', arguments);
+        $fn.apply(this, 'whenInvalid', arguments);
       });
 
-      fn.apply(this, 'initialize', arguments);
+      $fn.apply(this, 'initialize', arguments);
     },
 
     /**
@@ -75,7 +75,7 @@ Fiber.Model = fn.class.make(Backbone.Model, [
      * @returns {Object|undefined}
      */
     validate: function(attributes, options) {
-      fn.validation.validate(this, val(attributes, this.attributes), options);
+      $fn.validation.validate(this, $val(attributes, this.attributes), options);
       return this.errorBag.getErrors();
     },
 
@@ -111,7 +111,7 @@ Fiber.Model = fn.class.make(Backbone.Model, [
      * @returns {Object}
      */
     toJSON: function(options) {
-      options = _.defaults({}, val(options, {}, _.isPlainObject), {removeHidden: true});
+      options = _.defaults({}, $val(options, {}, _.isPlainObject), {removeHidden: true});
       var jsonModel = this.apply(Backbone.Model, 'toJSON', [options]);
       if (options.removeHidden) return _.omit(jsonModel, _.result(this, 'hidden'));
       return jsonModel;

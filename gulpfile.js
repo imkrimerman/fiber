@@ -21,6 +21,8 @@ var _ = require('lodash')
     },
     files: [
       // Support
+      './src/Support/Properties.js',
+      './src/Support/Compatibility.js',
       './src/Support/Version.js',
       './src/Support/fn.js',
       './src/Support/Class.js',

@@ -2,7 +2,7 @@
  * Fiber Extension
  * @class
  */
-Fiber.Extension = fn.class.create({
+Fiber.Extension = $fn.class.create({
 
   /**
    * Method name to call when extension is initiating
@@ -92,7 +92,7 @@ Fiber.Extension = fn.class.create({
   bindTo: function(object, attribute) {
     this.includeTo(object);
     return _.each(this.getCodeCapsuleMethodList(), function(method) {
-      return fn.delegator.delegate(object, method, attribute);
+      return $fn.delegator.delegate(object, method, attribute);
     });
   },
 
@@ -103,7 +103,7 @@ Fiber.Extension = fn.class.create({
    * @returns {*|Object|Function}
    */
   includeTo: function(object, override) {
-    return fn.class.mix(object, this.copy(), override);
+    return $fn.class.mix(object, this.copy(), override);
   },
 
   /**
@@ -114,7 +114,7 @@ Fiber.Extension = fn.class.create({
    * @returns {*}
    */
   applyMethod: function(method, args, scope) {
-    return fn.apply(this.getCodeCapsule(), method, args, scope);
+    return $fn.apply(this.getCodeCapsule(), method, args, scope);
   },
 
   /**
@@ -133,8 +133,8 @@ Fiber.Extension = fn.class.create({
    * @returns {Fiber.Extension}
    */
   fromCode: function(code, name, initWith) {
-    code = valMerge(code, {initWith: false}, 'defaults');
-    initWith = val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
+    code = $valMerge(code, {initWith: false}, 'defaults');
+    initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
     if (_.isString(name)) this.setName(name);
     this.setCodeCapsule(code);
     this.setInitMethod(initWith || code.initWith || this.__initWith);

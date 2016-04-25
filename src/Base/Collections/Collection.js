@@ -3,7 +3,7 @@
  * @class
  * @extends {Backbone.Collection}
  */
-var Collection = fn.class.extend(Backbone.Collection, [
+var Collection = $fn.class.extend(Backbone.Collection, [
   $Extend.getCodeCapsule(), $OwnProps.getCodeCapsule(), $Binder.getCodeCapsule(), {
 
   /**

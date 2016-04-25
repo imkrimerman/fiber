@@ -12,7 +12,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    */
   constructor: function($el, viewMap) {
     this.handleElement($el);
-    this.setHolder(this.getHolder(), val(viewMap, {}, _.isPlainObject));
+    this.setHolder(this.getHolder(), $val(viewMap, {}, _.isPlainObject));
     this.__shown = {};
   },
 
@@ -38,7 +38,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
     var $destination = this.$el.find(selector);
 
     if (! $destination.length) {
-      Fiber.internal.log.errorThrow('Destination selector: ' + selector + ' cannot be found', this.$el, this);
+      $Log.errorThrow('Destination selector: ' + selector + ' cannot be found', this.$el, this);
     }
 
     this.__renderToDestination($destination, view)
@@ -55,7 +55,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
     var isShown = this.hasShown(selector);
     if (! isShown) return this.show(selector);
 
-    if (val(hard, false, _.isBoolean) && isShown) {
+    if ($val(hard, false, _.isBoolean) && isShown) {
       this.close(selector);
       return this.show(selector);
     }
@@ -115,7 +115,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
   forgetShown: function(selector, cleanUp) {
     if (! this.hasShown(selector)) return this;
 
-    cleanUp = val(cleanUp, true, _.isBoolean);
+    cleanUp = $val(cleanUp, true, _.isBoolean);
     var shown = this.getShown(selector);
 
     if (cleanUp) {
@@ -134,7 +134,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    */
   handleElement: function($el) {
     if (! ($el instanceof $) && ! _.isString($el))
-      Fiber.internal.log.errorThrow('`$el` should be a valid jQuery element or selector.', $el, this);
+      $Log.errorThrow('`$el` should be a valid jQuery element or selector.', $el, this);
     return this.$el = _.isString($el) ? $($el) : $el;
   },
 
@@ -147,8 +147,8 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    */
   __renderToDestination: function($destination, view) {
     if (! (view instanceof Backbone.View)) {
-      Fiber.internal.log.errorThrow('View is not valid instance of Backbone.View and ' +
-                                   'cannot be rendered', view, $destination, this);
+      $Log.errorThrow('View is not valid instance of Backbone.View and ' +
+                      'cannot be rendered', view, $destination, this);
     }
 
     $destination.html(view.el);

@@ -36,13 +36,13 @@ Fiber.Commands.Command = Fiber.Bag.extend({
   constructor: function(storable) {
     this.__parent__.apply(this, arguments);
 
-    this.execute = fn.wrapFireCallCyclic(this.execute, 'execute', {
+    this.execute = $fn.wrapFireCallCyclic(this.execute, 'execute', {
       fire: [this], call: [this]
     });
 
     if (! this.name) {
-      Fiber.internal.log.errorReturn('Command must have unique `name` property and should ' +
-                                    'be valid and not empty string', this.name, this);
+      $Log.errorReturn('Command must have unique `name` property and should ' +
+                       'be valid and not empty string', this.name, this);
     }
   },
 
