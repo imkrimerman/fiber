@@ -58,6 +58,10 @@ Fiber.Constants = $Const = {
   template: {
     engine: _.template
   },
+  computed: {
+    defaultPostfix: 'Attribute',
+    modelPostfix: 'computedPostfix',
+  },
   ioc: {
     private: '__inject',
     regex: {

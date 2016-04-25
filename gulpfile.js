@@ -31,6 +31,7 @@ var _ = require('lodash')
       './src/Support/Template.js',
       './src/Support/Validation.js',
       './src/Support/Delegator.js',
+      './src/Support/Computed.js',
       // Start Classes
       './src/Base/Log.js',
       './src/Base/Events.js',

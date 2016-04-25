@@ -469,6 +469,7 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   castArr: function(object) {
+    if (! object) return [];
     return _.isArray(object) ? object : [object];
   },
 

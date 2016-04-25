@@ -20,6 +20,18 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
     rules: {},
 
     /**
+     * The attributes that should be casted to native types.
+     * @type {Object}
+     */
+    cast: {},
+
+    /**
+     * Properties that should be computed in runtime
+     * @type {Object}
+     */
+    compute: {},
+
+    /**
      * Error bag
      * @type {Object.<Fiber.ErrorBag>}
      */
@@ -29,13 +41,13 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
      * Properties keys that will be auto extended from initialize object
      * @type {Array|Function}
      */
-    willExtend: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog'],
+    willExtend: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog', 'cast', 'compute'],
 
     /**
      * Properties keys that will be owned by the instance
      * @type {Array|Function}
      */
-    ownProps: ['hidden', 'rules'],
+    ownProps: ['hidden', 'rules', 'cast', 'compute'],
 
     /**
      * Constructs Model
@@ -44,28 +56,58 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
      */
     constructor: function(attributes, options) {
       options = $fn.class.handleOptions(this, options);
-
       this.attributes = {};
       this.cid = _.uniqueId(this.cidPrefix + '-');
       this.errorBag = new Fiber.ErrorBag();
       this.resetView();
-
       attributes = $val(attributes, {});
       options = $val(options, {});
-
       $fn.extensions.init(this);
       if (options.parse) attributes = this.parse(attributes, options) || {};
-
       attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));
       this.set(attributes, options);
-
       this.changed = {};
-
       this.listenTo(this, 'invalid', function() {
         $fn.apply(this, 'whenInvalid', arguments);
       });
 
       $fn.apply(this, 'initialize', arguments);
+    },
+
+    /**
+     * Get the value of an attribute.
+     * If computed property is available then it will be retrieved.
+     * @param {string} attribute
+     * @returns {*}
+     */
+    get: function(attribute) {
+      if (! $fn.computed.has(this, attribute, 'get'))
+        return _.get(this.attributes, attribute);
+      return $fn.computed.get(this, attribute);
+    },
+
+    /**
+     * Set a hash of model attributes on the object.
+     * If computed property is available then it will be called with new value.
+     * @param {Object|string} attribute
+     * @param {*} value
+     * @returns {*}
+     */
+    set: function(attribute, value) {
+      if (! $fn.computed.has(this, attribute, 'set'))
+        return this.apply(this.__parent__, 'set', arguments);
+      return $fn.computed.set(this, attribute, value);
+    },
+
+    /**
+     * Returns `true` if the attribute contains a value that is not null or undefined.
+     * First it will check if computed property is available then it will check if
+     * @param {string} attribute
+     * @returns {boolean}
+     */
+    has: function(attribute) {
+      if ($fn.computed.has(this, attribute, 'get')) return true;
+      return _.has(this.attributes, attribute);
     },
 
     /**
@@ -107,13 +149,21 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
     },
 
     /**
+     * Serializes model
+     * @returns {Object}
+     */
+    serialize: function() {
+      return this.apply(this.__parent__, 'toJSON', arguments);
+    },
+
+    /**
      * Converts Model to JSON
      * @returns {Object}
      */
     toJSON: function(options) {
-      options = _.defaults({}, $val(options, {}, _.isPlainObject), {removeHidden: true});
-      var jsonModel = this.apply(Backbone.Model, 'toJSON', [options]);
-      if (options.removeHidden) return _.omit(jsonModel, _.result(this, 'hidden'));
+      options = $valMerge(options, {hide: true}, 'defaults');
+      var jsonModel = this.serialize(options);
+      if (options.hide) return _.omit(jsonModel, _.result(this, 'hidden'));
       return jsonModel;
     },
 
@@ -209,15 +259,6 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
     resetView: function() {
       this.__view = null;
       return this;
-    },
-
-    /**
-     * Sends request using jQuery `ajax` method with the given `options`
-     * @param {Object} options
-     * @returns {*}
-     */
-    request: function(options) {
-      return Fiber.$.ajax(options);
     },
 
     /**

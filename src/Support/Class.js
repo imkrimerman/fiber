@@ -17,7 +17,7 @@ Fiber.fn.class = {
     // Return Class constructor
     return function FiberClassConstructor() {
       // Attach Parent Class constructor and Parent prototype to the direct scope of child
-      $fn.class.attachSuper(this, parentClass);
+      $fn.class.attachSuper(this, parentClass, constructor);
       // If we have properties that needs to be hoisted to the direct scope (this) of child, then lets apply
       // hoisting to the current scope.
       if (! _.isEmpty(constructor[hoistingKey])) $fn.copyProps(this, constructor, constructor[hoistingKey]);
@@ -39,7 +39,7 @@ Fiber.fn.class = {
     var child, construct = $fn.class.createPreConstructor;
     // if we don't have any parent then log error and return
     if (! parent) {
-      $Log.debug('Parent is not provided or not valid, setting to simple function', parent);
+      $Log.warn('Parent is not provided or not valid, setting to simple function', parent);
       parent = _.noop;
     }
     // The constructor function for the new subclass is either defined by you
@@ -90,14 +90,11 @@ Fiber.fn.class = {
     // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
     Parent = $val(Parent, Fiber.Class);
     // If Parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent)) {
+    if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent))
       Parent = Fiber.container.make(Parent);
-    }
-
     var extensionsToInclude = $fn.extensions.findIncluded(proto, statics);
     var resolved = $fn.class.extend(Parent, Fiber.resolve(proto, true), Fiber.resolve(statics, true));
     $fn.extensions.setIncluded(resolved, extensionsToInclude, false, true);
-
     return resolved;
   },
 
@@ -118,13 +115,9 @@ Fiber.fn.class = {
    * @returns {Function}
    */
   createWithExtensions: function(proto, statics) {
-    var mergeable = $fn.castArr(proto).concat(Fiber.Events)
-      , extensions = Fiber.getExtensionList()
+    var extensions = $fn.extensions.mapCall($fn.extensions.list(), 'getCodeCapsule')
+      , mergeable = $fn.castArr(proto).concat(Fiber.Events)
       , Parent = $fn.class.createConstructor(extensions);
-
-    extensions = _.values(extensions).map(function(extension) {
-      return extension.getCodeCapsule();
-    });
 
     proto = $fn.merge(extensions, mergeable);
     return $fn.class.extend(Parent, proto, statics);
@@ -137,9 +130,9 @@ Fiber.fn.class = {
    */
   createConstructor: function(extensions) {
     return function(options) {
+      options = $valMerge(options, {list: extensions}, 'extend');
       $fn.class.handleOptions(this, options);
-      $fn.extensions.init(this, options, extensions);
-      $fn.class.setExtensions(this, extensions);
+      $fn.extensions.init(this, options);
       $fn.apply(this, 'initialize', arguments);
     };
   },
@@ -349,7 +342,15 @@ Fiber.fn.class = {
         fn: $fn.proto(protoExclude),
         apply: function(Class, method, args, context) {
           return $fn.apply(Class, method, args, context || this);
-        }
+        },
+        implement: function(proto, statics, override) {
+          $fn.class.mix(this.__proto__, $fn.merge(Fiber.resolve(proto)), override);
+          $fn.class.mix(this.__parent__, $fn.merge(Fiber.resolve(statics)), override);
+          return this;
+        },
+//        createNew: function() {
+//          return $fn.class.createInstance(this.__ctor__, arguments);
+//        },
       },
       statics: {extend: $fn.delegator.proxy($fn.class.make)}
     };
@@ -361,12 +362,14 @@ Fiber.fn.class = {
    * Attaches `__super__` and `__parent__` objects to child
    * @param {Object} child
    * @param {Function|Object} parent
+   * @param {Function} constructor
    * @returns {Object}
    */
-  attachSuper: function(child, parent) {
+  attachSuper: function(child, parent, constructor) {
     if (! parent) return child;
     child.__super__ = parent.prototype;
     child.__parent__ = parent;
+    child.__ctor__ = constructor;
     return child;
   },
 
