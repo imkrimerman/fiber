@@ -2,7 +2,7 @@
  * Fiber Command Hub
  * @class
  */
-Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
+Fiber.Commands.Hub = fn.class.createWithExtensions({
 
   /**
    * Commands Registry
@@ -70,7 +70,7 @@ Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
       // if is function then just call it with `command` and return
       if (_.isFunction(Handler)) return Handler(command);
       // if is Class constructor
-      if (Fiber.fn.class.is(Handler)) {
+      if (fn.class.is(Handler)) {
         // then let's instantiate new Handler with `command` as argument
         handler = new Handler(command);
         // and trigger handle method on command

@@ -30,8 +30,8 @@ Fiber.Collection = Collection.extend([
      * @param {?Object} [options] - Options to extend from
      */
     constructor: function(models, options) {
-      Fiber.fn.class.handleOptions(this, options);
-      Fiber.fn.extensions.init(this, options);
+      fn.class.handleOptions(this, options);
+      fn.extensions.init(this, options);
       this.extendModel(options.modelOptions);
       this.__parent__.apply(this, arguments);
     },

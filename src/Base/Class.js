@@ -2,7 +2,7 @@
  * Fiber Base Class
  * @class
  */
-Fiber.Class = Fiber.fn.class.create([
+Fiber.Class = fn.class.create([
   Fiber.Events, {
 
     /**
@@ -10,8 +10,8 @@ Fiber.Class = Fiber.fn.class.create([
      * @param {?Object} [options]
      */
     constructor: function(options) {
-      Fiber.fn.class.handleOptions(this, options);
-      Fiber.fn.apply(this, 'initialize', [arguments]);
+      fn.class.handleOptions(this, options);
+      fn.apply(this, 'initialize', [arguments]);
     }
   }
 ]);

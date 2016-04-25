@@ -65,12 +65,12 @@ Fiber.fn.validation = {
         else if (_.isArray(rule.validators)) validators = rule.validators;
         // And If is string, then try to resolve validation method from model
         else if (_.isString(rule.validators) && model[rule.validators])
-          validators.push(Fiber.fn.class.resolveMethod(model, rule.validators));
+          validators.push(fn.class.resolveMethod(model, rule.validators));
 
         // validation runner to support recursive validators grouping
         var runValidation = function(validators) {
           return _[rule.match](validators, function(validator) {
-            if (_.isString(validator)) validator = Fiber.fn.class.resolveMethod(model, validator);
+            if (_.isString(validator)) validator = fn.class.resolveMethod(model, validator);
             if (_.isFunction(validator)) return validator(attribute, rule, model, options);
             if (_.isArray(validator)) return runValidation(validator);
             return false;

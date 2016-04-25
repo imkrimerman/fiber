@@ -79,8 +79,7 @@
    * Fiber Constants
    * @var {Object}
    */
-  Fiber.Constants = {
-    // todo: add debug helpers to fiber
+  var Const = Fiber.Constants = {
     allowGlobals: false,
     extensions: {
       private: '__extensions',
@@ -111,7 +110,9 @@
    * @type {Object}
    */
   Fiber.internal = {
-    events: _.extend({}, Backbone.Events)
+    events: _.extend({}, Backbone.Events),
+    log: null,
+    profiler: null
   };
 
   <!-- inject:js -->

@@ -3,7 +3,7 @@
  * @class
  * @extends {Backbone.Model}
  */
-Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
+Fiber.Model = fn.class.make(Backbone.Model, [
   'Extend', 'Extensions', 'OwnProps', 'Binder', {
 
     /**
@@ -43,7 +43,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @param {?Object} [options={}]
      */
     constructor: function(attributes, options) {
-      options = Fiber.fn.class.handleOptions(this, options);
+      options = fn.class.handleOptions(this, options);
 
       this.attributes = {};
       this.cid = _.uniqueId(this.cidPrefix + '-');
@@ -53,7 +53,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       attributes = val(attributes, {});
       options = val(options, {});
 
-      Fiber.fn.extensions.init(this);
+      fn.extensions.init(this);
       if (options.parse) attributes = this.parse(attributes, options) || {};
 
       attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));
@@ -62,10 +62,10 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       this.changed = {};
 
       this.listenTo(this, 'invalid', function() {
-        Fiber.fn.apply(this, 'whenInvalid', arguments);
+        fn.apply(this, 'whenInvalid', arguments);
       });
 
-      Fiber.fn.apply(this, 'initialize', arguments);
+      fn.apply(this, 'initialize', arguments);
     },
 
     /**
@@ -75,7 +75,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      * @returns {Object|undefined}
      */
     validate: function(attributes, options) {
-      Fiber.fn.validation.validate(this, val(attributes, this.attributes), options);
+      fn.validation.validate(this, val(attributes, this.attributes), options);
       return this.errorBag.getErrors();
     },
 

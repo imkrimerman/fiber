@@ -14,7 +14,7 @@ Fiber.fn.delegator = {
    */
   alias: function(Class, method, alias, toProto) {
     var castedAlias = _.castArray(alias);
-    var method = Fiber.fn.class.resolveMethod(Class, method);
+    var method = fn.class.resolveMethod(Class, method);
     if (! method) return false;
     for (var i = 0; i < castedAlias.length; i ++) {
       var alias = castedAlias[i];
@@ -36,10 +36,10 @@ Fiber.fn.delegator = {
     for (var originalName in aliases) {
       var aliasList = _.castArray(aliases[originalName]);
       result.push(_.every(aliasList, function(alias) {
-        return Fiber.fn.delegator.alias(Class, originalName, alias, toProto);
+        return fn.delegator.alias(Class, originalName, alias, toProto);
       }));
     }
-    return Fiber.fn.inArrayAllSame(result);
+    return fn.inArrayAllSame(result);
   },
 
   /**
@@ -50,10 +50,10 @@ Fiber.fn.delegator = {
    * @returns {Function}
    */
   proxy: function(fn, scope) {
-    Fiber.fn.delegator.expectFnValid(fn);
+    fn.delegator.expectFnValid(fn);
     return function() {
       scope = _.isString(scope) ? this[scope] : val(scope, fn);
-      return fn.apply(scope, Fiber.fn.argsConcat(this, arguments));
+      return fn.apply(scope, fn.argsConcat(this, arguments));
     };
   },
 
@@ -65,8 +65,8 @@ Fiber.fn.delegator = {
    * @returns {Function}
    */
   delegate: function(object, method, attribute) {
-    var fn = Fiber.fn.class.resolveMethod(object, method);
-    return Fiber.fn.delegator.proxy(fn, attribute);
+    var fn = fn.class.resolveMethod(object, method);
+    return fn.delegator.proxy(fn, attribute);
   },
 
   /**
@@ -80,10 +80,10 @@ Fiber.fn.delegator = {
     num = val(num, false, _.isEmpty);
     return function() {
       var args = _.drop(arguments)
-        , fn = Fiber.fn.class.resolveMethod(_, method);
+        , fn = fn.class.resolveMethod(_, method);
 
       attribute = _.isString(attribute) ? this[attribute] : this;
-      args = Fiber.fn.argsConcatFlat(1, attribute, (num ? _.take(args, num) : args));
+      args = fn.argsConcatFlat(1, attribute, (num ? _.take(args, num) : args));
 
       if (_.isFunction(fn)) return fn.apply(_, args);
     };
@@ -106,7 +106,7 @@ Fiber.fn.delegator = {
 
       if (_.isArray(len)) zip = _.zipObject(['name', 'len'], len);
       if (! _[method]) continue;
-      object.prototype[zip.name] = Fiber.fn.delegator.proxyUtilMixin(method, attribute, zip.len);
+      object.prototype[zip.name] = fn.delegator.proxyUtilMixin(method, attribute, zip.len);
     }
 
     return this;

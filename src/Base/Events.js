@@ -141,7 +141,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @param {...args}
    * @returns {*}
    */
-  request: function(event) {
+  requestFor: function(event) {
     if (! this.hasResponder(event)) return void 0;
     return this.callResponder(event, _.drop(_.toArray(arguments)));
   },
@@ -184,8 +184,10 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    */
   callResponder: function(event, args) {
     var responder = this.getResponder(event);
+    args = val(args, []);
+    if (! _.isArray(args) && ! _.isArguments(args)) args = _.castArray(args);
     if (! responder) return responder;
-    return responder.apply(responder, val(args, [], _.isArray));
+    return responder.apply(responder, args);
   },
 
   /**
@@ -286,6 +288,6 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {Object}
    */
   includeTo: function(object) {
-    return Fiber.fn.class.mix(object, this.instance());
+    return fn.class.mix(object, this.instance());
   },
 });

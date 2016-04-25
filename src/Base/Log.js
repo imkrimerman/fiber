@@ -2,13 +2,13 @@
  * Fiber Logger
  * @class
  */
-Fiber.Log = Fiber.fn.class.create({
+Fiber.Log = fn.class.create({
 
   /**
    * Available log levels
    * @type {Array}
    */
-  levels: Fiber.Constants.log.levels.slice().reverse(),
+  levels: Const.log.levels.slice().reverse(),
 
   /**
    * Flag to hold if we are using colors in console
@@ -28,7 +28,7 @@ Fiber.Log = Fiber.fn.class.create({
    */
   templates: {
     timestamp: '<%= timestamp %>',
-    intro: '[Fiber.Log]:'
+    intro: '[Fiber] Logger >> `<%= self.getLevel() %>`:'
   },
 
   /**
@@ -36,7 +36,7 @@ Fiber.Log = Fiber.fn.class.create({
    * @type {string}
    * @private
    */
-  __level: Fiber.Constants.log.default,
+  __level: Const.log.default,
 
   /**
    * Writer object
@@ -86,7 +86,7 @@ Fiber.Log = Fiber.fn.class.create({
    * @param {?Object} [options]
    */
   constructor: function(options) {
-    options = Fiber.fn.class.handleOptions(this, options, {
+    options = fn.class.handleOptions(this, options, {
       level: this.__level,
       writer: this.__writer,
       colors: this.colors
@@ -166,18 +166,10 @@ Fiber.Log = Fiber.fn.class.create({
   },
 
   /**
-   * Returns current active profiles
-   * @returns {Array|*}
-   */
-  getProfiles: function() {
-    return _.get(this.__writer, 'profiles', []);
-  },
-
-  /**
    * Adds log group
    * @returns {Fiber.Log}
    */
-  startGroup: function() {
+  group: function() {
     this.callProfile('group', 0, arguments);
     return this;
   },
@@ -186,8 +178,17 @@ Fiber.Log = Fiber.fn.class.create({
    * Removes log group
    * @returns {Fiber.Log}
    */
-  stopGroup: function() {
+  ungroup: function() {
     this.callProfile('group', 1, arguments);
+    return this;
+  },
+
+  /**
+   * Creates collapsed group
+   * @returns {Fiber.Log}
+   */
+  groupCollapse: function() {
+    this.callProfile('groupCollapse', 2, arguments);
     return this;
   },
 
@@ -262,27 +263,9 @@ Fiber.Log = Fiber.fn.class.create({
    * @return {Fiber.Log}
    */
   setLevel: function(level) {
-    level = val(level, Fiber.Constants.log.default);
+    level = val(level, Const.log.default);
     if (level && _.includes(this.levels, level)) this.__level = level;
     return this;
-  },
-
-  /**
-   * Sets log writer function
-   * @param {Object} writer
-   * @returns {Fiber.Log}
-   */
-  setWriter: function(writer) {
-    this.__writer = val(writer, this.__writer, _.isObject);
-    return this;
-  },
-
-  /**
-   * Returns writer function
-   * @returns {Object}
-   */
-  getWriter: function() {
-    return this.__writer;
   },
 
   /**
@@ -301,6 +284,24 @@ Fiber.Log = Fiber.fn.class.create({
    */
   getWriterMethod: function() {
     return this.__method;
+  },
+
+  /**
+   * Sets log writer function
+   * @param {Object} writer
+   * @returns {Fiber.Log}
+   */
+  setWriter: function(writer) {
+    this.__writer = val(writer, this.__writer, _.isObject);
+    return this;
+  },
+
+  /**
+   * Returns writer function
+   * @returns {Object}
+   */
+  getWriter: function() {
+    return this.__writer;
   },
 
   /**
@@ -351,7 +352,7 @@ Fiber.Log = Fiber.fn.class.create({
    */
   errorThrow: function() {
     this.callWriter(this.getLevel(), arguments);
-    throw Fiber.fn.class.createInstance(Error, arguments);
+    throw fn.class.createInstance(Error, arguments);
   },
 
   /**
@@ -451,7 +452,7 @@ Fiber.Log = Fiber.fn.class.create({
     var date = new Date();
     return _.extend({}, {
       timestamp: date.toTimeString().slice(0, 8),
-      filename: Fiber.fn.getFileName(),
+      filename: fn.getFileName(),
       msg: '',
       self: this
     }, val(data, {}, _.isPlainObject));
@@ -479,15 +480,15 @@ Fiber.Log = Fiber.fn.class.create({
    * @private
    */
   __callWriter: function(fn, args) {
-    return Fiber.fn.apply(this.__writer, fn, args);
+    return fn.apply(this.__writer, fn, args);
   },
 });
 
 /**
  * Adds log level methods 'trace', 'debug', 'info', 'warn', 'error'
  */
-for (var i = 0; i < Fiber.Constants.log.levels.length; i ++) {
-  var level = Fiber.Constants.log.levels[i];
+for (var i = 0; i < Const.log.levels.length; i ++) {
+  var level = Const.log.levels[i];
   Fiber.Log.prototype[level] = function(level) {
     return function() {
       return this.write.apply(this, [level].concat(_.toArray(arguments)));

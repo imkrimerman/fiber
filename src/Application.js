@@ -2,7 +2,7 @@
  * Fiber Application Class
  * @class
  */
-Fiber.Application = Fiber.fn.class.createWithExtensions({
+Fiber.Application = fn.class.createWithExtensions({
 
   /**
    * Viewport instance
@@ -38,10 +38,10 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
    */
   constructor: function(options) {
     options = this.handleOptions(options);
-    Fiber.fn.extensions.init(this, options);
+    fn.extensions.init(this, options);
     this.bootstrap(options);
     this.bindEvents();
-    Fiber.fn.apply(this, 'initialize', arguments);
+    fn.apply(this, 'initialize', arguments);
   },
 
   /**
@@ -77,7 +77,7 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
    * @return {Fiber.Application}
    */
   start: function() {
-    Fiber.fn.fireCallCyclic(this, 'start', function() {
+    fn.fireCallCyclic(this, 'start', function() {
       Fiber.history.start();
       this.fire('start', this);
     });
@@ -89,7 +89,7 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
    * @returns {Fiber.Application}
    */
   stop: function() {
-    Fiber.fn.fireCallCyclic(this, 'stop', function() {
+    fn.fireCallCyclic(this, 'stop', function() {
       Fiber.history.stop();
       this.fire('stop', this);
     });
@@ -102,7 +102,7 @@ Fiber.Application = Fiber.fn.class.createWithExtensions({
    * @returns {Object}
    */
   handleOptions: function(options) {
-    return Fiber.fn.class.handleOptions(this, options, this.result('defaults'), true);
+    return fn.class.handleOptions(this, options, this.result('defaults'), true);
   },
 
 });

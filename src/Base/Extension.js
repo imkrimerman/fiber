@@ -2,7 +2,7 @@
  * Fiber Extension
  * @class
  */
-Fiber.Extension = Fiber.fn.class.create({
+Fiber.Extension = fn.class.create({
 
   /**
    * Method name to call when extension is initiating
@@ -92,7 +92,7 @@ Fiber.Extension = Fiber.fn.class.create({
   bindTo: function(object, attribute) {
     this.includeTo(object);
     return _.each(this.getCodeCapsuleMethodList(), function(method) {
-      return Fiber.fn.delegator.delegate(object, method, attribute);
+      return fn.delegator.delegate(object, method, attribute);
     });
   },
 
@@ -103,7 +103,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {*|Object|Function}
    */
   includeTo: function(object, override) {
-    return Fiber.fn.class.mix(object, this.copy(), override);
+    return fn.class.mix(object, this.copy(), override);
   },
 
   /**
@@ -114,7 +114,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {*}
    */
   applyMethod: function(method, args, scope) {
-    return Fiber.fn.apply(this.getCodeCapsule(), method, args, scope);
+    return fn.apply(this.getCodeCapsule(), method, args, scope);
   },
 
   /**

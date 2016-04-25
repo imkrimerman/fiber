@@ -2,7 +2,7 @@
  * Fiber support function
  * @type {Object}
  */
-Fiber.fn = {
+var fn = Fiber.fn = {
 
   /**
    * List of properties to exclude when mixin functions to Class prototype
@@ -22,8 +22,8 @@ Fiber.fn = {
    * @returns {Object|null}
    */
   module: function(alias) {
-    if (! alias || ! Fiber.fn.hasOwnProperty(alias)) return null;
-    return Fiber.fn[alias];
+    if (! alias || ! fn.hasOwnProperty(alias)) return null;
+    return fn[alias];
   },
 
   /**
@@ -38,11 +38,11 @@ Fiber.fn = {
    */
   val: function(value, defaults, checker, match) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
-    defaults = arguments.length > 1 ? defaults : Fiber.fn.notDefined;
+    defaults = arguments.length > 1 ? defaults : fn.notDefined;
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
     // if value check was made and it's not valid then return `defaults`
-    if (! Fiber.fn.valCheck(value, checker, match)) return defaults;
+    if (! fn.valCheck(value, checker, match)) return defaults;
     // if value not specified return defaults, otherwise return value;
     return value != null ? value : defaults;
   },
@@ -98,9 +98,9 @@ Fiber.fn = {
     if (_.isString(fn) && _.has(_, fn)) fn = _[fn];
     if (! val.isDef(checker)) checker = _.isPlainObject;
     toOwn = val(toOwn, false, _.isBoolean);
-    return Fiber.fn.valCb(value, {}, function(checked) {
+    return fn.valCb(value, {}, function(checked) {
       var args = toOwn ? [checked, extender] : [{}, checked, extender];
-      if (! Fiber.fn.isExtendable(args)) return checked;
+      if (! fn.isExtendable(args)) return checked;
       return fn.apply(_, args);
     }, checker, match);
   },
@@ -114,9 +114,9 @@ Fiber.fn = {
     if (arguments.length > 1) array = _.toArray(arguments);
     if (! _.isArray(array)) return array;
     array = _.compact(array);
-    if (Fiber.fn.isArrayOf(array, 'array'))
+    if (fn.isArrayOf(array, 'array'))
       return _.flattenDeep(array);
-    else if (Fiber.fn.isArrayOf(array, 'object'))
+    else if (fn.isArrayOf(array, 'object'))
       return _.extend.apply(_, [{}].concat(array));
     return array;
   },
@@ -131,7 +131,7 @@ Fiber.fn = {
    */
   apply: function(Class, method, args, scope) {
     scope = val(scope, Class, _.isObject);
-    var method = Fiber.fn.class.getMethod(Class, method);
+    var method = fn.class.getMethod(Class, method);
     if (val(args) === val.notDefined) args = [];
     else args = ! _.isArguments(args) ? _.castArray(args) : args;
     if (_.isFunction(method)) return method.apply(scope, args);
@@ -145,7 +145,7 @@ Fiber.fn = {
    * @returns {*}
    */
   applyFn: function(fn, args, scope) {
-    return Fiber.fn.apply({fn: fn}, 'fn', args, scope);
+    return fn.apply({fn: fn}, 'fn', args, scope);
   },
 
   /**
@@ -157,9 +157,9 @@ Fiber.fn = {
    * @return {*}
    */
   fireCall: function(Class, event, args, prepare) {
-    if (val(prepare, true)) args = Fiber.fn.prepareCallArgs(args, {fire: [], call: []});
-    var result = Fiber.fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
-    Fiber.fn.apply(Class, 'fire', [event].concat(args.fire));
+    if (val(prepare, true)) args = fn.prepareCallArgs(args, {fire: [], call: []});
+    var result = fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
+    fn.apply(Class, 'fire', [event].concat(args.fire));
     return result;
   },
 
@@ -173,7 +173,7 @@ Fiber.fn = {
    * @return {*}
    */
   fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
-    args = Fiber.fn.prepareCallArgs(args, {fire: [], call: [], callback: []})
+    args = fn.prepareCallArgs(args, {fire: [], call: [], callback: []})
     lifeCycle = val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
 
     var result;
@@ -183,7 +183,7 @@ Fiber.fn = {
         , nowEvent = now[now.length - 1] === ':' ? now + event : now + ':' + event;
 
       if (now === '@callback' && _.isFunction(callback)) result = callback.apply(Class, args.callback);
-      else Fiber.fn.fireCall(Class, nowEvent, args, false);
+      else fn.fireCall(Class, nowEvent, args, false);
     }
 
     return result;
@@ -199,7 +199,7 @@ Fiber.fn = {
    */
   wrapFireCallCyclic: function(fn, event, args, lifeCycle) {
     return _.wrap(fn, _.bind(function(execFn) {
-      return Fiber.fn.fireCallCyclic(this, event, execFn, args, lifeCycle);
+      return fn.fireCallCyclic(this, event, execFn, args, lifeCycle);
     }, this));
   },
 
@@ -211,7 +211,7 @@ Fiber.fn = {
    */
   prepareCallArgs: function(args, defaults) {
     var prepared = _.extend({}, defaults || {}, val(args, {}, _.isPlainObject));
-    return Fiber.fn.transform(prepared, function(val) {
+    return fn.transform(prepared, function(val) {
       if (_.isArguments(val)) return val;
       return _.castArray(val);
     });
@@ -237,7 +237,7 @@ Fiber.fn = {
 
     for (var i = 0; i < mixins.length; i ++) {
       if (_.isPlainObject(mixins[i]) || _.isArray(mixins[i]))
-        mixins[i] = Fiber.fn.transform(_.clone(mixins[i]), bindFn);
+        mixins[i] = fn.transform(_.clone(mixins[i]), bindFn);
       else mixins[i] = bindFn(mixins[i]);
     }
 
@@ -265,7 +265,7 @@ Fiber.fn = {
    * @returns {boolean}
    */
   globalize: function(key, value, force) {
-    if (! Fiber.Constants.allowGlobals) {
+    if (! Const.allowGlobals) {
       Fiber.internal.log.info(key + ' will not be globalized. Global variables are not allowed.')
       return false;
     }
@@ -324,7 +324,7 @@ Fiber.fn = {
    * @returns {Array}
    */
   argsConcatFlat: function(level) {
-    var concatenated = Fiber.fn.argsConcat.apply(Fiber.fn, _.drop(arguments));
+    var concatenated = fn.argsConcat.apply(fn, _.drop(arguments));
     return _.flattenDepth(concatenated, val(level, 1, _.isNumber));
   },
 
@@ -347,7 +347,7 @@ Fiber.fn = {
    * @returns {Object}
    */
   proto: function(exclude) {
-    return _.omit(Fiber.fn, Fiber.fn.protoExclude.concat(val(exclude, [], _.isArray)));
+    return _.omit(fn, fn.protoExclude.concat(val(exclude, [], _.isArray)));
   },
 
   /**
@@ -464,6 +464,15 @@ Fiber.fn = {
   },
 
   /**
+   * Force object cast to array
+   * @param {Object} object
+   * @returns {Array}
+   */
+  castArr: function(object) {
+    return _.castArray(object);
+  },
+
+  /**
    * Returns function name
    * @param {Function} fn
    * @returns {string}
@@ -488,7 +497,7 @@ Fiber.fn = {
  * @type {string}
  * @static
  */
-Fiber.fn.val.notDefined = Fiber.fn.notDefined;
+fn.val.notDefined = fn.notDefined;
 
 /**
  * Checks if value is defined
@@ -496,34 +505,39 @@ Fiber.fn.val.notDefined = Fiber.fn.notDefined;
  * @returns {boolean}
  * @static
  */
-Fiber.fn.val.isDef = function(value) {
+fn.val.isDef = function(value) {
   if (! arguments.length) return false;
-  return Fiber.fn.val(value) !== Fiber.fn.notDefined;
+  return fn.val(value) !== fn.notDefined;
 };
 
 /**
  * @inheritDoc
  * @type {Fiber.fn.val}
  */
-var val = Fiber.fn.val;
+var val = fn.val
 
 /**
  * @inheritDoc
  * @type {Fiber.fn.valMerge}
  */
-var valMerge = Fiber.fn.valMerge;
+, valMerge = fn.valMerge
 
 /**
  * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
  * @type {_.each|*|(function((Array|Object), Function=): (Array|Object))}
  */
-var each = _.each;
+, each = _.each
 
 /**
  * Caches Backbone trigger method
  * @type {Function}
  */
-var trigger = Backbone.trigger;
+, trigger = Backbone.trigger;
+
+/**
+ * Add alias for `some` function
+ */
+_.mixin({any: _.some});
 
 /**
  * Adds backward compatibility for lodash `each` method
@@ -532,7 +546,7 @@ var trigger = Backbone.trigger;
  * @param {?Object} [scope]
  * @returns {*}
  */
-_.each = function(collection, iteratee, scope) {
+_.each = _.forEach = function(collection, iteratee, scope) {
   if (scope) iteratee = _.bind(iteratee, scope);
   return each(collection, iteratee);
 };
@@ -546,7 +560,7 @@ _.each = function(collection, iteratee, scope) {
 Backbone.trigger = function(name) {
   var args = _.toArray(arguments);
   if (arguments[1] !== this) args.splice(1, 0, this);
-  trigger.apply(Fiber.Constants.events.system, args);
+  trigger.apply(Const.events.system, args);
   trigger.apply(this, arguments);
   return this;
 };

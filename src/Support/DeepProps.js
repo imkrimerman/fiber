@@ -2,7 +2,7 @@
  * Deep properties explorer
  * @type {Object}
  */
-Fiber.fn.deepProps = {
+fn.deepProps = {
 
   /**
    * Deep properties configuration
@@ -41,7 +41,7 @@ Fiber.fn.deepProps = {
    * @param {Array|string} list
    */
   set props(list) {
-    this.__props = Fiber.fn.concat(this.__props, list);
+    this.__props = fn.concat(this.__props, list);
   },
 
   /**
@@ -52,8 +52,8 @@ Fiber.fn.deepProps = {
     var properties = [];
     // check arguments or set default values
     explorables = _.castArray(val(explorables, this.rules.explore));
-    rules = _.castArray(val(rules, Fiber.fn.deepProps.rules.condition));
-    comparatorFn = val(comparatorFn, 'some', Fiber.fn.createIncludes(['some', 'any']));
+    rules = _.castArray(val(rules, fn.deepProps.rules.condition));
+    comparatorFn = val(comparatorFn, 'some', fn.createIncludes(['some', 'any']));
     // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
       var explorable = explorables[i]
@@ -64,8 +64,8 @@ Fiber.fn.deepProps = {
       if (explorable.direct) holder = [holder];
       // traverse through the holder of the properties container
       for (var key in holder) {
-        var explored = Fiber.fn.deepProps.exploreInObject(
-          Fiber.fn.extensions.mapCall(holder[key], 'getCodeCapsule', true), rules, comparatorFn
+        var explored = fn.deepProps.exploreInObject(
+          fn.extensions.mapCall(holder[key], 'getCodeCapsule', true), rules, comparatorFn
         );
         // explore properties in container using rules and comparator function
         properties = properties.concat(explored);
@@ -86,9 +86,9 @@ Fiber.fn.deepProps = {
     var properties = [];
     exclude = _.castArray(val(exclude, [], [_.isArray, _.isString]));
     _.each(_.keys(container), function(key) { key[0] === '_' && key[1] === '_' && exclude.push(key); });
-    container = _.omit(container, exclude.concat(Fiber.fn.deepProps.rules.exclude));
+    container = _.omit(container, exclude.concat(fn.deepProps.rules.exclude));
     _.each(container, function(value, prop) {
-      if (Fiber.fn.deepProps.validate(value, rules, fn)) properties.push(prop);
+      if (fn.deepProps.validate(value, rules, fn)) properties.push(prop);
     });
     return _.uniq(properties);
   },
@@ -102,7 +102,7 @@ Fiber.fn.deepProps = {
    */
   validate: function(property, rules, fn) {
     if (! rules || ! property) return false;
-    fn = val(fn, 'every', Fiber.fn.createIncludes(['some', 'every']))
+    fn = val(fn, 'every', fn.createIncludes(['some', 'every']))
     return _[fn](_.castArray(rules), function(rule) {
       return rule(property);
     });
@@ -119,7 +119,7 @@ Fiber.fn.deepProps = {
     if (! child) return child;
     if (! parent) parent = {};
     // if `properties` not provided or not is array, then we'll use Fiber global properties
-    properties = val(properties, Fiber.fn.deepProps.explore(), _.isArray);
+    properties = val(properties, fn.deepProps.explore(), _.isArray);
     // traverse each property
     _.each(properties, function(property) {
       // check and grab `property` from `parent` object prototype

@@ -59,4 +59,4 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 /**
  * Register Extension
  */
-Fiber.fn.extensions.register($OwnProps);
+fn.extensions.register($OwnProps);

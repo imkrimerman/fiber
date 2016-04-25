@@ -2,7 +2,7 @@
  * Fiber Inverse Of Control Container
  * @class
  */
-Fiber.Container = Fiber.fn.class.create({
+Fiber.Container = fn.class.create({
 
   /**
    * The container's bindings bag.
@@ -39,7 +39,7 @@ Fiber.Container = Fiber.fn.class.create({
    */
   constructor: function() {
     this.flush();
-    Fiber.fn.apply(this, 'initialize', [arguments]);
+    fn.apply(this, 'initialize', [arguments]);
   },
 
   /**
@@ -126,7 +126,7 @@ Fiber.Container = Fiber.fn.class.create({
     var concrete = this.bindings.get(abstract);
     if (! concrete || ! _.isFunction(concrete)) Fiber.internal.log.errorThrow('[Resolution Exception]: ' + abstract +
                                                                               ', not a Class constructor or function.');
-    if (Fiber.fn.class.is(concrete)) return this.instantiate(concrete, parameters);
+    if (fn.class.is(concrete)) return this.instantiate(concrete, parameters);
     return concrete.apply(val(scope, this), this.resolve(parameters).concat([this]));
   },
 
@@ -137,7 +137,7 @@ Fiber.Container = Fiber.fn.class.create({
    * @returns {*|Object}
    */
   instantiate: function(concrete, parameters) {
-    return Fiber.fn.class.createInstance(concrete, this.resolve(parameters));
+    return fn.class.createInstance(concrete, this.resolve(parameters));
   },
 
   /**
@@ -168,7 +168,7 @@ Fiber.Container = Fiber.fn.class.create({
     }, this);
 
     if (key) return bagAll(key);
-    return Fiber.fn.concat(this.bags.map(bagAll), false);
+    return fn.concat(this.bags.map(bagAll), false);
   },
 
   /**
@@ -213,7 +213,7 @@ Fiber.Container = Fiber.fn.class.create({
 /**
  * Adds conditional methods to the Container
  */
-Fiber.fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'extension'], 'bound');
+fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'extension'], 'bound');
 
 /**
  * Create default Fiber Inverse Of Control Container
@@ -224,4 +224,4 @@ Fiber.container = new Fiber.Container();
 /**
  * Adds build in extensions to the Container
  */
-Fiber.addExtension(Fiber.fn.extensions.getRegistry());
+Fiber.addExtension(fn.extensions.getRegistry());

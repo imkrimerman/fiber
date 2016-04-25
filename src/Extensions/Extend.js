@@ -44,4 +44,4 @@ var $Extend = new Fiber.Extension('Extend', {
 /**
  * Register Extension
  */
-Fiber.fn.extensions.register($Extend);
+fn.extensions.register($Extend);

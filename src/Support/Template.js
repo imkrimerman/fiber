@@ -9,7 +9,13 @@ Fiber.fn.template = {
    * @type {Function}
    * @private
    */
-  engine: Fiber.Constants.template.engine,
+  engine: Const.template.engine,
+
+  /**
+   * Fallback function that emulates template engine renderer
+   * @type {Function}
+   */
+  fallback: _.identity,
 
   /**
    * Templates string with given arguments
@@ -25,8 +31,8 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   prepare: function(template) {
-    var engine = Fiber.fn.template.getEngine()
-    // lets use all arguments and path them into the engine
+    var engine = fn.template.getEngine()
+      // lets use all arguments and path them into the engine
       , prepared = engine.apply(engine, arguments);
     // adds static render function to the prepared template
     prepared.render = function() {
@@ -41,8 +47,8 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   getEngine: function() {
-    var engine = Fiber.fn.template.engine;
-    if (! engine) return Fiber.fn.template.getFallback();
+    var engine = fn.template.engine;
+    if (! engine) return fn.template.getFallback();
     return engine;
   },
 
@@ -53,7 +59,7 @@ Fiber.fn.template = {
    */
   setEngine: function(engine) {
     if (! _.isFunction(engine)) return this;
-    Fiber.fn.template.engine = engine;
+    fn.template.engine = engine;
     return this;
   },
 
@@ -62,30 +68,26 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasEngine: function() {
-    var engine = Fiber.fn.template.getEngine();
-    if (! engine || engine === Fiber.fn.template.fallback) return false;
+    var engine = fn.template.getEngine();
+    if (! engine || engine === fn.template.fallback) return false;
     return true;
   },
 
   /**
-   * Fallback function that emulates template engine renderer
-   * @type {Function}
-   */
-  fallback: function(val) { return val; },
-
-  /**
    * Returns fallback template engine. Tries to return lodash template or
-   * constant function that emulate templating
+   * `identity` function that emulate templating
    * @returns {Function}
    */
   getFallback: function() {
-    try {
+    var result = _.attempt(function() {
       // Try to prepare `template` string in `_.template` function,
       // if it's not available then prepare it with function that will
       // return the same value that is used as the argument.
-      return _ && _.template ? _.template : Fiber.fn.template.fallback;
-    }
-    catch (e) { return Fiber.fn.template.fallback; }
+      return _ && _.template ? _.template : fn.template.fallback;
+    });
+
+    if (_.isError(result)) return fn.template.fallback;
+    return result;
   },
 
   /**
@@ -96,5 +98,13 @@ Fiber.fn.template = {
   setFallback: function(fallback) {
     this.fallback = fallback;
     return this;
-  }
+  },
+
+  /**
+   * Determines if fallback exists and is valid function
+   * @returns {boolean}
+   */
+  hasFallback: function() {
+    return _.isFunction(this.getFallback());
+  },
 };

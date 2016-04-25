@@ -45,4 +45,4 @@ var $Binder = new Fiber.Extension('Binder', {
 /**
  * Register Extension
  */
-Fiber.fn.extensions.register($Binder);
+fn.extensions.register($Binder);
