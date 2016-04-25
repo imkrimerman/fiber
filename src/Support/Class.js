@@ -31,7 +31,7 @@ Fiber.fn.class = {
     var child, construct = Fiber.fn.class.createPreConstructor;
     // if we don't have any parent then log error and return
     if (! parent) {
-      Fiber.logs.system.debug('Parent is not provided or not valid, setting to simple function', parent);
+      Fiber.internal.logger.debug('Parent is not provided or not valid, setting to simple function', parent);
       parent = _.noop;
     }
     // The constructor function for the new subclass is either defined by you
@@ -108,11 +108,11 @@ Fiber.fn.class = {
    */
   createWithExtensions: function(proto, statics) {
     var mergeable = _.castArray(proto).concat(Fiber.Events)
-      , extensions = Fiber.getExtensionsList()
+      , extensions = Fiber.getExtensionList()
       , Parent = Fiber.fn.class.createConstructor(extensions);
 
     extensions = _.values(extensions).map(function(extension) {
-      return extension.getCode();
+      return extension.getCodeCapsule();
     });
 
     proto = Fiber.fn.merge(extensions, mergeable);
@@ -127,7 +127,7 @@ Fiber.fn.class = {
   createConstructor: function(extensions) {
     return function(options) {
       Fiber.fn.class.handleOptions(this, options);
-      Fiber.initializeExtensions(this, options, extensions);
+      Fiber.fn.extensions.init(this, options, extensions);
       Fiber.fn.class.setExtensions(this, extensions);
       Fiber.fn.apply(this, 'initialize', arguments);
     };
@@ -175,7 +175,7 @@ Fiber.fn.class = {
    */
   composeView: function(View, options) {
     if (! (Fiber.fn.class.isBackbone(View)))
-      Fiber.logs.system.errorThrow('View cannot be composed', View, options);
+      Fiber.internal.logger.errorThrow('View cannot be composed', View, options);
 
     options = val(options, {}, _.isPlainObject);
 
@@ -468,7 +468,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   handleOptions: function(scope, options, defaults, deep) {
-    if (! scope) Fiber.logs.system.error('Scope is not provided or not valid', scope);
+    if (! scope) Fiber.internal.logger.error('Scope is not provided or not valid', scope);
     options = val(options, {}, _.isPlainObject);
     return scope.options = Fiber.fn.class.handleOptionsDefaults(options, defaults, deep);
   },

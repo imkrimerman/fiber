@@ -4,7 +4,7 @@
  * @extends {Backbone.Collection}
  */
 var Collection = Fiber.fn.class.extend(Backbone.Collection, [
-  $Extend.getCode(), $OwnProps.getCode(), $Binder.getCode(), {
+  $Extend.getCodeCapsule(), $OwnProps.getCodeCapsule(), $Binder.getCodeCapsule(), {
 
   /**
    * Properties keys that will be auto extended from initialize object

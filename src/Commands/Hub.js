@@ -77,7 +77,7 @@ Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
         return handler.handle(command, this);
       }
     }
-    return Fiber.logs.system.errorReturn('Can\'t execute command', command, this);
+    return Fiber.internal.logger.errorReturn('Can\'t execute command', command, this);
   },
 
   /**

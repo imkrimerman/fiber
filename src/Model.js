@@ -52,7 +52,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
       attributes = val(attributes, {});
       options = val(options, {});
 
-      Fiber.initializeExtensions(this);
+      Fiber.fn.extensions.init(this);
       if (options.parse) attributes = this.parse(attributes, options) || {};
 
       attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));

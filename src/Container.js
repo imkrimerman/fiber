@@ -124,7 +124,7 @@ Fiber.Container = Fiber.fn.class.create({
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete) Fiber.logs.system.errorThrow('Resolution Exception with ' + abstract);
+    if (! concrete) Fiber.internal.logger.errorThrow('Resolution Exception with ' + abstract);
     return concrete.apply(val(scope, this), this.resolve(parameters).concat([this]));
   },
 
@@ -156,7 +156,7 @@ Fiber.Container = Fiber.fn.class.create({
     }, this);
 
     if (key) return bagAll(key);
-    return Fiber.fn.concat(this.bags.map(bagAll));
+    return Fiber.fn.concat(this.bags.map(bagAll), false);
   },
 
   /**
@@ -210,9 +210,6 @@ Fiber.fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share
 Fiber.container = new Fiber.Container();
 
 /**
- * Adds default extensions to the Container
+ * Adds build in extensions to the Container
  */
-var extensions = [$Access, $Binder, $Extend, $Extensions, $OwnProps];
-Fiber.addExtension(_.zipObject(extensions.map(function(extension) {
-  return extension.getName();
-}), extensions));
+Fiber.addExtension(Fiber.fn.extensions.getRegistry());

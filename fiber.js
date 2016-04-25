@@ -32,6 +32,16 @@
   /*eslint valid-jsdoc: 1*/
 
   /**
+   * Native JS objects prototypes
+   * @type {Object}
+   * @private
+   */
+  var js = {
+    arr: Array.prototype,
+    obj: Object.prototype
+  };
+
+  /**
    * Fiber main object
    * @type {Object}
    */

@@ -145,7 +145,7 @@ Fiber.fn.delegator = {
                 ', method is not available in the given object'];
 
     if (object) args.push(object);
-    if (! _.isFunction(fn)) Fiber.logs.system.errorThrow.apply(Fiber.logs.system, args);
+    if (! _.isFunction(fn)) Fiber.internal.logger.errorThrow.apply(Fiber.internal.logger, args);
   },
 
   /**

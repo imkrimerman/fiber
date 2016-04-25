@@ -8,32 +8,34 @@ Fiber.Extension = Fiber.fn.class.create({
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  initMethod: false,
+  __initWith: false,
 
   /**
    * Extension name
    * @type {string}
    */
-  name: '',
+  __name: '',
+
+  /**
+   * Code capsule
+   * @type {Object}
+   */
+  __code: {},
 
   /**
    * Constructs extension
    * @param {string} name
    * @param {Object} code
-   * @param {string|boolean} initMethod
    */
   constructor: function(name, code) {
-    this.setName(name);
-    this.setCode(code);
-    this.setInitMethod(code.initMethod || this.initMethod);
-    delete code.initMethod;
+    this.fromCode(code, name);
   },
 
   /**
    * Sets extension to the capsule
    * @param {Object} code
    */
-  setCode: function(code) {
+  setCodeCapsule: function(code) {
     this.__code = code;
   },
 
@@ -41,7 +43,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * Returns code of the extension
    * @returns {Object}
    */
-  getCode: function() {
+  getCodeCapsule: function() {
     return this.__code;
   },
 
@@ -50,7 +52,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {string|boolean}
    */
   getInitMethod: function() {
-    return this.initMethod;
+    return this.__initWith;
   },
 
   /**
@@ -59,7 +61,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {Fiber.Extension}
    */
   setInitMethod: function(method) {
-    this.initMethod = method;
+    this.__initWith = method;
     return this;
   },
 
@@ -68,7 +70,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {string}
    */
   getName: function() {
-    return this.name;
+    return this.__name;
   },
 
   /**
@@ -77,7 +79,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {Fiber.Extension}
    */
   setName: function(name) {
-    this.name = name;
+    this.__name = name;
     return this;
   },
 
@@ -112,7 +114,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {*}
    */
   applyMethod: function(method, args, scope) {
-    return Fiber.fn.apply(this.getCode(), method, args, scope);
+    return Fiber.fn.apply(this.getCodeCapsule(), method, args, scope);
   },
 
   /**
@@ -120,7 +122,24 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {Object}
    */
   toCode: function() {
-    return _.clone(this.getCode());
+    return _.clone(this.getCodeCapsule());
+  },
+
+  /**
+   * Sets code capsule, extension name and initialize method
+   * @param {Object} code
+   * @param {?string} [name]
+   * @param {?string|Function} [initWith]
+   * @returns {Fiber.Extension}
+   */
+  fromCode: function(code, name, initWith) {
+    code = valMerge(code, {initWith: false}, 'defaults');
+    initWith = val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
+    if (_.isString(name)) this.setName(name);
+    this.setCodeCapsule(code);
+    this.setInitMethod(initWith || code.initWith || this.__initWith);
+    delete code.initWith;
+    return this;
   },
 
   /**
@@ -128,7 +147,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {Array}
    */
   getCodePropertyList: function() {
-    var properties = [], code = this.getCode();
+    var properties = [], code = this.getCodeCapsule();
     _.each(code, function(prop) {
       if (! _.isFunction(code[prop])) properties.push(prop);
     });
@@ -140,6 +159,6 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {Array}
    */
   getCodeMethodList: function() {
-    return _.values(_.omit(this.getCode(), this.getCodePropertyList()));
+    return _.values(_.omit(this.getCodeCapsule(), this.getCodePropertyList()));
   },
 });

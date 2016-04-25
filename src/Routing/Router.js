@@ -41,7 +41,7 @@ Fiber.Router = Fiber.fn.class.createWithExtensions([
      */
     constructor: function(options) {
       options = Fiber.fn.class.handleOptions(this, options);
-      Fiber.initializeExtensions(this, options);
+      Fiber.fn.extensions.init(this, options);
       this.createCollections(options);
       this.bindRoutes();
       Fiber.fn.apply(this, 'initialize', [arguments]);

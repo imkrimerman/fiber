@@ -136,12 +136,12 @@ Fiber.Events = _.extend({}, Backbone.Events, {
   },
 
   /**
-   * Sends event to the object and returns response
+   * Sends event request and returns response
    * @param {string} event
    * @param {...args}
    * @returns {*}
    */
-  send: function(event) {
+  request: function(event) {
     if (! this.hasResponder(event)) return void 0;
     return this.callResponder(event, _.drop(_.toArray(arguments)));
   },
@@ -288,11 +288,4 @@ Fiber.Events = _.extend({}, Backbone.Events, {
   includeTo: function(object) {
     return Fiber.fn.class.mix(object, this.instance());
   },
-});
-
-/**
- * Add more aliases for the `send` method
- */
-Fiber.fn.delegator.aliasMany(Fiber.Events, {
-  send: 'request', respondTo: 'respond'
 });

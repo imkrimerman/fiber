@@ -91,3 +91,9 @@ var $Extensions = new Fiber.Extension('Extensions', {
     return this;
   }
 });
+
+
+/**
+ * Register Extension
+ */
+Fiber.fn.extensions.register($Extensions);

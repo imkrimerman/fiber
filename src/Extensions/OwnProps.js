@@ -21,14 +21,14 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
    * @param {?Function} [Parent]
    * @returns {Object}
    */
-  applyOwnProps: function(Parent) {
-//    var proto = val(Parent, false, _.isFunction) && Parent.prototype || this.__super__;
-    var ownProps = _.result(this, 'ownProps', []);
+  applyOwnProps: function(props) {
+    var ownProps = val(props, _.result(this, 'ownProps', []), [_.isArray, _.isFunction]);
     for (var i = 0; i < ownProps.length; i ++) {
       var prop = ownProps[i]
-        , propValue = _.get(this, prop);
-      if (! propValue) continue;
-//      if (_.has(this, prop) || ! _.has(proto, prop)) continue;
+        , propClassValue = _.get(this, prop);
+
+      if (! propClassValue || this.hasOwnProperty(prop)) continue;
+
       _.set(this, prop, _.cloneDeep(_.get(this, prop), function(value) {
         if (_.isFunction(value)) return value;
         return _.clone(value, true);
@@ -37,3 +37,8 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
     return this;
   }
 });
+
+/**
+ * Register Extension
+ */
+Fiber.fn.extensions.register($OwnProps);

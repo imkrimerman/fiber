@@ -41,3 +41,8 @@ var $Binder = new Fiber.Extension('Binder', {
         this[methods[i]] = _.bind(this[methods[i]], this);
   }
 });
+
+/**
+ * Register Extension
+ */
+Fiber.fn.extensions.register($Binder);

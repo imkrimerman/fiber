@@ -32,8 +32,8 @@ Fiber.fn = {
    * @see https://github.com/imkrimerman/im.val (npm version)
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
-   * @param {?Function} [checker] - function to call to check validity
-   * @param {?string} [match='every'] - function to use ('every', 'any')
+   * @param {?Function|Function[]} [checker] - function to call to check validity
+   * @param {?string} [match='every'] - function to use ('every', 'some')
    * @returns {*}
    */
   val: function(value, defaults, checker, match) {
@@ -69,6 +69,43 @@ Fiber.fn = {
   },
 
   /**
+   * Applies `val` function and calls callback with result as first argument
+   * @param {*} value - value to check
+   * @param {*} defaults - default value to use
+   * @param {Function} cb - callback to call after check
+   * @param {?Function} [checker] - function to call to check validity
+   * @param {?string} [match='every'] - function to use ('every', 'some')
+   * @returns {*}
+   */
+  valCb: function(value, defaults, cb, checker, match) {
+    return val(cb, _.noop, _.isFunction)(val(value, defaults, checker, match));
+  },
+
+  /**
+   * Applies `val` checker function and extends checked value with `extender` if allowed.
+   * @param {*} value - value to check
+   * @param {Object} extender - object to extend with
+   * @param {?Function|string} [fn=_.extend] - function to use to merge the objects (can be lodash method name or
+   * function)
+   * @param {?Function} [checker] - function to call to check validity
+   * @param {?string} [match='every'] - function to use ('every', 'some')
+   * @param {?boolean} [toOwn=false] - if true then sets extender directly to checked value,
+   * otherwise creates new object and merges checked value with extender
+   * @returns {Object|Function}
+   */
+  valMerge: function(value, extender, fn, checker, match, toOwn) {
+    fn = val(fn, _.extend, [_.isFunction, _.isString], 'some');
+    if (_.isString(fn) && _.has(_, fn)) fn = _[fn];
+    if (! val.isDef(checker)) checker = _.isPlainObject;
+    toOwn = val(toOwn, false, _.isBoolean);
+    return Fiber.fn.valCb(value, {}, function(checked) {
+      var args = toOwn ? [checked, extender] : [{}, checked, extender];
+      if (! Fiber.fn.isExtendable(args)) return checked;
+      return fn.apply(_, args);
+    }, checker, match);
+  },
+
+  /**
    * Merges multiple objects or arrays into one.
    * @param {Array} args - Array of objects/arrays to merge
    * @returns {Array|Object}
@@ -85,19 +122,30 @@ Fiber.fn = {
   },
 
   /**
-   * Applies `method` on given `Class` with `context` and passing `args`
+   * Applies `method` on given `Class` with `scope` and passing `args`
    * @param {Function|Object} Class - Class to call
    * @param {string} method - method to call
    * @param {?Array} [args] - arguments to pass
-   * @param {?Object|Array} [context] - context to apply to
+   * @param {?Object|Array} [scope] - scope to bind
    * @returns {*}
    */
-  apply: function(Class, method, args, context) {
-    context = val(context, Class, _.isObject);
+  apply: function(Class, method, args, scope) {
+    scope = val(scope, Class, _.isObject);
     var method = Fiber.fn.class.getMethod(Class, method);
     if (val(args) === val.notDefined) args = [];
     else args = ! _.isArguments(args) ? _.castArray(args) : args;
-    if (_.isFunction(method)) return method.apply(context, args);
+    if (_.isFunction(method)) return method.apply(scope, args);
+  },
+
+  /**
+   * Applies function with the given arguments and scope
+   * @param {Function} fn - function to apply
+   * @param {?Array} [args] - arguments to pass
+   * @param {?Object|Array} [scope] - scope to bind to function
+   * @returns {*}
+   */
+  applyFn: function(fn, args, scope) {
+    return Fiber.fn.apply({fn: fn}, 'fn', args, scope);
   },
 
   /**
@@ -170,8 +218,8 @@ Fiber.fn = {
   },
 
   /**
-   * Binds array of `mixins` or mixin to the given object `context`, also you can bind
-   * each method of object mixin to context by providing the `innerApply` with true
+   * Binds array of `mixins` or mixin to the given object `scope`, also you can bind
+   * each method of object mixin to scope by providing the `innerApply` with true
    * @param {Array|Object|Function} mixins
    * @param {Object} thisArg
    * @param {?Array} [partials=[]]
@@ -218,7 +266,7 @@ Fiber.fn = {
    */
   globalize: function(key, value, force) {
     if (! Fiber.Constants.allowGlobals) {
-      Fiber.logs.system.info(key + ' will not be globalized. Global variables are not allowed.')
+      Fiber.internal.logger.info(key + ' will not be globalized. Global variables are not allowed.')
       return false;
     }
 
@@ -265,7 +313,7 @@ Fiber.fn = {
     var args = _.toArray(arguments);
     for (var i = 0; i < args.length; i ++)
       if (_.isArguments(args[i])) args[i] = _.toArray(args[i]);
-    return Array.prototype.concat.apply([], args);
+    return js.arr.concat.apply([], args);
   },
 
   /**
@@ -281,12 +329,16 @@ Fiber.fn = {
   },
 
   /**
-   * Concatenates arrays
-   * @param {Array[]} arrays
+   * Concatenates arrays into one.
+   * If last argument is boolean then it will be used to determine,
+   * if we need to make unique array.
+   * @param {...args}
    * @returns {Array}
    */
-  concat: function(arrays) {
-    return Array.prototype.concat.apply([], arrays);
+  concat: function() {
+    var makeUnique = val(_.last(arguments), false, _.isBoolean);
+    var args = js.arr.concat.apply([], _.toArray(arguments).map(_.castArray));
+    return makeUnique ? _.uniq(args) : args;
   },
 
   /**
@@ -337,19 +389,28 @@ Fiber.fn = {
     return val(fn, defaults, _.negate(_.isUndefined));
   },
 
+
   /**
-   * Traverses through given extensions and calls method on it
-   * @param {Object.<Fiber.Extension>|Array} extension
-   * @param {string} method
-   * @param {?boolean} [first=false]
-   * @returns {Array}
+   * Determines if object can be extended.
+   * Check for `extend` function or if it's plain object
+   * @param {*} object
+   * @returns {boolean}
    */
-  extensionMapCall: function(extension, method, first) {
-    if (! method) return _.castArray(extension);
-    var mapped = _.castArray(extension).map(function(one) {
-      return one instanceof Fiber.Extension ? Fiber.fn.apply(one, method) : one;
+  isExtendable: function(object) {
+    if (arguments.length > 1) object = _.toArray(arguments);
+    return _.every(_.castArray(object), function(one) {
+      return _.isObject(one) && (_.isFunction(one.extend) || _.isPlainObject(one));
     });
-    return val(first, false) ? mapped[0] : mapped;
+  },
+
+  getFunctionName: function(fn) {
+    var strFn = fn.toString();
+    ///^function\s+([\w\$]+)\s*\(/.exec( myFunction.toString() )[ 1 ]
+    return strFn.substr('function '.length).substr(0, strFn.indexOf('('));
+  },
+
+  getFileName: function() {
+    return location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
   },
 };
 
@@ -368,13 +429,20 @@ Fiber.fn.val.notDefined = Fiber.fn.notDefined;
  */
 Fiber.fn.val.isDef = function(value) {
   if (! arguments.length) return false;
-  return val(value) !== Fiber.fn.notDefined;
+  return Fiber.fn.val(value) !== Fiber.fn.notDefined;
 };
 
 /**
  * @inheritDoc
+ * @type {Fiber.fn.val}
  */
 var val = Fiber.fn.val;
+
+/**
+ * @inheritDoc
+ * @type {Fiber.fn.valMerge}
+ */
+var valMerge = Fiber.fn.valMerge;
 
 /**
  * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions

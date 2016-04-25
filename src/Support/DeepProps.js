@@ -3,6 +3,7 @@
  * @type {Object}
  */
 Fiber.fn.deepProps = {
+
   /**
    * Deep properties configuration
    * @type {Object}
@@ -18,6 +19,29 @@ Fiber.fn.deepProps = {
       {owner: Fiber, path: 'View.prototype', direct: true},
       {owner: Fiber, path: 'CollectionView.prototype', direct: true}
     ],
+  },
+
+  // todo: maybe we'll go with hardcoded default props
+  /**
+   * Cached deep properties
+   * @type {Array}
+   */
+  __props: [],
+
+  /**
+   * Cached deep properties getter
+   * @returns {Array}
+   */
+  get props() {
+    return this.__props;
+  },
+
+  /**
+   * Cached deep properties setter
+   * @param {Array|string} list
+   */
+  set props(list) {
+    this.__props = Fiber.fn.concat(this.__props, list, true);
   },
 
   /**
@@ -41,7 +65,7 @@ Fiber.fn.deepProps = {
       // traverse through the holder of the properties container
       for (var key in holder) {
         var explored = Fiber.fn.deepProps.exploreInObject(
-          Fiber.fn.extensionMapCall(holder[key], 'getCode', true), rules, comparatorFn
+          Fiber.fn.extensions.mapCall(holder[key], 'getCodeCapsule', true), rules, comparatorFn
         );
         // explore properties in container using rules and comparator function
         properties = properties.concat(explored);

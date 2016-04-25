@@ -38,7 +38,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
     var $destination = this.$el.find(selector);
 
     if (! $destination.length) {
-      Fiber.logs.system.errorThrow('Destination selector: ' + selector + ' cannot be found', this.$el, this);
+      Fiber.internal.logger.errorThrow('Destination selector: ' + selector + ' cannot be found', this.$el, this);
     }
 
     this.__renderToDestination($destination, view)
@@ -134,7 +134,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    */
   handleElement: function($el) {
     if (! ($el instanceof $) && ! _.isString($el))
-      Fiber.logs.system.errorThrow('`$el` should be a valid jQuery element or selector.', $el, this);
+      Fiber.internal.logger.errorThrow('`$el` should be a valid jQuery element or selector.', $el, this);
     return this.$el = _.isString($el) ? $($el) : $el;
   },
 
@@ -147,7 +147,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    */
   __renderToDestination: function($destination, view) {
     if (! (view instanceof Backbone.View)) {
-      Fiber.logs.system.errorThrow('View is not valid instance of Backbone.View and ' +
+      Fiber.internal.logger.errorThrow('View is not valid instance of Backbone.View and ' +
                                    'cannot be rendered', view, $destination, this);
     }
 

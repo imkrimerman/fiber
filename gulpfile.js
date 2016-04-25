@@ -24,37 +24,41 @@ var _ = require('lodash')
       './src/Support/Version.js',
       './src/Support/fn.js',
       './src/Support/Class.js',
+      './src/Support/Extensions.js',
       './src/Support/DeepProps.js',
       './src/Support/Template.js',
       './src/Support/Validation.js',
       './src/Support/Delegator.js',
-      './src/Support/Log.js',
-      // Extensions
+      // Start Classes
+      './src/Base/Log.js',
+      './src/Base/Events.js',
+      './src/Base/Class.js',
       './src/Base/Extension.js',
+      // Extensions
       './src/Extensions/Access.js',
       './src/Extensions/Binder.js',
       './src/Extensions/Extend.js',
       './src/Extensions/Extensions.js',
       './src/Extensions/OwnProps.js',
-      // Base
+      './src/Extensions/Events.js',
+      // Base classes
       './src/Core.js',
-      './src/Base/Events.js',
-      './src/Base/Class.js',
       './src/Base/Bag.js',
       './src/Base/ErrorBag.js',
       './src/Base/Transmitter.js',
-      // Base classes
+      // Base collections
       './src/Base/Collections/Collection.js',
       './src/Base/Collections/LinkedViews.js',
       './src/Base/Collections/Listeners.js',
       './src/Base/Collections/RouterCollection.js',
-      // Ioc Container
+      // Ioc Container (DI)
       './src/Container.js',
       // Fiber components
       './src/Model.js',
       './src/Collection.js',
       './src/ViewsManager.js',
       './src/View.js',
+      './src/Layout.js',
       './src/CollectionView.js',
       // Services
       './src/Commands/Registry.js',
@@ -69,8 +73,6 @@ var _ = require('lodash')
       './src/Routing/Middleware.js',
       './src/Routing/MiddlewareCollection.js',
       './src/Routing/Router.js',
-      // Layout
-      './src/Layout.js',
       // Application
       './src/Viewport.js',
       './src/Application.js',

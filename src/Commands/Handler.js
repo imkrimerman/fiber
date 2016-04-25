@@ -22,6 +22,6 @@ Fiber.Commands.Handler = Fiber.Class.extend({
    * @returns {Fiber.Services.Commands.Handler}
    */
   handle: function() {
-    Fiber.logs.system.errorThrow('Handler should implement it\'s own `handle` method');
+    Fiber.internal.logger.errorThrow('Handler should implement it\'s own `handle` method');
   }
 });

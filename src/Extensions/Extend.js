@@ -40,3 +40,8 @@ var $Extend = new Fiber.Extension('Extend', {
     return _.extend(this, _.pick(options, _.compact(willExtend)));
   }
 });
+
+/**
+ * Register Extension
+ */
+Fiber.fn.extensions.register($Extend);
