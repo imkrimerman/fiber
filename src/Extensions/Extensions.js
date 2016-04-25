@@ -1,7 +1,7 @@
 /**
  * `Extensions` extension. Brings power of mutability and mixins to the class.
  * Automatically
- * @type {Object}
+ * @type {Object.<Fiber.Extension>}
  */
 var $Extensions = new Fiber.Extension('Extensions', {
 
@@ -9,7 +9,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  initMethod: 'applyExtensions',
+  initWith: 'applyExtensions',
 
   /**
    * Properties keys that will be auto extended from the initialization object
@@ -21,7 +21,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * Properties keys that will be owned by the instance
    * @type {Array|Function}
    */
-  ownProps: ['extensions', '__extensionsState'],
+  ownProps: ['extensions'],
 
   /**
    * Extensions to auto resolve and initialize. On construct Fiber will resolve
@@ -31,17 +31,11 @@ var $Extensions = new Fiber.Extension('Extensions', {
   extensions: [],
 
   /**
-   * Extensions state holder
-   * @type {Object}
-   */
-  __extensionsState: {},
-
-  /**
    * Applies extensions of the current object
    * @param {?Array} [extensions]
    */
   applyExtensions: function(extensions) {
-    extensions = val(extensions, false, _.isArray) || _.result(this, Fiber.Constants.extensions.property);
+    extensions = val(extensions, false, _.isArray) || _.result(this, 'extensions');
     if (extensions) this.includeExtension(extensions);
   },
 

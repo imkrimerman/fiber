@@ -91,7 +91,7 @@ Fiber.Extension = Fiber.fn.class.create({
    */
   bindTo: function(object, attribute) {
     this.includeTo(object);
-    return _.each(this.getCodeMethodList(), function(method) {
+    return _.each(this.getCodeCapsuleMethodList(), function(method) {
       return Fiber.fn.delegator.delegate(object, method, attribute);
     });
   },
@@ -103,7 +103,7 @@ Fiber.Extension = Fiber.fn.class.create({
    * @returns {*|Object|Function}
    */
   includeTo: function(object, override) {
-    return Fiber.fn.class.mix(object, this.toCode(), override);
+    return Fiber.fn.class.mix(object, this.copy(), override);
   },
 
   /**
@@ -118,11 +118,11 @@ Fiber.Extension = Fiber.fn.class.create({
   },
 
   /**
-   * Returns cloned `code` object of the extension
+   * Returns cloned `code capsule` object of the extension
    * @returns {Object}
    */
   toCode: function() {
-    return _.clone(this.getCodeCapsule());
+    return this.copy();
   },
 
   /**
@@ -143,10 +143,18 @@ Fiber.Extension = Fiber.fn.class.create({
   },
 
   /**
+   * Returns copy of the extension code capsule
+   * @returns {Object}
+   */
+  copy: function() {
+    return _.clone(this.getCodeCapsule());
+  },
+
+  /**
    * Returns property list of the extension code
    * @returns {Array}
    */
-  getCodePropertyList: function() {
+  getCodeCapsulePropertyList: function() {
     var properties = [], code = this.getCodeCapsule();
     _.each(code, function(prop) {
       if (! _.isFunction(code[prop])) properties.push(prop);
@@ -158,7 +166,15 @@ Fiber.Extension = Fiber.fn.class.create({
    * Returns method list of the extension code
    * @returns {Array}
    */
-  getCodeMethodList: function() {
-    return _.values(_.omit(this.getCodeCapsule(), this.getCodePropertyList()));
+  getCodeCapsuleMethodList: function() {
+    return _.values(_.omit(this.getCodeCapsule(), this.getCodeCapsulePropertyList()));
+  },
+
+  /**
+   * Returns all code capsule keys list
+   * @returns {Array}
+   */
+  getCodeCapsuleKeysList: function() {
+    return _.keys(this.getCodeCapsule());
   },
 });

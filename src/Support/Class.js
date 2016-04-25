@@ -11,9 +11,17 @@ Fiber.fn.class = {
    * @returns {FiberClassPreConstructor}
    */
   createPreConstructor: function (constructor, parentClass) {
+    var hoistingKey = Fiber.Constants.extensions.hoisting;
+    // fallback on constructor as Parent constructor to make available creation without Parent
     parentClass = val(parentClass, constructor, _.isObject);
-    return function FiberClass() {
+    // Return Class constructor
+    return function FiberClassConstructor() {
+      // Attach Parent Class constructor and Parent prototype to the direct scope of child
       Fiber.fn.class.attachSuper(this, parentClass);
+      // If we have properties that needs to be hoisted to the direct scope (this) of child, then lets apply
+      // hoisting to the current scope.
+      if (! _.isEmpty(constructor[hoistingKey])) Fiber.fn.copyProps(this, constructor, constructor[hoistingKey]);
+      // Apply constructor with arguments
       constructor.apply(this, arguments);
       return this;
     };
@@ -31,7 +39,7 @@ Fiber.fn.class = {
     var child, construct = Fiber.fn.class.createPreConstructor;
     // if we don't have any parent then log error and return
     if (! parent) {
-      Fiber.internal.logger.debug('Parent is not provided or not valid, setting to simple function', parent);
+      Fiber.internal.log.debug('Parent is not provided or not valid, setting to simple function', parent);
       parent = _.noop;
     }
     // The constructor function for the new subclass is either defined by you
@@ -85,9 +93,12 @@ Fiber.fn.class = {
     if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent)) {
       Parent = Fiber.container.make(Parent);
     }
-    //todo: add all container bags resolve, not only extensions
-    // Finally call extend method with right Parent, proto and statics
-    return Fiber.fn.class.extend(Parent, Fiber.getExtension(proto), Fiber.getExtension(statics));
+
+    var extensionsToInclude = Fiber.fn.extensions.findIncluded(proto, statics);
+    var resolved = Fiber.fn.class.extend(Parent, Fiber.resolve(proto, true), Fiber.resolve(statics, true));
+    Fiber.fn.extensions.setIncluded(resolved, extensionsToInclude, false, true);
+
+    return resolved;
   },
 
   /**
@@ -134,39 +145,6 @@ Fiber.fn.class = {
   },
 
   /**
-   * Returns extensions list that associated with given `object`
-   * @param {Object} object
-   * @returns {Array|null}
-   */
-  getExtensions: function(object) {
-    var key = Fiber.Constants.extensions.property;
-    if (! object[key]) return null;
-    return object[key];
-  },
-
-  /**
-   * Sets extensions list to the private registry of the `object`
-   * @param {Object} object
-   * @param {Array|string} list
-   * @returns {Array}
-   */
-  setExtensions: function(object, list) {
-    var key = Fiber.Constants.extensions.property;
-    if (! _.has(object, key)) object[key] = [];
-    if (! _.isString(list) && ! Fiber.fn.isArrayOf(list, 'string')) return object[key];
-    return object[key] = _.compact(_.uniq(object[key].concat(_.castArray(list))));
-  },
-
-  /**
-   * Checks if object has extensions associated
-   * @param {Object} object
-   * @returns {boolean}
-   */
-  hasExtensions: function(object) {
-    return _.has(object, Fiber.Constants.extensions.property);
-  },
-
-  /**
    * Composes View with provided options
    * @param {Function} View
    * @param {?Object} [options]
@@ -175,7 +153,7 @@ Fiber.fn.class = {
    */
   composeView: function(View, options) {
     if (! (Fiber.fn.class.isBackbone(View)))
-      Fiber.internal.logger.errorThrow('View cannot be composed', View, options);
+      Fiber.internal.log.errorThrow('View cannot be composed', View, options);
 
     options = val(options, {}, _.isPlainObject);
 
@@ -232,25 +210,16 @@ Fiber.fn.class = {
     }
 
     if (! args.length) return new Component;
-    return Fiber.fn.class.makeInstanceWithArgs(Component, args);
+    return Fiber.fn.class.createInstance(Component, args);
   },
 
   /**
-   * Determines if `Class` is one of the Backbone Components
+   * Determines if `object` is one of the Backbone Components
    * @param {Function} instance
    * @returns {boolean}
    */
-  isBackbone: function(Class) {
-    return Fiber.fn.class.isBackboneInstance(Class.prototype);
-  },
-
-  /**
-   * Checks if given Class is Class constructor
-   * @param {*} Class
-   * @returns {boolean}
-   */
-  isClass: function(Class) {
-    return _.isFunction(Class);
+  isBackbone: function(object) {
+    return Fiber.fn.class.isBackboneInstance(object.prototype);
   },
 
   /**
@@ -266,15 +235,33 @@ Fiber.fn.class = {
   },
 
   /**
+   * Checks if given object is Class constructor
+   * @param {*} Class
+   * @returns {boolean}
+   */
+  is: function(object) {
+    return _.isFunction(object) && object.prototype && object.prototype.constructor;
+  },
+
+  /**
+   * Checks if given object is instance (not a Class)
+   * @param instance
+   * @returns {boolean}
+   */
+  isInstance: function(object) {
+    return ! Fiber.fn.class.is(object) && ! _.isPlainObject(object) && _.isObject(object);
+  },
+
+  /**
    * Creates new `Class` with array of arguments
    * @param {Function} Parent
    * @param {Array} args
    * @returns {Object}
    */
-  makeInstanceWithArgs: function(Parent, args) {
-    function ClassApplier() {return Parent.apply(this, args)};
-    ClassApplier.prototype = Parent.prototype;
-    return new ClassApplier();
+  createInstance: function(Parent, args) {
+    function InstanceCreator() {return Parent.apply(this, args)};
+    InstanceCreator.prototype = Parent.prototype;
+    return new InstanceCreator();
   },
 
   /**
@@ -468,7 +455,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   handleOptions: function(scope, options, defaults, deep) {
-    if (! scope) Fiber.internal.logger.error('Scope is not provided or not valid', scope);
+    if (! scope) Fiber.internal.log.error('Scope is not provided or not valid', scope);
     options = val(options, {}, _.isPlainObject);
     return scope.options = Fiber.fn.class.handleOptionsDefaults(options, defaults, deep);
   },

@@ -83,9 +83,8 @@
     // todo: add debug helpers to fiber
     allowGlobals: false,
     extensions: {
-      property: 'extensions',
       private: '__extensions',
-      optionsProperty: 'extensionsList',
+      hoisting: '__needPropsHoisting',
     },
     bag: {
       holderKey: 'items'

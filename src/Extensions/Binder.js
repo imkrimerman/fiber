@@ -1,6 +1,6 @@
 /**
  * Fiber Binder Extension
- * @type {Object}
+ * @type {Object.<Fiber.Extension>}
  */
 var $Binder = new Fiber.Extension('Binder', {
 
@@ -8,7 +8,7 @@ var $Binder = new Fiber.Extension('Binder', {
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  initMethod: 'applyBinder',
+  initWith: 'applyBinder',
 
   /**
    * Methods list to bind

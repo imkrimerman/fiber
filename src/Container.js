@@ -5,25 +5,25 @@
 Fiber.Container = Fiber.fn.class.create({
 
   /**
-   * The container's bindings.
+   * The container's bindings bag.
    * @type {Object.<Fiber.Bag>}
    */
   bindings: null,
 
   /**
-   * Bag of extensions
+   * Extensions bag
    * @type {Object.<Fiber.Bag>}
    */
   extensions: null,
 
   /**
-   * Bag of shared instances
+   * Shared instances bag
    * @type {Object.<Fiber.Bag>}
    */
   shared: null,
 
   /**
-   * Bag of aliases
+   * Aliases bag
    * @type {Object.<Fiber.Bag>}
    */
   aliases: null,
@@ -114,9 +114,9 @@ Fiber.Container = Fiber.fn.class.create({
 
   /**
    * Resolve the given type from the container.
-   * @param abstract
-   * @param parameters
-   * @param scope
+   * @param {string|Array} abstract
+   * @param {?Array} [parameters]
+   * @param {?Object} [scope]
    * @returns {*}
    * @throws Resolution Exception
    */
@@ -124,8 +124,20 @@ Fiber.Container = Fiber.fn.class.create({
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete) Fiber.internal.logger.errorThrow('Resolution Exception with ' + abstract);
+    if (! concrete || ! _.isFunction(concrete)) Fiber.internal.log.errorThrow('[Resolution Exception]: ' + abstract +
+                                                                              ', not a Class constructor or function.');
+    if (Fiber.fn.class.is(concrete)) return this.instantiate(concrete, parameters);
     return concrete.apply(val(scope, this), this.resolve(parameters).concat([this]));
+  },
+
+  /**
+   * Instantiates `concrete` type with resolved `parameters`
+   * @param {Function} concrete
+   * @param {Array} parameters
+   * @returns {*|Object}
+   */
+  instantiate: function(concrete, parameters) {
+    return Fiber.fn.class.createInstance(concrete, this.resolve(parameters));
   },
 
   /**

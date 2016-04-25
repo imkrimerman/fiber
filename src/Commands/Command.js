@@ -41,7 +41,7 @@ Fiber.Commands.Command = Fiber.Bag.extend({
     });
 
     if (! this.name) {
-      Fiber.internal.logger.errorReturn('Command must have unique `name` property and should ' +
+      Fiber.internal.log.errorReturn('Command must have unique `name` property and should ' +
                                     'be valid and not empty string', this.name, this);
     }
   },

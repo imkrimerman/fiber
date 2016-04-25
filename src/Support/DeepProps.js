@@ -41,7 +41,7 @@ Fiber.fn.deepProps = {
    * @param {Array|string} list
    */
   set props(list) {
-    this.__props = Fiber.fn.concat(this.__props, list, true);
+    this.__props = Fiber.fn.concat(this.__props, list);
   },
 
   /**

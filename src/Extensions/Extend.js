@@ -5,7 +5,7 @@
  * Can be configured using willExtend property of the context or with
  * options.willExtend property that can be array or string.
  *
- * @type {Object}
+ * @type {Object.<Fiber.Extension>}
  */
 var $Extend = new Fiber.Extension('Extend', {
 
@@ -13,7 +13,7 @@ var $Extend = new Fiber.Extension('Extend', {
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  initMethod: 'applyExtend',
+  initWith: 'applyExtend',
 
   /**
    * Properties keys that will be auto extended from the initialization object

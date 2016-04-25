@@ -52,15 +52,6 @@ Fiber.forgetExtension = function(alias) {
 };
 
 /**
- * Returns code capsule(s) from given extension(s) resolved from ioc using alias(es)
- * @param {string|Array} alias
- * @returns {Object|Array.<Object>}
- */
-Fiber.makeExtensionCall = function(alias, method, args) {
-  return Fiber.fn.extensions.makeCall(alias, method, args);
-};
-
-/**
  * Returns list of extensions
  * @param {?boolean} [asObject=false]
  * @param {?Array|string} [exclude=[]]
@@ -68,6 +59,15 @@ Fiber.makeExtensionCall = function(alias, method, args) {
  */
 Fiber.getExtensionList = function(asObject, exclude) {
   return Fiber.fn.extensions.list(asObject, exclude);
+};
+
+/**
+ * Returns code capsule(s) from given extension(s) resolved from ioc using alias(es)
+ * @param {string|Array} alias
+ * @returns {Object|Array.<Object>}
+ */
+Fiber.makeExtensionCall = function(alias, method, args) {
+  return Fiber.fn.extensions.makeCall(alias, method, args);
 };
 
 /**
@@ -118,4 +118,52 @@ Fiber.getExtensionInitMethod = function(alias) {
  */
 Fiber.getExtensionInitMethodMap = function(alias) {
   return Fiber.fn.extensions.getInitMethodMap(alias);
+};
+
+/**
+ * Resolve the given type from the container.
+ * @param {string|Array} abstract
+ * @param {?Array} [parameters]
+ * @param {?Object} [scope]
+ * @returns {*}
+ * @throws Resolution Exception
+ *
+ * @example
+ * Fiber.make([ ['Bag', {one: 1, two: 2}], ['Log', {level: 'debug}] ]);
+ * Fiber.make([$OwnProps, $Extend, 'Binder', 'Events']);
+ * Fiber.make('Bag', {one: 1, two: 2});
+ */
+Fiber.make = function(abstract, parameters, scope) {
+  if (! Fiber.has('container')) return abstract;
+  if (arguments.length > 1 && ! _.isArray(abstract))
+    return Fiber.container.make(abstract, parameters, scope);
+
+  return _.map(abstract, function(one) {
+    var abstractAlias = one
+      , parameters = []
+      , scope = null;
+
+    if (_.isArray(one) && one.length > 1) {
+      abstractAlias = one[0];
+      parameters = one[1];
+      scope = one[2];
+    }
+    else if (_.isObject(one)) return one;
+    else if (_.isString(one)) abstractAlias = one;
+
+    return Fiber.container.make(abstractAlias, parameters, scope);
+  });
+};
+
+/**
+ * Resolves dependencies from container
+ * @param {Array|string} dependencies
+ * @param {?boolean} [extensionToCode=true]
+ * @returns {Array|*}
+ */
+Fiber.resolve = function(dependencies, extensionToCode) {
+  if (! Fiber.has('container')) return dependencies;
+  return _.map(Fiber.container.resolve(dependencies), function(dep) {
+    return Fiber.fn.extensions.is(dep) && extensionToCode ? dep.toCode() : dep;
+  });
 };

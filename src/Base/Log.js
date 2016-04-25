@@ -351,7 +351,7 @@ Fiber.Log = Fiber.fn.class.create({
    */
   errorThrow: function() {
     this.callWriter(this.getLevel(), arguments);
-    throw Fiber.fn.class.makeInstanceWithArgs(Error, arguments);
+    throw Fiber.fn.class.createInstance(Error, arguments);
   },
 
   /**

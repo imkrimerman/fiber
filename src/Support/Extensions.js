@@ -174,6 +174,27 @@ Fiber.fn.extensions = {
   },
 
   /**
+   * Detects extensions at the given object.
+   * Returns list of extension names, if 2nd argument is provided then it'll return extensions them selves
+   * @param {Object} object
+   * @param {?boolean} [returnExtensions=false]
+   * @returns {Array}
+   */
+  detect: function(object, returnExtensions) {
+    if (! _.isObject(object)) return [];
+    var detected = [];
+    returnExtensions = val(returnExtensions, false, _.isBoolean);
+    _.each(Fiber.fn.extensions.all(), function(extension, key) {
+      var extensionProps = _.keys(extension.getCodeCapsule());
+      if (Fiber.fn.expectHasAllProps(object, extensionProps)) {
+        if (! returnExtensions) return detected.push(key);
+        detected.push(Fiber.fn.extensions.get(key));
+      }
+    });
+    return detected;
+  },
+
+  /**
    * Resolves extension(s) from ioc container by `alias` and calls method on it(them) with the given `args`
    * @param {string|Array} alias
    * @param {string} method
@@ -257,12 +278,14 @@ Fiber.fn.extensions = {
    * @param {Object} object
    * @param {Array} list
    * @param {?boolean} [reset=false]
-   * @returns {Array}
+   * @returns {*}
    */
   setIncluded: function(object, list, reset) {
-    var key = Fiber.Constants.extensions.private;
-    if (reset || ! _.has(object, key) || ! _.isArray(object[key])) object[key] = [];
-    return object[key] = Fiber.fn.concat(object[key], list, true);
+    var hoistingKey = Fiber.Constants.extensions.hoisting
+      , extensionKey = Fiber.Constants.extensions.private;
+    if (Fiber.fn.class.is(object)) object[hoistingKey] = Fiber.fn.concat(extensionKey, object[hoistingKey] || []);
+    if (reset || ! _.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
+    return object[extensionKey] = Fiber.fn.concat(object[extensionKey], list);
   },
 
   /**
@@ -277,6 +300,28 @@ Fiber.fn.extensions = {
       , fn = val(match, 'every', Fiber.fn.createIncludes(['every', 'some']));
     if (! _.has(object, key) || ! _.isArray(object[key])) return false;
     return _[fn](function(one) { return ~list.indexOf(one); });
+  },
+
+  /**
+   * Finds extension names at the provided object
+   * @param {Object} object
+   * @returns {Array}
+   */
+  findIncluded: function(object) {
+    if (arguments.length > 1) {
+      var args = _.compact(_.toArray(arguments)), result = [];
+      for (var i = 0; i < args.length; i ++)
+        result = result.concat(Fiber.fn.extensions.findIncluded(args[i]));
+      return Fiber.fn.concat.apply(null, result);
+    }
+
+    if (! _.isObject(object)) return [];
+    var found = [];
+    _.each(_.castArray(object), function(obj) {
+      if (_.isString(obj)) found.push(obj);
+      else if (Fiber.fn.extensions.is(obj)) found.push(obj.getName());
+    });
+    return found;
   },
 
   /**
@@ -352,7 +397,7 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   isClass: function(extension) {
-    return Fiber.fn.class.isClass(extension) && Fiber.fn.extensions.is(extension.prototype);
+    return Fiber.fn.class.is(extension) && Fiber.fn.extensions.is(extension.prototype);
   },
 
   /**
@@ -370,6 +415,6 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   isNotClass: function(extension) {
-    return ! Fiber.fn.extensions.isClass(extension);
+    return ! Fiber.fn.extensions.is(extension);
   }
 };

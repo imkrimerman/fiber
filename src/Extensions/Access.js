@@ -1,7 +1,7 @@
 /**
  * Access extension brings getters, setters and unsetters that uses
  * `lodash` methods to support deep access to the Class.
- * @type {Object}
+ * @type {Object.<Fiber.Extension>}
  */
 var $Access = new Fiber.Extension('Access', {
 

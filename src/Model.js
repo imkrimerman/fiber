@@ -44,6 +44,7 @@ Fiber.Model = Fiber.fn.class.make(Backbone.Model, [
      */
     constructor: function(attributes, options) {
       options = Fiber.fn.class.handleOptions(this, options);
+
       this.attributes = {};
       this.cid = _.uniqueId(this.cidPrefix + '-');
       this.errorBag = new Fiber.ErrorBag();

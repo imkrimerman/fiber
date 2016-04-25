@@ -266,7 +266,7 @@ Fiber.fn = {
    */
   globalize: function(key, value, force) {
     if (! Fiber.Constants.allowGlobals) {
-      Fiber.internal.logger.info(key + ' will not be globalized. Global variables are not allowed.')
+      Fiber.internal.log.info(key + ' will not be globalized. Global variables are not allowed.')
       return false;
     }
 
@@ -298,7 +298,7 @@ Fiber.fn = {
    * @returns {boolean}
    */
   inArrayAllSame: function(array) {
-    return !! array.reduce(function(a, b) {
+    return ! ! array.reduce(function(a, b) {
       return a === b ? a : NaN;
     });
   },
@@ -336,7 +336,7 @@ Fiber.fn = {
    * @returns {Array}
    */
   concat: function() {
-    var makeUnique = val(_.last(arguments), false, _.isBoolean);
+    var makeUnique = val(_.last(arguments), true, _.isBoolean);
     var args = js.arr.concat.apply([], _.toArray(arguments).map(_.castArray));
     return makeUnique ? _.uniq(args) : args;
   },
@@ -389,7 +389,6 @@ Fiber.fn = {
     return val(fn, defaults, _.negate(_.isUndefined));
   },
 
-
   /**
    * Determines if object can be extended.
    * Check for `extend` function or if it's plain object
@@ -403,12 +402,82 @@ Fiber.fn = {
     });
   },
 
+  /**
+   * Expect that object has all given properties
+   * @param {Object} obj
+   * @param {Array|Object} props
+   * @param [{boolean}] isObject - default to `true`
+   */
+  expectHasAllProps: function(obj, props) {
+    var isObject = _.isArray(props) ? false : true;
+    return _.every(props, function(prop, key) {
+      var prop = isObject ? key : props[key];
+      return isObject ? _.has(obj, prop) : _.includes(obj, prop);
+    });
+  },
+
+  /**
+   * Hoists given props to object direct scope (this)
+   * @param {Object} object
+   * @param {?Array} [props]
+   * @returns {Object}
+   */
+  applyOwn: function(object, props) {
+    return $OwnProps.applyMethod($OwnProps.getInitMethod(), [props], object);
+  },
+
+  /**
+   * Extends object with given options object
+   * @param {Object} object
+   * @param {Object} options
+   * @returns {Object}
+   */
+  applyExtend: function(object, options) {
+    return $Extend.applyMethod($Extend.getInitMethod(), [options], object);
+  },
+
+  /**
+   * Creates plain object with the given key and value
+   * @param {string} key
+   * @param {*} value
+   * @returns {Object}
+   */
+  createObj: function(key, value) {
+    var obj = {};
+    obj[key] = value;
+    return obj;
+  },
+
+  /**
+   * Copies properties from source object to destination object
+   * @param {Object} destination
+   * @param {Object} source
+   * @param {Array} props
+   * @param {?boolean} [deep=false]
+   * @returns {*|Object}
+   */
+  copyProps: function(destination, source, props, deep) {
+    var fn = val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
+    for (var i = 0; i < props.length; i ++) if (_.has(source, props[i]))
+      destination[props[i]] = _[fn](source[props[i]]);
+    return destination;
+  },
+
+  /**
+   * Returns function name
+   * @param {Function} fn
+   * @returns {string}
+   */
   getFunctionName: function(fn) {
     var strFn = fn.toString();
     ///^function\s+([\w\$]+)\s*\(/.exec( myFunction.toString() )[ 1 ]
     return strFn.substr('function '.length).substr(0, strFn.indexOf('('));
   },
 
+  /**
+   * Returns file name of current executed file
+   * @returns {string}
+   */
   getFileName: function() {
     return location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
   },

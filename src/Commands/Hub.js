@@ -70,14 +70,14 @@ Fiber.Commands.Hub = Fiber.fn.class.createWithExtensions({
       // if is function then just call it with `command` and return
       if (_.isFunction(Handler)) return Handler(command);
       // if is Class constructor
-      if (Fiber.fn.class.isClass(Handler)) {
+      if (Fiber.fn.class.is(Handler)) {
         // then let's instantiate new Handler with `command` as argument
         handler = new Handler(command);
         // and trigger handle method on command
         return handler.handle(command, this);
       }
     }
-    return Fiber.internal.logger.errorReturn('Can\'t execute command', command, this);
+    return Fiber.internal.log.errorReturn('Can\'t execute command', command, this);
   },
 
   /**
