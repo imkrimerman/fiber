@@ -60,10 +60,14 @@ Fiber.Constants = $Const = {
   },
   computed: {
     defaultPostfix: 'Attribute',
-    modelPostfix: 'computedPostfix',
+    modelPostfix: 'computePostfix',
+    private: '__willCompute'
   },
   ioc: {
-    private: '__inject',
+    inject: {
+      private: '__inject',
+      deps: '__deps'
+    },
     regex: {
       ARGS: /^function\s*[^\(]*\(\s*([^\)]*)\)/m,
       ARG_SPLIT: /,/,

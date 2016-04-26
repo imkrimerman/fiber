@@ -47,13 +47,17 @@ Fiber.fn.delegator = {
    * it will be dynamically resolve from the bound object
    * @param {Function} method
    * @param {?Object|string} [scope=method]
+   * @param {?number} [argNum]
    * @returns {Function}
    */
-  proxy: function(method, scope) {
+  proxy: function(method, scope, argNum) {
     $fn.delegator.expectFn(method);
+    var isStrict = $val.isDef(argNum);
     return function() {
+      var args = arguments;
+      if (isStrict) args = argNum > 0 ? _.toArray(arguments).splice(0, argNum) : [];
       scope = _.isString(scope) ? this[scope] : $val(scope, method);
-      return method.apply(scope, $fn.argsConcat(this, arguments));
+      return method.apply(scope, $fn.argsConcat(this, args));
     };
   },
 

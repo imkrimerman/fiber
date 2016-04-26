@@ -22,14 +22,21 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
     /**
      * The attributes that should be casted to native types.
      * @type {Object}
-     */
-    cast: {},
+     */ //todo: implement
+    casting: {},
 
     /**
      * Properties that should be computed in runtime
      * @type {Object}
-     */
-    compute: {},
+     */ //todo: implement
+    compute: {
+      fullName: {
+        depend: ['name', 'surname'],
+        hidden: false,
+        //value: '<%= name %><%= surname %>'
+      },
+      full: '<%= name %><%= surname %>'
+    },
 
     /**
      * Error bag
@@ -55,22 +62,26 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
      * @param {?Object} [options={}]
      */
     constructor: function(attributes, options) {
+      attributes = $val(attributes, {});
       options = $fn.class.handleOptions(this, options);
+
       this.attributes = {};
       this.cid = _.uniqueId(this.cidPrefix + '-');
       this.errorBag = new Fiber.ErrorBag();
       this.resetView();
-      attributes = $val(attributes, {});
-      options = $val(options, {});
+
       $fn.extensions.init(this);
+
       if (options.parse) attributes = this.parse(attributes, options) || {};
       attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));
+
       this.set(attributes, options);
       this.changed = {};
       this.listenTo(this, 'invalid', function() {
         $fn.apply(this, 'whenInvalid', arguments);
       });
 
+      $fn.computed.init(this, _.result(this, 'compute'));
       $fn.apply(this, 'initialize', arguments);
     },
 
@@ -78,12 +89,14 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
      * Get the value of an attribute.
      * If computed property is available then it will be retrieved.
      * @param {string} attribute
+     * @param {?Object} [options]
      * @returns {*}
      */
-    get: function(attribute) {
-      if (! $fn.computed.has(this, attribute, 'get'))
-        return _.get(this.attributes, attribute);
-      return $fn.computed.get(this, attribute);
+    get: function(attribute, options) {
+      options = $valMerge(options, {denyCompute: false}, 'defaults');
+      if (! options.denyCompute && $fn.computed.has(this, attribute, 'get'))
+        return $fn.computed.get(this, attribute);
+      return _.get(this.attributes, attribute);
     },
 
     /**
@@ -91,12 +104,14 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
      * If computed property is available then it will be called with new value.
      * @param {Object|string} attribute
      * @param {*} value
+     * @param {?Object} [options]
      * @returns {*}
      */
-    set: function(attribute, value) {
-      if (! $fn.computed.has(this, attribute, 'set'))
-        return this.apply(this.__parent__, 'set', arguments);
-      return $fn.computed.set(this, attribute, value);
+    set: function(attribute, value, options) {
+      options = $valMerge(options, {denyCompute: false}, 'defaults');
+      if (! options.denyCompute && $fn.computed.has(this, attribute, 'set'))
+        return $fn.computed.set(this, attribute, value);
+      return this.apply(this.__parent__, 'set', arguments);
     },
 
     /**

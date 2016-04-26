@@ -17,7 +17,7 @@ Fiber.fn.class = {
     // Return Class constructor
     return function FiberClassConstructor() {
       // Attach Parent Class constructor and Parent prototype to the direct scope of child
-      $fn.class.attachSuper(this, parentClass, constructor);
+      $fn.class.attachSuper(this, parentClass);
       // If we have properties that needs to be hoisted to the direct scope (this) of child, then lets apply
       // hoisting to the current scope.
       if (! _.isEmpty(constructor[hoistingKey])) $fn.copyProps(this, constructor, constructor[hoistingKey]);
@@ -56,7 +56,7 @@ Fiber.fn.class = {
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);
     // Set a convenience property in case the parent's prototype is needed later.
-    child.__super__ = parent.prototype;
+    $fn.class.attachSuper(child, parent);
     // and finally return child
     return child;
   },
@@ -90,16 +90,20 @@ Fiber.fn.class = {
     // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
     Parent = $val(Parent, Fiber.Class);
     // If Parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent))
+    if (_.isString(Parent) && Fiber.has('container') && Fiber.container.bound(Parent)) {
       Parent = Fiber.container.make(Parent);
+    }
+    // resolve extension list from prototype and statics
     var extensionsToInclude = $fn.extensions.findIncluded(proto, statics);
+    // extend parent with dependency injection
     var resolved = $fn.class.extend(Parent, Fiber.resolve(proto, true), Fiber.resolve(statics, true));
-    $fn.extensions.setIncluded(resolved, extensionsToInclude, false, true);
+    // set resolved extension list to Class to hoist it to direct scope later
+    $fn.extensions.setIncluded(resolved, extensionsToInclude);
     return resolved;
   },
 
   /**
-   * Creates simple Class. Includes Fiber Events
+   * Creates simple Class.
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
    * @returns {Function}
@@ -115,8 +119,9 @@ Fiber.fn.class = {
    * @returns {Function}
    */
   createWithExtensions: function(proto, statics) {
+    proto = $fn.castArr(proto);
     var extensions = $fn.extensions.mapCall($fn.extensions.list(), 'getCodeCapsule')
-      , mergeable = $fn.castArr(proto).concat(Fiber.Events)
+      , mergeable = _.has(proto, Fiber.Events) ? proto : proto.concat(Fiber.Events)
       , Parent = $fn.class.createConstructor(extensions);
 
     proto = $fn.merge(extensions, mergeable);
@@ -343,14 +348,12 @@ Fiber.fn.class = {
         apply: function(Class, method, args, context) {
           return $fn.apply(Class, method, args, context || this);
         },
-        implement: function(proto, statics, override) {
-          $fn.class.mix(this.__proto__, $fn.merge(Fiber.resolve(proto)), override);
-          $fn.class.mix(this.__parent__, $fn.merge(Fiber.resolve(statics)), override);
-          return this;
+        implement: function(proto, override) {
+          return $fn.class.mix(Object.getPrototypeOf(this), $fn.merge(Fiber.resolve(proto)), override);
         },
-//        createNew: function() {
-//          return $fn.class.createInstance(this.__ctor__, arguments);
-//        },
+        createNew: function() {
+          return $fn.class.createInstance(this.constructor, arguments);
+        },
       },
       statics: {extend: $fn.delegator.proxy($fn.class.make)}
     };
@@ -365,11 +368,10 @@ Fiber.fn.class = {
    * @param {Function} constructor
    * @returns {Object}
    */
-  attachSuper: function(child, parent, constructor) {
+  attachSuper: function(child, parent) {
     if (! parent) return child;
     child.__super__ = parent.prototype;
     child.__parent__ = parent;
-    child.__ctor__ = constructor;
     return child;
   },
 

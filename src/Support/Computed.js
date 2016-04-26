@@ -1,40 +1,126 @@
+/**
+ * Computed Properties support
+ * @type {Object}
+ */
 Fiber.fn.computed = {
 
+  /**
+   * Computed accessor/mutator function postfix
+   * @type {string}
+   */
   postfix: $Const.computed.defaultPostfix,
 
-  get: function(model, attribute) {
-    return $fn.computed.apply(model, attribute, 'get');
+  init: function(model, compute) {
+    if (_.isEmpty(compute)) return model;
+    _.defaults(model, $fn.createObj($Const.computed.private, {}));
+    var privetCompute = model[$Const.computed.private];
+
+    for (var prop in compute) {
+      privetCompute[prop] = {watching: false, mutation: null};
+
+      var config = compute[prop]
+        , privateComputeProp = privetCompute[prop]
+        , isComplex = _.isPlainObject(config);
+
+      if (! isComplex) {
+        _.isString(config) && (privateComputeProp.mutation = $fn.template.compile);
+        continue;
+      }
+
+      if (config.watch) _.each($fn.castArr(config.watch), function(one) {
+        model.when('change:' + one, _.partial($fn.computed.recompute, model, prop));
+      });
+
+    }
+    return model;
   },
 
-  set: function(model, attribute, value) {
-    return $fn.computed.apply(model, attribute, 'set', [value]);
+  recompute: function(model, prop) {
+//    var value =
+    $fn.computed.apply(model, prop, 'set', value);
   },
 
-  has: function(model, attribute, prefix, match) {
+  /**
+   * Returns result of property computation
+   * @param {Object.<Fiber.Model>} model
+   * @param {string} prop
+   * @returns {*}
+   */
+  get: function(model, prop) {
+    var privateCompute = model[$Const.computed.private];
+    if (privateCompute && _.has(privateCompute, prop))
+    return $fn.computed.apply(model, prop, 'get');
+  },
+
+  /**
+   * Sets computed property value
+   * @param {Object.<Fiber.Model>} model
+   * @param {string} prop
+   * @param {*} value
+   * @param {?Object} [options]
+   * @returns {*|{defaultPostfix, modelPostfix}}
+   */
+  set: function(model, prop, value, options) {
+    return $fn.computed.apply(model, prop, 'set', [value], options);
+  },
+
+  /**
+   * Determines if model has computed properties available for the given property
+   * @param {Object.<Fiber.Model>} model
+   * @param {string} prop
+   * @param {string} action
+   * @param {?string|Array} [match='any']
+   * @returns {boolean}
+   */
+  has: function(model, prop, action, match) {
     match = $val(match, 'any', $fn.createIncludes(['any', 'every']));
-    return _[match]($fn.castArr(prefix), function(onePrefix) {
-      var computedKey = $fn.computed.createName(attribute, onePrefix, model);
+    return _[match]($fn.castArr(action), function(onePrefix) {
+      var computedKey = $fn.computed.createMethodName(prop, onePrefix, model);
       if (_.isFunction(model[computedKey])) return true;
       return false;
     });
   },
 
-  apply: function(model, attribute, prefix, args) {
-    var computed = $fn.class.resolveMethod(model, $fn.computed.createName(attribute, prefix, model));
-    if (_.isFunction(computed)) return computed.apply(this, $val(args, []));
-    return void 0;
+  /**
+   * Applies property computation on the model
+   * @param {Object.<Fiber.Model>} model
+   * @param {string} prop
+   * @param {string} action
+   * @param {?Array} [args]
+   * @param {?Object} [options]
+   * @returns {*}
+   */
+  apply: function(model, prop, action, args, options) {
+    options = $valMerge(options, {denyCompute: true}, 'extend');
+    var computedFn = $fn.class.resolveMethod(model, $fn.computed.createMethodName(prop, action, model))
+      , nativeArgs = [model.__super__[action].bind(model), $fn.computed, Fiber.container];
+    if (! _.isFunction(computedFn)) return;
+    var computedValue = computedFn.apply(model, $val(args, [], _.isArray).concat(nativeArgs));
+    return action === 'set' && model.set(prop, computedValue, options) || computedValue;
   },
 
-  createName: function(attribute, prefix, postfix) {
-    if (postfix instanceof Backbone.Model) postfix = $fn.computed.getPostfix(postfix);
-    prefix = $val(prefix, '', _.isString);
-    postfix = $val(postfix, $fn.computed.postfix, _.isString);
-    attribute = _.camelCase(attribute);
-    prefix = ! _.isEmpty(prefix) ? prefix + _.capitalize(attribute) : attribute;
-    return prefix + postfix;
+  /**
+   * Creates method name using action, postfix and property name
+   * @param {string} prop
+   * @param {?string} [action]
+   * @param {?string|Object.<Fiber.Model>} [postfix]
+   * @returns {string}
+   */
+  createMethodName: function(prop, action, postfix) {
+    action = $val(action, '', _.isString);
+    postfix = $fn.computed.getPostfix(postfix);
+    prop = _.camelCase(prop);
+    return (_.isEmpty(action) ? prop : action + _.upperFirst(prop)) + postfix;
   },
 
+  /**
+   * Returns postfix for the given model
+   * @param {string|Object.<Fiber.Model>} [model]
+   * @returns {string}
+   */
   getPostfix: function(model) {
-    return _.get(model, $Const.computed.modelPostfix, $fn.computed.postfix);
+    if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
+    var modelPostfix = _.get(model, $Const.computed.modelPostfix, $fn.computed.postfix);
+    return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
   },
 };
