@@ -1,3 +1,7 @@
+/**
+ * Extensions Support
+ * @type {Object}
+ */
 Fiber.fn.extensions = {
 
   /**
@@ -57,7 +61,7 @@ Fiber.fn.extensions = {
     else {
       if ($fn.extensions.has(alias) && ! $val(override, false)) return this;
       if ($fn.extensions.isNot(extension)) extension = new Fiber.Extension(extension);
-      extension.name = alias;
+      extension.setName(alias);
       this.__access().set(alias, extension);
     }
     return this;

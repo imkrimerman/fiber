@@ -25,19 +25,22 @@ var _ = require('lodash')
       './src/Support/Compatibility.js',
       './src/Support/Version.js',
       './src/Support/fn.js',
+      './src/Support/Descriptor.js',
       './src/Support/Class.js',
+      './src/Support/Cast.js',
       './src/Support/Extensions.js',
       './src/Support/DeepProps.js',
       './src/Support/Template.js',
       './src/Support/Validation.js',
       './src/Support/Delegator.js',
       './src/Support/Computed.js',
-      // Start Classes
+      './src/Support/Injection.js',
+      // Elementary Classes
       './src/Base/Log.js',
       './src/Base/Events.js',
       './src/Base/Class.js',
-      './src/Base/Extension.js',
       // Extensions
+      './src/Base/Extension.js',
       './src/Extensions/Access.js',
       './src/Extensions/Binder.js',
       './src/Extensions/Extend.js',
@@ -49,6 +52,8 @@ var _ = require('lodash')
       './src/Base/Bag.js',
       './src/Base/ErrorBag.js',
       './src/Base/Transmitter.js',
+      // Global instances
+      './src/Support/Globals.js',
       // Base collections
       './src/Base/Collections/Collection.js',
       './src/Base/Collections/LinkedViews.js',

@@ -1,7 +1,7 @@
 // define base variables
 var Fr, Fiber, previousFiber,
 // define internal private variables
-$fn, $JS, $Const, $Log, $val, $valMerge, $each, $trigger;
+$fn, $JS, $Const, $Log, $val, $valMerge, $isDef, $each, $trigger, $ioc;
 
 /**
  * Fiber main object
@@ -54,20 +54,33 @@ Fiber.Constants = $Const = {
   log: {
     levels: ['trace', 'debug', 'info', 'warn', 'error'],
     default: 'error',
+    fallback: console.log
   },
   template: {
     engine: _.template
   },
+  state: {
+    private: '__state'
+  },
+  access: {
+    methods: ['get', 'set', 'has', 'result', 'unset'],
+    allow: {
+      private: false,
+      protected: ['get', 'result', 'has'],
+      public: true
+    }
+  },
   computed: {
+    private: '__willCompute',
     defaultPostfix: 'Attribute',
     modelPostfix: 'computePostfix',
-    private: '__willCompute'
+  },
+  injection: {
+    private: '__inject',
+    allowedTypes: ['function'],
+    sharedMethods: ['get', 'has', ['inject', 'applyInject']]
   },
   ioc: {
-    inject: {
-      private: '__inject',
-      deps: '__deps'
-    },
     regex: {
       ARGS: /^function\s*[^\(]*\(\s*([^\)]*)\)/m,
       ARG_SPLIT: /,/,

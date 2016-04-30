@@ -20,7 +20,7 @@ Fiber.Extension = $fn.class.create({
    * Code capsule
    * @type {Object}
    */
-  __code: {},
+  __code: null,
 
   /**
    * Constructs extension
@@ -29,6 +29,7 @@ Fiber.Extension = $fn.class.create({
    */
   constructor: function(name, code) {
     this.fromCode(code, name);
+    $fn.apply(this, '__init__', arguments);
   },
 
   /**
@@ -45,6 +46,14 @@ Fiber.Extension = $fn.class.create({
    */
   getCodeCapsule: function() {
     return this.__code;
+  },
+
+  /**
+   * Determines if extension has valid code capsule
+   * @returns {boolean}
+   */
+  hasCodeCapsule: function() {
+    return _.isPlainObject(this.__code);
   },
 
   /**
@@ -66,6 +75,14 @@ Fiber.Extension = $fn.class.create({
   },
 
   /**
+   * Determines if extensions has initialize method
+   * @returns {boolean}
+   */
+  hasInitMethod: function() {
+    return !! this.__initWith;
+  },
+
+  /**
    * Returns extension name
    * @returns {string}
    */
@@ -81,6 +98,14 @@ Fiber.Extension = $fn.class.create({
   setName: function(name) {
     this.__name = name;
     return this;
+  },
+
+  /**
+   * Determines if extension has name
+   * @returns {boolean}
+   */
+  hasName: function() {
+    return ! _.isEmpty(this.__name);
   },
 
   /**
@@ -137,8 +162,9 @@ Fiber.Extension = $fn.class.create({
     initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
     if (_.isString(name)) this.setName(name);
     this.setCodeCapsule(code);
-    this.setInitMethod(initWith || code.initWith || this.__initWith);
+    this.setInitMethod(initWith || code.initWith || code.__initWith || this.__initWith);
     delete code.initWith;
+    delete code.__initWith;
     return this;
   },
 
@@ -155,11 +181,7 @@ Fiber.Extension = $fn.class.create({
    * @returns {Array}
    */
   getCodeCapsulePropertyList: function() {
-    var properties = [], code = this.getCodeCapsule();
-    _.each(code, function(prop) {
-      if (! _.isFunction(code[prop])) properties.push(prop);
-    });
-    return properties;
+    return $fn.properties(this.getCodeCapsule());
   },
 
   /**
@@ -167,7 +189,7 @@ Fiber.Extension = $fn.class.create({
    * @returns {Array}
    */
   getCodeCapsuleMethodList: function() {
-    return _.values(_.omit(this.getCodeCapsule(), this.getCodeCapsulePropertyList()));
+    return $fn.methods(this.getCodeCapsule());
   },
 
   /**

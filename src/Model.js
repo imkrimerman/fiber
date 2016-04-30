@@ -23,19 +23,10 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
      * The attributes that should be casted to native types.
      * @type {Object}
      */ //todo: implement
-    casting: {},
-
-    /**
-     * Properties that should be computed in runtime
-     * @type {Object}
-     */ //todo: implement
-    compute: {
-      fullName: {
-        depend: ['name', 'surname'],
-        hidden: false,
-        //value: '<%= name %><%= surname %>'
-      },
-      full: '<%= name %><%= surname %>'
+    casts: {
+      name: 'string',
+      surname: 'string',
+      date: 'Date',
     },
 
     /**
@@ -81,7 +72,6 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
         $fn.apply(this, 'whenInvalid', arguments);
       });
 
-      $fn.computed.init(this, _.result(this, 'compute'));
       $fn.apply(this, 'initialize', arguments);
     },
 
@@ -124,6 +114,15 @@ Fiber.Model = $fn.class.make(Backbone.Model, [
       if ($fn.computed.has(this, attribute, 'get')) return true;
       return _.has(this.attributes, attribute);
     },
+
+    restrictAccess: {
+      properties: [],
+      methods: [],
+    },
+
+    unset: function() {},
+
+    clear: function() {},
 
     /**
      * Validates `attributes` of Model against `rules`

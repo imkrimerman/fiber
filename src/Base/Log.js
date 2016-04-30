@@ -452,9 +452,8 @@ Fiber.Log = $fn.class.create({
     var date = new Date();
     return _.extend({}, {
       timestamp: date.toTimeString().slice(0, 8),
-      filename: $fn.getFileName(),
-      msg: '',
-      self: this
+      self: this,
+      msg: ''
     }, $val(data, {}, _.isPlainObject));
   },
 
@@ -480,7 +479,9 @@ Fiber.Log = $fn.class.create({
    * @private
    */
   __callWriter: function(method, args) {
-    return method.apply(this.__writer, method, args);
+    if (_.isString(method)) method = $fn.class.resolveMethod(this.__writer, method);
+    if (! _.isFunction(method) && _.isFunction($Const.log.fallback)) method = $Const.log.fallback;
+    if (_.isFunction(method)) return method.apply(this.__writer, method, args);
   },
 });
 

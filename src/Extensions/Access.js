@@ -6,6 +6,20 @@
 var $Access = new Fiber.Extension('Access', {
 
   /**
+   * Default access level
+   * @type {string}
+   */
+  __access: $Const.access.defaults,
+
+  /**
+   * Initializes Extension
+   * @private
+   */
+  __init__: function() {
+    $fn.descriptor.defineMacros(this.getCodeCapsule(), '__access', 'get/set');
+  },
+
+  /**
    * Gets value by given `property` key. You can provide `defaults` value that
    * will be returned if value is not found by the given key. If `defaults` is
    * not provided that defaults will be set to `null`
@@ -14,6 +28,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   get: function(property, defaults) {
+    if (! this.__isAllowed('get')) return void 0;
     return _.get(this, property, defaults);
   },
 
@@ -24,7 +39,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   set: function(property, value) {
-    _.set(this, property, value);
+    if (this.__isAllowed('set')) _.set(this, property, value);
     return this;
   },
 
@@ -34,6 +49,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {boolean}
    */
   has: function(property) {
+    if (! this.__isAllowed('has')) return void 0;
     return _.has(this, property);
   },
 
@@ -46,6 +62,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   result: function(property, defaults) {
+    if (! this.__isAllowed('result')) return void 0;
     return _.result(this, property, defaults);
   },
 
@@ -54,10 +71,29 @@ var $Access = new Fiber.Extension('Access', {
    * @param {string} property
    * @returns {*}
    */
-  forget: function(property) {
-    _.unset(this, property);
+  unset: function(property) {
+    if (this.__isAllowed('unset')) _.unset(this, property);
     return this;
-  }
+  },
+
+  /**
+   * Alias for unset. Removes `value` by given `property` key
+   * @param {string} property
+   * @returns {*}
+   */
+  forget: function(property) {
+    return this.unset(property);
+  },
+
+  /**
+   * Determines if given method is not restricted for the current access level
+   * @param {string} method
+   * @returns {boolean}
+   * @private
+   */
+  __isAllowed: function(method) {
+    return $fn.isAllowedToAccess(this, method);
+  },
 });
 
 /**

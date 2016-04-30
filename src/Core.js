@@ -139,7 +139,7 @@ Fiber.make = function(abstract, parameters, scope) {
     return Fiber.container.make(abstract, parameters, scope);
 
   return _.map(abstract, function(one) {
-    var abstractAlias = one
+    var abstractAlias = null
       , parameters = []
       , scope = null;
 

@@ -96,7 +96,7 @@ $fn = Fiber.fn = {
   valMerge: function(value, extender, method, checker, match, toOwn) {
     method = $val(method, _.extend, [_.isFunction, _.isString], 'some');
     if (_.isString(method) && _.has(_, method)) method = _[method];
-    if (! $val.isDef(checker)) checker = _.isPlainObject;
+    if (! $isDef(checker)) checker = _.isPlainObject;
     toOwn = $val(toOwn, false, _.isBoolean);
     return $fn.valCb(value, {}, function(checked) {
       var args = toOwn ? [checked, extender] : [{}, checked, extender];
@@ -372,24 +372,6 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Gets value by the given `method` key.
-   * If `scope` is provided, then value will be retrieved from `scope` by `method` property and reset to `method`
-   * If `method` value is function then it will be called with `args`.
-   * @param {string|Function|*} method
-   * @param {?Object} [scope]
-   * @param {?boolean} [own=false]
-   * @param {?Array} [args=[]]
-   * @returns {*}
-   */
-  result: function(method, scope, own, defaults) {
-    var inScope = $val(scope, false, _.isObject);
-    own = $val(own, false, _.isBoolean);
-    if (inScope) method = own ? _.get(scope, method, null) : scope[method];
-    if (_.isFunction(method)) method = inScope && method.apply(scope) || (method.apply(method));
-    return $val(method, defaults, _.negate(_.isUndefined));
-  },
-
-  /**
    * Determines if object can be extended.
    * Check for `extend` function or if it's plain object
    * @param {*} object
@@ -450,13 +432,13 @@ $fn = Fiber.fn = {
 
   /**
    * Copies properties from source object to destination object
-   * @param {Object} destination
    * @param {Object} source
+   * @param {Object} destination
    * @param {Array} props
    * @param {?boolean} [deep=false]
    * @returns {*|Object}
    */
-  copyProps: function(destination, source, props, deep) {
+  copyProps: function(source, destination, props, deep) {
     var method = $val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
     for (var i = 0; i < props.length; i ++) if (_.has(source, props[i]))
       destination[props[i]] = _[method](source[props[i]]);
@@ -469,54 +451,192 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   castArr: function(object) {
-    if (! object) return [];
-    return _.isArray(object) ? object : [object];
+    return $fn.cast.array(object);
   },
 
   /**
-   * Returns function name
+   * Returns list of `object` methods
+   * @param {Object} object
+   * @returns {Array}
+   */
+  methods: function(object) {
+    var name, methods = [];
+    if (! _.isObject(object) || _.isArray(object)) return methods;
+    for (name in object) if (_.isFunction(object[name])) methods.push(name);
+    return methods;
+  },
+
+  /**
+   * Returns list of `object` properties
+   * @param {Object} object
+   * @returns {Array}
+   */
+  properties: function(object) {
+    if (! _.isObject(object) || _.isArray(object)) return methods;
+    return _.keys(_.omit(object, $fn.methods(object)));
+  },
+
+  /**
+   * Fills array with the given value
+   * @param {Array} array
+   * @param {*} value
+   * @param {number} times
+   * @returns {Array}
+   */
+  fill: function(array, value, times) {
+    if (! _.isArray(array) && _.isNumber(array)) {
+      times = array;
+      array = [];
+    }
+
+    if (! _.isNumber(times) || ! times) return array;
+    var n = 0, hasValue = $isDef(value);
+    while (n < times) {
+      array.push(hasValue ? value : n);
+      ++n;
+    }
+    return array;
+  },
+
+  /**
+   * Determines if it is not restricted to access the `method` of the given `object`
+   * @param {Object} object
+   * @param {string} method
+   * @param {?string} [level]
+   * @returns {boolean}
+   */
+  isAllowedToAccess: function(object, method, level) {
+    level = $val(level, null, _.isString) || object.__access;
+    if (! _.isObject(object) || ! level) return true;
+    var methods = $Const.access.allow[level];
+    if (! _.isArray(methods)) return !! methods;
+    if (_.includes(methods, method)) return false;
+    return true;
+  },
+
+  /**
+   * Clones `object` deep using `customizer`
+   * @param {Object} object
+   * @param {Function} customizer
+   * @param {?Object} [scope]
+   * @returns {Object}
+   */
+  cloneDeepWith: function(object, customizer, scope) {
+    if (_.isObject(scope)) customizer = _.bind(customizer, scope);
+    return _.cloneDeepWith(object, customizer);
+  },
+
+  /**
+   * Clones `object` using `customizer`
+   * @param {Object} object
+   * @param {Function} customizer
+   * @param {?Object} [scope]
+   * @returns {Object}
+   */
+  cloneWith: function(object, customizer, scope) {
+    var clone = {};
+    $each(object, function(val, prop) {
+      clone[prop] = customizer.call(scope, null, val, prop);
+    });
+    return clone;
+  },
+
+  /**
+   * Creates provided `count` of clones for the given `object`
+   * @param {Object} object
+   * @param {?number} [count=1]
+   * @param {?boolean} [deep=false]
+   * @returns {Array}
+   */
+  clones: function(object, count, deep) {
+    count = $val(count, 1);
+    deep = $val(deep, false);
+    var clones = [], cloneFn = $fn[deep ? 'cloneDeepWith' : 'cloneWith'];
+    while (count--) clones.push(cloneFn(object, $fn.cloneCustomizer));
+    return clones;
+  },
+
+  /**
+   * Clone customizer function
+   * @param {*} value
+   * @returns {*}
+   */
+  cloneCustomizer: function(value) {
+    if (_.isFunction(value)) return value;
+    if (_.isArray(value)) return value.slice();
+    return _.clone(value);
+  },
+
+  /**
+   * Clones function
    * @param {Function} fn
-   * @returns {string}
+   * @returns {Function}
    */
-  getFunctionName: function(fn) {
-    var strFn = fn.toString();
-    ///^function\s+([\w\$]+)\s*\(/.exec( myFunction.toString() )[ 1 ]
-    return strFn.substr('function '.length).substr(0, strFn.indexOf('('));
+  cloneFunction: function(fn) {
+    var temp = function() { return fn.apply(this, arguments); };
+    _.forOwn(fn, function(value, prop) {
+      temp[prop] = value;
+    });
+    return temp;
   },
 
   /**
-   * Returns file name of current executed file
+   * Returns state key for the given object with path appended
+   * @param {Object} object
+   * @param {?string} [path='']
    * @returns {string}
    */
-  getFileName: function() {
-    return location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
+  getStateKey: function(object, path) {
+    path = $val(path, '', _.isString);
+    if (! $fn.hasStateKey(object)) return path;
+    return _.trim(object[$Const.state.private]) + '.' + _.trim(path, '.');
   },
 
   /**
-   * Loads script into the document
-   * @param {string} src
-   * @param {?Function} [cb]
+   * Determines if object has state key
+   * @param {Object} object
+   * @param {?string} [path='']
+   * @returns {boolean}
    */
-  loadScript: function(src, cb) {
-    cb = $val(cb, _.noop, _.isFunction);
-
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = src;
-
-    if (script.readyState) {
-      script.onreadystatechange = function () {
-        var state = this.readyState;
-        if (state === 'loaded' || state === 'complete') {
-          script.onreadystatechange = null;
-          cb();
-        }
-      };
-    } else script.onload = cb;
-
-    document.getElementsByTagName('head')[0].appendChild(script);
+  hasStateKey: function(object) {
+    if (_.has(object, $Const.state.private)) return true;
+    return false;
   },
 
+  /**
+   * Returns state container of the given object
+   * @param {Object} object
+   * @param {?string} [path='']
+   * @param {*} [defaults]
+   * @returns {*}
+   */
+  getState: function(object, path, defaults) {
+    var key = $fn.getStateKey(object, path);
+    return Fiber.state.get(key, defaults);
+  },
+
+  /**
+   * Returns state container of the given object
+   * @param {Object} object
+   * @param {?string} [path='']
+   * @param {*} [defaults]
+   * @returns {*}
+   */
+  setState: function(object, path, value) {
+    var key = $fn.getStateKey(object, path);
+    return Fiber.state.set(key, value);
+  },
+
+  /**
+   * Determines if object has state
+   * @param {Object} object
+   * @param {?string} [path='']
+   * @returns {boolean}
+   */
+  hasState: function(object, path) {
+    if (! $fn.hasStateKey(object) || ! Fiber.state.has($fn.getStateKey(object, path))) return false;
+    return true;
+  },
 };
 
 /**
@@ -532,19 +652,17 @@ $fn.val.notDefined = $fn.notDefined;
  * @returns {boolean}
  * @static
  */
-$fn.val.isDef = function(value) {
+$isDef = $fn.val.isDef = function(value) {
   if (! arguments.length) return false;
   return $fn.val(value) !== $fn.notDefined;
 };
 
 /**
  * @inheritDoc
- * @type {Fiber.fn.val}
  */
 $val = $fn.val;
 
 /**
  * @inheritDoc
- * @type {Fiber.fn.valMerge}
  */
 $valMerge = $fn.valMerge;

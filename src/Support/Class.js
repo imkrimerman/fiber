@@ -20,7 +20,7 @@ Fiber.fn.class = {
       $fn.class.attachSuper(this, parentClass);
       // If we have properties that needs to be hoisted to the direct scope (this) of child, then lets apply
       // hoisting to the current scope.
-      if (! _.isEmpty(constructor[hoistingKey])) $fn.copyProps(this, constructor, constructor[hoistingKey]);
+      if (! _.isEmpty(constructor[hoistingKey])) $fn.copyProps(constructor, this, constructor[hoistingKey]);
       // Apply constructor with arguments
       constructor.apply(this, arguments);
       return this;
@@ -399,9 +399,8 @@ Fiber.fn.class = {
    * @param {string} method
    * @returns {Function|null}
    */
-  getMethod: function(object, method) {
-    object = object.prototype || object;
-    return _.get(object, method);
+  getMethod: function(object, method, defaults) {
+    return _.get(object.prototype || object, method, defaults);
   },
 
   /**
@@ -411,10 +410,8 @@ Fiber.fn.class = {
    * @param {?boolean} [own=true]
    * @returns {*}
    */
-  getProperty: function(object, property, own) {
-    object = object.prototype || object;
-    own = $val(own, true, _.isBoolean);
-    return $fn.result(property, object, own);
+  getProperty: function(object, property, fn) {
+    return _[$val(fn, 'result', _.isString)](object.prototype || object, property);
   },
 
   /**

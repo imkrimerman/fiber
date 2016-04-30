@@ -10,36 +10,6 @@ Fiber.fn.computed = {
    */
   postfix: $Const.computed.defaultPostfix,
 
-  init: function(model, compute) {
-    if (_.isEmpty(compute)) return model;
-    _.defaults(model, $fn.createObj($Const.computed.private, {}));
-    var privetCompute = model[$Const.computed.private];
-
-    for (var prop in compute) {
-      privetCompute[prop] = {watching: false, mutation: null};
-
-      var config = compute[prop]
-        , privateComputeProp = privetCompute[prop]
-        , isComplex = _.isPlainObject(config);
-
-      if (! isComplex) {
-        _.isString(config) && (privateComputeProp.mutation = $fn.template.compile);
-        continue;
-      }
-
-      if (config.watch) _.each($fn.castArr(config.watch), function(one) {
-        model.when('change:' + one, _.partial($fn.computed.recompute, model, prop));
-      });
-
-    }
-    return model;
-  },
-
-  recompute: function(model, prop) {
-//    var value =
-    $fn.computed.apply(model, prop, 'set', value);
-  },
-
   /**
    * Returns result of property computation
    * @param {Object.<Fiber.Model>} model

@@ -138,27 +138,7 @@ Fiber.Container = $fn.class.create({
    */
   inject: function(fn) {
     if (! _.isFunction(fn)) $Log.errorThrow('Cannot inject dependencies, provided `fn` is not a Function');
-    var depsKey = $Const.ioc.inject.deps
-      , injectKey = $Const.ioc.inject.private;
-    if (fn[depsKey]) return fn[depsKey];
-
-    var resolved = []
-      , strFn = fn.toString().replace($Const.ioc.regex.STRIP_COMMENTS, '')
-      , args = strFn.match($Const.ioc.regex.ARGS);
-
-    _.each(args[1].split($Const.ioc.regex.ARG_SPLIT), function(arg) {
-      arg.replace($Const.ioc.regex.ARG, function(a, b, name) {
-        if (_.isString(name) && _.startsWith(name, '$', 0)) name = name.slice(1, name.length);
-        resolved.push(name);
-      });
-    });
-
-    this.prepareForInject(fn);
-
-    fn[depsKey] = resolved;
-    fn[injectKey] = Fiber.make(resolved);
-
-    return fn;
+    return $fn.injection.inject(fn);
   },
 
   /**
@@ -237,38 +217,7 @@ Fiber.Container = $fn.class.create({
    */
   isAlias: function(abstract) {
     return this.aliases.has(abstract);
-  },
-
-
-  /**
-   * Prepares function for dependency injection
-   * @param {Function} fn
-   * @param {?string} [injectKey]
-   * @param {?string} [depsKey]
-   * @returns {Function}
-   */
-  prepareForInject: function(fn, injectKey, depsKey) {
-    injectKey = $val(injectKey, $Const.ioc.inject.private, _.isString);
-    depsKey = $val(depsKey, $Const.ioc.inject.deps, _.isString);
-
-    fn.applyInjected = function(args) {
-      if (! fn[injectKey]) return;
-      var injectable = fn[injectKey].map(function(one) {
-        return one instanceof Fiber.Extension ? one.getCodeCapsule() : one;
-      });
-      return fn.apply(fn, injectable.concat($fn.castArr(args)));
-    };
-
-    fn.getInjected = function() {
-      return fn[injectKey];
-    };
-
-    fn.getInjectedDeps = function() {
-      return fn[depsKey];
-    };
-
-    return fn;
-  },
+  }
 });
 
 /**
@@ -280,7 +229,7 @@ $fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'e
  * Create default Fiber Inverse Of Control Container
  * @type {Object.<Fiber.Container>}
  */
-Fiber.container = new Fiber.Container();
+$ioc = Fiber.container = new Fiber.Container();
 
 /**
  * Adds build in extensions to the Container
