@@ -10,7 +10,7 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * @returns {Object|undefined}
    */
   getErrors: function() {
-    return _.isEmpty(this.items) ? undefined : this.items;
+    return _.isEmpty(this.items) ? void 0 : this.items;
   },
 
   /**
@@ -18,7 +18,7 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * @returns {boolean}
    */
   hasErrors: function() {
-    return this.getErrors() !== undefined;
+    return this.getErrors() !== void 0;
   },
 
   /**

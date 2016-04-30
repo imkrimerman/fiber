@@ -99,7 +99,7 @@ Fiber.fn.descriptor = {
   define: function(object, property, descriptor) {
     if (! $fn.descriptor.canDescribe(object)) return object;
     var properties = null;
-    if (arguments.length === 3) properties = $fn.createObj(property, descriptor);
+    if (arguments.length === 3) properties = $fn.createPlain(property, descriptor);
     else if (arguments.length === 2 && _.isPlainObject(property)) properties = property;
     else return object;
     return Object.defineProperties(object, properties);
@@ -203,7 +203,7 @@ Fiber.fn.descriptor = {
    * @param {Object} descriptor
    */
   registerMacros: function(alias, descriptor) {
-    $fn.descriptor.macros[alias] = $fn.cast.function(descriptor);
+    $fn.descriptor.macros[alias] = $fn.cast.toFunction(descriptor);
   },
 
   /**
@@ -262,7 +262,7 @@ Fiber.fn.descriptor = {
   /**
    * Returns descriptor for the given level
    * @param {string} level
-   * @param {?Object} defaults
+   * @param {?Object} [defaults]
    * @returns {*}
    */
   getLevelDescriptor: function(level, defaults) {

@@ -1,8 +1,9 @@
 /**
  * Base Router Collection
  * @class
+ * @extends {$Collection}
  */
-var RouterCollection = Collection.extend({
+$RouterCollection = $Collection.extend({
 
   /**
    * Properties keys that will be owned by the instance
@@ -25,7 +26,7 @@ var RouterCollection = Collection.extend({
   /**
    * Sets current router
    * @param {Object.<Fiber.Router>} router
-   * @returns {RouterCollection}
+   * @returns {$RouterCollection}
    */
   setRouter: function(router) {
     this.router = router;
@@ -46,5 +47,14 @@ var RouterCollection = Collection.extend({
    */
   hasRouter: function() {
     return ! _.isEmpty(this.router);
+  },
+
+  /**
+   * Removes `router` reference
+   * @returns {$RouterCollection}
+   */
+  unsetRouter: function() {
+    this.router = null;
+    return this;
   },
 });

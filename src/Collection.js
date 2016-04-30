@@ -3,7 +3,7 @@
  * @class
  * @extends {Collection}
  */
-Fiber.Collection = Collection.extend([
+Fiber.Collection = $Collection.extend([
   'Extensions', 'Binder', {
 
     /**
@@ -33,7 +33,7 @@ Fiber.Collection = Collection.extend([
       $fn.class.handleOptions(this, options);
       $fn.extensions.init(this, options);
       this.extendModel(options.modelOptions);
-      this.__parent__.apply(this, arguments);
+      this.$superInit(models, options);
     },
 
     /**

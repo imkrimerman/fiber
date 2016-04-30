@@ -10,81 +10,17 @@ var _ = require('lodash')
   , connect = require('gulp-connect')
   , karma = require('karma')
   , packageJson = require('./package')
+  , structure = require('./structure')
 
   , config = {
     input: 'fiber.js',
     output: 'build',
     test: 'test/**/*.spec.js',
     testDir: 'test',
+    files: structure,
     karma: {
       configFile: __dirname + '/karma.conf.js'
     },
-    files: [
-      // Support
-      './src/Support/Properties.js',
-      './src/Support/Compatibility.js',
-      './src/Support/Version.js',
-      './src/Support/fn.js',
-      './src/Support/Descriptor.js',
-      './src/Support/Class.js',
-      './src/Support/Cast.js',
-      './src/Support/Extensions.js',
-      './src/Support/DeepProps.js',
-      './src/Support/Template.js',
-      './src/Support/Validation.js',
-      './src/Support/Delegator.js',
-      './src/Support/Computed.js',
-      './src/Support/Injection.js',
-      // Elementary Classes
-      './src/Base/Log.js',
-      './src/Base/Events.js',
-      './src/Base/Class.js',
-      // Extensions
-      './src/Base/Extension.js',
-      './src/Extensions/Access.js',
-      './src/Extensions/Binder.js',
-      './src/Extensions/Extend.js',
-      './src/Extensions/Extensions.js',
-      './src/Extensions/OwnProps.js',
-      './src/Extensions/Events.js',
-      // Base classes
-      './src/Core.js',
-      './src/Base/Bag.js',
-      './src/Base/ErrorBag.js',
-      './src/Base/Transmitter.js',
-      // Global instances
-      './src/Support/Globals.js',
-      // Base collections
-      './src/Base/Collections/Collection.js',
-      './src/Base/Collections/LinkedViews.js',
-      './src/Base/Collections/Listeners.js',
-      './src/Base/Collections/RouterCollection.js',
-      // Ioc Container (DI)
-      './src/Container.js',
-      // Fiber components
-      './src/Model.js',
-      './src/Collection.js',
-      './src/ViewsManager.js',
-      './src/View.js',
-      './src/Layout.js',
-      './src/CollectionView.js',
-      // Services
-      './src/Commands/Registry.js',
-      './src/Commands/Command.js',
-      './src/Commands/Handler.js',
-      './src/Commands/Hub.js',
-      // Routing
-      './src/Routing/HistoryItem.js',
-      './src/Routing/HistoryCollection.js',
-      './src/Routing/Route.js',
-      './src/Routing/RouteCollection.js',
-      './src/Routing/Middleware.js',
-      './src/Routing/MiddlewareCollection.js',
-      './src/Routing/Router.js',
-      // Application
-      './src/Viewport.js',
-      './src/Application.js',
-    ]
   };
 
 config.allFiles = config.files.concat([config.test]);

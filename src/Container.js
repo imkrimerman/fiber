@@ -1,8 +1,9 @@
 /**
  * Fiber Inverse Of Control Container
  * @class
+ * @extends {Fiber.Class}
  */
-Fiber.Container = $fn.class.create({
+Fiber.Container = Fiber.Class.extend({
 
   /**
    * The container's bindings bag.
@@ -39,7 +40,7 @@ Fiber.Container = $fn.class.create({
    */
   constructor: function() {
     this.flush();
-    $fn.apply(this, 'initialize', [arguments]);
+    Fiber.Class.apply(this, arguments);
   },
 
   /**
@@ -86,20 +87,25 @@ Fiber.Container = $fn.class.create({
    * Register a binding as shared instance (singleton)
    * @param {string} abstract
    * @param {Object} concrete
+   * @param {?string} [alias]
    * @returns {Fiber.Container}
    */
-  share: function(abstract, concrete) {
-    return this.bind(abstract, concrete, true);
+  share: function(abstract, concrete, alias) {
+    var bound = this.bind(abstract, concrete, true);
+    if ($val(alias, false)) this.alias(abstract, alias);
+    return bound;
   },
 
   /**
    * Register a binding as extension
    * @param {string} abstract
    * @param {Object} concrete
+   * @param {?string} [alias]
    * @returns {Fiber.Container}
    */
-  extension: function(abstract, concrete) {
+  extension: function(abstract, concrete, alias) {
     this.extensions.set(abstract, concrete);
+    if ($val(alias, false)) this.alias(abstract, alias);
     return this;
   },
 
@@ -109,6 +115,7 @@ Fiber.Container = $fn.class.create({
    * @returns {*}
    */
   retrieve: function(abstract) {
+    if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     return this.extensions.get(abstract) || this.shared.get(abstract);
   },
 
@@ -126,8 +133,18 @@ Fiber.Container = $fn.class.create({
     var concrete = this.bindings.get(abstract);
     if (! concrete || ! _.isFunction(concrete)) $Log.errorThrow('[Resolution Exception]: ' + abstract +
                                                                 ', not a Class constructor or function.');
-    if ($fn.class.is(concrete)) return this.instantiate(concrete, parameters);
+    if ($fn.class.isClass(concrete)) return this.instantiate(concrete, parameters);
     return concrete.apply($val(scope, this), this.resolve(parameters).concat([this]));
+  },
+
+  /**
+   * Instantiates `concrete` type with resolved `parameters`
+   * @param {Function} concrete
+   * @param {Array} parameters
+   * @returns {*|Object}
+   */
+  instance: function(concrete, parameters) {
+    return $fn.class.createInstance(concrete, this.resolve(parameters));
   },
 
   /**
@@ -139,16 +156,6 @@ Fiber.Container = $fn.class.create({
   inject: function(fn) {
     if (! _.isFunction(fn)) $Log.errorThrow('Cannot inject dependencies, provided `fn` is not a Function');
     return $fn.injection.inject(fn);
-  },
-
-  /**
-   * Instantiates `concrete` type with resolved `parameters`
-   * @param {Function} concrete
-   * @param {Array} parameters
-   * @returns {*|Object}
-   */
-  instantiate: function(concrete, parameters) {
-    return $fn.class.createInstance(concrete, this.resolve(parameters));
   },
 
   /**
@@ -230,8 +237,3 @@ $fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'e
  * @type {Object.<Fiber.Container>}
  */
 $ioc = Fiber.container = new Fiber.Container();
-
-/**
- * Adds build in extensions to the Container
- */
-Fiber.addExtension($fn.extensions.getRegistry());

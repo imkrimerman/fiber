@@ -12,7 +12,7 @@ $fn.deepProps = {
     condition: [_.isArray, _.isPlainObject],
     exclude: ['fn'],
     explore: [
-      {owner: Fiber, path: 'container.binding.items'},
+      {owner: Fiber, path: 'container.shared.items'},
       {owner: Fiber, path: 'container.extensions.items'},
       {owner: Fiber, path: 'Events', direct: true},
       {owner: Fiber, path: 'Model.prototype', direct: true},
@@ -21,7 +21,6 @@ $fn.deepProps = {
     ],
   },
 
-  // todo: maybe we'll go with hardcoded default props
   /**
    * Cached deep properties
    * @type {Array}

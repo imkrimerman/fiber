@@ -3,7 +3,7 @@
  * @class
  * @extends {RouterCollection}
  */
-Fiber.RouteCollection = RouterCollection.extend({
+Fiber.RouteCollection = $RouterCollection.extend({
 
   /**
    * Default collection model
@@ -44,7 +44,7 @@ Fiber.RouteCollection = RouterCollection.extend({
     }
     else prepared = models;
 
-    this.apply(Backbone.Collection, 'set', [prepared, options]);
+    this.$super('set', [prepared, options]);
   },
 
   /**

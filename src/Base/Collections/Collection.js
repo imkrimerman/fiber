@@ -1,10 +1,10 @@
 /**
- * Base Collection, used internally
+ * Base Collection
  * @class
  * @extends {Backbone.Collection}
  */
-var Collection = $fn.class.extend(Backbone.Collection, [
-  $Extend.getCodeCapsule(), $OwnProps.getCodeCapsule(), $Binder.getCodeCapsule(), {
+$Collection = $fn.class.extend(Backbone.Collection, [
+  $Extend, $OwnProps, $Binder, {
 
   /**
    * Properties keys that will be auto extended from initialize object
@@ -13,23 +13,19 @@ var Collection = $fn.class.extend(Backbone.Collection, [
   willExtend: ['model', 'url'],
 
   /**
+   * Base model
+   * @type {$Model}
+   */
+  model: $Model,
+
+  /**
    * Constructor
    * @param {Object[]|Array} models - Model to construct with
    * @param {?Object} [options] - Options to extend from
    */
   constructor: function(models, options) {
-    this.applyExtend(options);
-    this.applyOwnProps();
-    this.applyBinder();
-    this.__parent__.apply(this, arguments);
-  },
-
-  /**
-   * Flushes history
-   * @returns {Collection}
-   */
-  flush: function() {
-    this.reset([]);
-    return this;
+    $fn.class.handleOptions(this, options);
+    $fn.extensions.init(this, {list: ['Extend', 'OwnProps', 'Binder']});
+    Backbone.Collection.apply(this, arguments);
   },
 }]);

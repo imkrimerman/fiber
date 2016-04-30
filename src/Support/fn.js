@@ -17,16 +17,6 @@ $fn = Fiber.fn = {
   notDefined: '$__NULL__$',
 
   /**
-   * Returns support functions module
-   * @param {string} alias
-   * @returns {Object|null}
-   */
-  module: function(alias) {
-    if (! alias || ! $fn.hasOwnProperty(alias)) return null;
-    return $fn[alias];
-  },
-
-  /**
    * Returns value if not undefined or null,
    * otherwise returns defaults or $__NULL__$ value
    * @see https://github.com/imkrimerman/im.val (npm version)
@@ -122,129 +112,6 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Applies `method` on given `Class` with `scope` and passing `args`
-   * @param {Function|Object} Class - Class to call
-   * @param {string} method - method to call
-   * @param {?Array} [args] - arguments to pass
-   * @param {?Object|Array} [scope] - scope to bind
-   * @returns {*}
-   */
-  apply: function(Class, method, args, scope) {
-    scope = $val(scope, Class, _.isObject);
-    var method = $fn.class.getMethod(Class, method);
-    if ($val(args) === $val.notDefined) args = [];
-    else args = ! _.isArguments(args) ? $fn.castArr(args) : args;
-    if (_.isFunction(method)) return method.apply(scope, args);
-  },
-
-  /**
-   * Applies function with the given arguments and scope
-   * @param {Function} fn - function to apply
-   * @param {?Array} [args] - arguments to pass
-   * @param {?Object|Array} [scope] - scope to bind to function
-   * @returns {*}
-   */
-  applyFn: function(fn, args, scope) {
-    return fn.apply({fn: fn}, '$fn', args, scope);
-  },
-
-  /**
-   * Invokes method (camel case transformed event) if exists and fires event
-   * @param {Function|Object} Class - Class to call
-   * @param {string} event - event to fire and transform to callback name
-   * @param {?Object} [args]
-   * @param {?boolean} [prepare=true]
-   * @return {*}
-   */
-  fireCall: function(Class, event, args, prepare) {
-    if ($val(prepare, true)) args = $fn.prepareCallArgs(args, {fire: [], call: []});
-    var result = $fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
-    $fn.apply(Class, 'fire', [event].concat(args.fire));
-    return result;
-  },
-
-  /**
-   * Invokes method (camel case transformed event) if exists and fires event
-   * @param {Function|Object} Class - Class to call
-   * @param {string} event - event to fire and transform to callback name
-   * @param {Function} callback
-   * @param {?Object} [args]
-   * @param {?Array} [lifeCycle]
-   * @return {*}
-   */
-  fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
-    args = $fn.prepareCallArgs(args, {fire: [], call: [], callback: []})
-    lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
-
-    var result;
-
-    for (var i = 0; i < lifeCycle.length; i ++) {
-      var now = lifeCycle[i]
-        , nowEvent = now[now.length - 1] === ':' ? now + event : now + ':' + event;
-
-      if (now === '@callback' && _.isFunction(callback)) result = callback.apply(Class, args.callback);
-      else $fn.fireCall(Class, nowEvent, args, false);
-    }
-
-    return result;
-  },
-
-  /**
-   * Returns wrapped `fireCallCyclic` method
-   * @param {Function} fn
-   * @param {string} event
-   * @param {?Object} [args]
-   * @param {?Array} [lifeCycle]
-   * @returns {Function}
-   */
-  wrapFireCallCyclic: function(fn, event, args, lifeCycle) {
-    return _.wrap(fn, _.bind(function(execFn) {
-      return fn.fireCallCyclic(this, event, execFn, args, lifeCycle);
-    }, this));
-  },
-
-  /**
-   * Prepares arguments for fire call methods
-   * @param {Object} args
-   * @param {?Object} [defaults={}]
-   * @returns {*|Object|stream}
-   */
-  prepareCallArgs: function(args, defaults) {
-    var prepared = _.extend({}, defaults || {}, $val(args, {}, _.isPlainObject));
-    return $fn.transform(prepared, function(val) {
-      if (_.isArguments(val)) return val;
-      return $fn.castArr(val);
-    });
-  },
-
-  /**
-   * Binds array of `mixins` or mixin to the given object `scope`, also you can bind
-   * each method of object mixin to scope by providing the `innerApply` with true
-   * @param {Array|Object|Function} mixins
-   * @param {Object} thisArg
-   * @param {?Array} [partials=[]]
-   * @returns {Array|Object|Function}
-   */
-  bind: function(mixins, thisArg, partials) {
-    var wasArray = _.isArray(mixins);
-
-    function bindFn(mixin) {
-      if (! _.isFunction(mixin)) return mixin;
-      return _.bind.apply(_, [mixin, thisArg].concat($val(partials, [])));
-    };
-
-    mixins = $fn.castArr(mixins);
-
-    for (var i = 0; i < mixins.length; i ++) {
-      if (_.isPlainObject(mixins[i]) || _.isArray(mixins[i]))
-        mixins[i] = $fn.transform(_.clone(mixins[i]), bindFn);
-      else mixins[i] = bindFn(mixins[i]);
-    }
-
-    return wasArray ? mixins : _.first(mixins);
-  },
-
-  /**
    * Transforms object
    * @param {Object} object
    * @param {Function} iteratee
@@ -258,27 +125,30 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Sets `value` as global variable by the given `key` to the root
-   * @param {string} key
-   * @param {*} value
-   * @param {?boolean} [force=false]
-   * @returns {boolean}
+   * Applies `method` on given `Class` with `scope` and passing `args`
+   * @param {Function|Object} Class - Class to call
+   * @param {string} method - method to call
+   * @param {?Array} [args] - arguments to pass
+   * @param {?Object|Array} [scope] - scope to bind
+   * @returns {*}
    */
-  globalize: function(key, value, force) {
-    if (! $Const.allowGlobals) {
-      $Log.info(key + ' will not be globalized. Global variables are not allowed.')
-      return false;
-    }
-
-    var hasKey = root && _.has(root, key) || false;
-
-    if ((hasKey && $val(force, false, _.isBoolean)) || ! hasKey) {
-      root[key] = value;
-      return true;
-    }
-
-    return false;
+  apply: function(Class, method, args, scope) {
+    return $fn.applyFn($fn.class.resolveMethod(Class.prototype || Class, method, scope), args, scope);
   },
+
+  /**
+   * Applies function with the given arguments and scope
+   * @param {Function} fn - function to apply
+   * @param {?Array} [args] - arguments to pass
+   * @param {?Object|Array} [scope] - scope to bind to function
+   * @returns {*}
+   */
+  applyFn: function(fn, args, scope) {
+    if (! $isDef(args)) args = [];
+    else args = ! _.isArguments(args) ? $fn.castArr(args) : args;
+    if (_.isFunction(fn)) return fn.apply($val(scope, fn), args);
+  },
+
 
   /**
    * Checks if given array is array with objects
@@ -313,7 +183,7 @@ $fn = Fiber.fn = {
     var args = _.toArray(arguments);
     for (var i = 0; i < args.length; i ++)
       if (_.isArguments(args[i])) args[i] = _.toArray(args[i]);
-    return $JS.arr.concat.apply([], args);
+    return $fn.concat.apply([], args);
   },
 
   /**
@@ -337,143 +207,8 @@ $fn = Fiber.fn = {
    */
   concat: function() {
     var makeUnique = $val(_.last(arguments), true, _.isBoolean);
-    var args = $JS.arr.concat.apply([], _.toArray(arguments).map($fn.castArr));
+    var args = Array.prototype.concat.apply([], _.toArray(arguments).map($fn.castArr));
     return makeUnique ? _.uniq(args) : args;
-  },
-
-  /**
-   * Returns object for Class prototype. Integrates support helpers to Fiber Classes
-   * @param {?Array} [exclude] - Array of properties to exclude from functions object
-   * @returns {Object}
-   */
-  proto: function(exclude) {
-    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], _.isArray)));
-  },
-
-  /**
-   * Creates include function to determine
-   * @param {Array} list
-   * @returns {Function}
-   */
-  createIncludes: function(list) {
-    return function(val) {
-      return _.includes(list, val);
-    };
-  },
-
-  /**
-   * Assertion helper
-   * @param {boolean} statement
-   * @param {string} errorMsg
-   * @throws Will throw `Error` if statement is not true
-   */
-  expect: function(statement, errorMsg) {
-    if (! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
-  },
-
-  /**
-   * Determines if object can be extended.
-   * Check for `extend` function or if it's plain object
-   * @param {*} object
-   * @returns {boolean}
-   */
-  isExtendable: function(object) {
-    if (arguments.length > 1) object = _.toArray(arguments);
-    return _.every($fn.castArr(object), function(one) {
-      return _.isObject(one) && (_.isFunction(one.extend) || _.isPlainObject(one));
-    });
-  },
-
-  /**
-   * Expect that object has all given properties
-   * @param {Object} obj
-   * @param {Array|Object} props
-   * @param [{boolean}] isObject - default to `true`
-   */
-  expectHasAllProps: function(obj, props) {
-    var isObject = _.isArray(props) ? false : true;
-    return _.every(props, function(prop, key) {
-      var prop = isObject ? key : props[key];
-      return isObject ? _.has(obj, prop) : _.includes(obj, prop);
-    });
-  },
-
-  /**
-   * Hoists given props to object direct scope (this)
-   * @param {Object} object
-   * @param {?Array} [props]
-   * @returns {Object}
-   */
-  applyOwn: function(object, props) {
-    return $OwnProps.applyMethod($OwnProps.getInitMethod(), [props], object);
-  },
-
-  /**
-   * Extends object with given options object
-   * @param {Object} object
-   * @param {Object} options
-   * @returns {Object}
-   */
-  applyExtend: function(object, options) {
-    return $Extend.applyMethod($Extend.getInitMethod(), [options], object);
-  },
-
-  /**
-   * Creates plain object with the given key and value
-   * @param {string} key
-   * @param {*} value
-   * @returns {Object}
-   */
-  createObj: function(key, value) {
-    var obj = {};
-    obj[key] = value;
-    return obj;
-  },
-
-  /**
-   * Copies properties from source object to destination object
-   * @param {Object} source
-   * @param {Object} destination
-   * @param {Array} props
-   * @param {?boolean} [deep=false]
-   * @returns {*|Object}
-   */
-  copyProps: function(source, destination, props, deep) {
-    var method = $val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
-    for (var i = 0; i < props.length; i ++) if (_.has(source, props[i]))
-      destination[props[i]] = _[method](source[props[i]]);
-    return destination;
-  },
-
-  /**
-   * Force object cast to array
-   * @param {Object} object
-   * @returns {Array}
-   */
-  castArr: function(object) {
-    return $fn.cast.array(object);
-  },
-
-  /**
-   * Returns list of `object` methods
-   * @param {Object} object
-   * @returns {Array}
-   */
-  methods: function(object) {
-    var name, methods = [];
-    if (! _.isObject(object) || _.isArray(object)) return methods;
-    for (name in object) if (_.isFunction(object[name])) methods.push(name);
-    return methods;
-  },
-
-  /**
-   * Returns list of `object` properties
-   * @param {Object} object
-   * @returns {Array}
-   */
-  properties: function(object) {
-    if (! _.isObject(object) || _.isArray(object)) return methods;
-    return _.keys(_.omit(object, $fn.methods(object)));
   },
 
   /**
@@ -499,19 +234,61 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Determines if it is not restricted to access the `method` of the given `object`
+   * Force object cast to array
    * @param {Object} object
-   * @param {string} method
-   * @param {?string} [level]
-   * @returns {boolean}
+   * @returns {Array}
    */
-  isAllowedToAccess: function(object, method, level) {
-    level = $val(level, null, _.isString) || object.__access;
-    if (! _.isObject(object) || ! level) return true;
-    var methods = $Const.access.allow[level];
-    if (! _.isArray(methods)) return !! methods;
-    if (_.includes(methods, method)) return false;
-    return true;
+  castArr: function(object) {
+    return $fn.cast.toArray(object);
+  },
+
+  /**
+   * Creates plain object with the given key and value
+   * @param {string} key
+   * @param {*} value
+   * @returns {Object}
+   */
+  createPlain: function(key, value) {
+    var obj = {};
+    obj[key] = value;
+    return obj;
+  },
+
+  /**
+   * Copies properties from source object to destination object
+   * @param {Object} source
+   * @param {Object} destination
+   * @param {Array} props
+   * @param {?boolean} [deep=false]
+   * @returns {*|Object}
+   */
+  copyProps: function(source, destination, props, deep) {
+    var method = $val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
+    for (var i = 0; i < props.length; i ++) if (_.has(source, props[i]))
+      destination[props[i]] = _[method](source[props[i]]);
+    return destination;
+  },
+
+  /**
+   * Returns list of `object` methods
+   * @param {Object} object
+   * @returns {Array}
+   */
+  methods: function(object) {
+    var name, methods = [];
+    if (! _.isObject(object) || _.isArray(object)) return methods;
+    for (name in object) if (_.isFunction(object[name])) methods.push(name);
+    return methods;
+  },
+
+  /**
+   * Returns list of `object` properties
+   * @param {Object} object
+   * @returns {Array}
+   */
+  properties: function(object) {
+    if (! _.isObject(object) || _.isArray(object)) return methods;
+    return _.keys(_.omit(object, $fn.methods(object)));
   },
 
   /**
@@ -539,6 +316,15 @@ $fn = Fiber.fn = {
       clone[prop] = customizer.call(scope, null, val, prop);
     });
     return clone;
+  },
+
+  /**
+   * Clones object
+   * @param {Object} object
+   * @param {?boolean} [deep=false]
+   */
+  clone: function(object, deep) {
+    return $fn[deep ? 'cloneDeepWith' : 'cloneWith'](object, $fn.cloneCustomizer);
   },
 
   /**
@@ -578,6 +364,181 @@ $fn = Fiber.fn = {
       temp[prop] = value;
     });
     return temp;
+  },
+
+  /**
+   * Fires two events on object, first is simple event, second is event for attribute
+   * @param {Object} object
+   * @param {string} event
+   * @param {string} attribute
+   * @param {?Array} [args]
+   */
+  fireAttribute: function(object, event, attribute, args) {
+    var options = {prepare: false, call: false};
+    event = _.trim(event, ':');
+    attribute = _.trim(attribute, ':');
+    args = $fn.prepareFireCallArgs({fire: args}, {fire: []});
+    $fn.fireCall(object, event, args, options);
+    $fn.fireCall(object, event + ':' + attribute, args, options);
+  },
+
+  /**
+   * Invokes method (camel case transformed event) if exists and fires event
+   * @param {Function|Object} Class - Class to call
+   * @param {string} event - event to fire and transform to callback name
+   * @param {?Object} [args]
+   * @param {?Object} [options]
+   * @return {*}
+   */
+  fireCall: function(Class, event, args, options) {
+    var result = Class;
+    options = _.defaults({}, options || {}, {prepare: true, call: true});
+    if (options.prepare) args = $fn.prepareFireCallArgs(args, {fire: [], call: []});
+    if (options.call) result = $fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
+    $fn.apply(Class, 'fire', [event].concat(args.fire));
+    return result;
+  },
+
+  /**
+   * Invokes method (camel case transformed event) if exists and fires event
+   * @param {Function|Object} Class - Class to call
+   * @param {string} event - event to fire and transform to callback name
+   * @param {Function} callback
+   * @param {?Object} [args]
+   * @param {?Array} [lifeCycle]
+   * @return {*}
+   */
+  fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
+    args = $fn.prepareFireCallArgs(args, {fire: [], call: [], callback: []})
+    lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
+
+    var result;
+
+    for (var i = 0; i < lifeCycle.length; i ++) {
+      var now = lifeCycle[i]
+        , needCallbackEvent = _.startsWith(now, '@') && ~now.indexOf(':')
+        , nowEvent = $fn.makeEventName([now, event]);
+
+      if (now === '@callback' && _.isFunction(callback)) result = callback.apply(Class, args.callback);
+      else $fn.fireCall(Class, nowEvent, args, false);
+    }
+
+    return result;
+  },
+
+  /**
+   * Makes single event from array of events
+   * @param {Array} events
+   * @param {?string} [delimiter=':']
+   * @returns {string}
+   */
+  makeEventName: function(events, delimiter) {
+    return _.map($fn.castArr(events), function(event) {
+      return _.isString(event) && _.trim(event, $val(delimiter, ':', _.isString)) || $fn.cast.toString(event);
+    }).join(':');
+  },
+
+  /**
+   * Returns wrapped `fireCallCyclic` method
+   * @param {Function} fn
+   * @param {string} event
+   * @param {?Object} [args]
+   * @param {?Array} [lifeCycle]
+   * @returns {Function}
+   */
+  wrapFireCallCyclic: function(fn, event, args, lifeCycle) {
+    return _.wrap(fn, _.bind(function(execFn) {
+      return $fn.fireCallCyclic(this, event, execFn, args, lifeCycle);
+    }, this));
+  },
+
+  /**
+   * Prepares arguments for fire call methods
+   * @param {Object} args
+   * @param {?Object} [defaults={}]
+   * @returns {*|Object|stream}
+   */
+  prepareFireCallArgs: function(args, defaults) {
+    var prepared = _.extend({}, defaults || {}, $val(args, {}, _.isPlainObject));
+    for (var key in prepared) {
+      var value = prepared[key];
+      if (_.isArguments(value)) prepared[key] = value;
+      prepared[key] = $fn.castArr(value);
+    }
+    return prepared;
+  },
+
+  /**
+   * Returns object for Class prototype. Integrates support helpers to Fiber Classes
+   * @param {?Array} [exclude] - Array of properties to exclude from functions object
+   * @returns {Object}
+   */
+  proto: function(exclude) {
+    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], _.isArray)));
+  },
+
+  /**
+   * Creates include function to determine
+   * @param {Array} list
+   * @returns {Function}
+   */
+  createIncludes: function(list) {
+    return function(val) {
+      return _.includes(list, val);
+    };
+  },
+
+  /**
+   * Assertion helper
+   * @param {boolean} statement
+   * @param {string} errorMsg
+   * @throws Will throw `Error` if statement is not true
+   */
+  expect: function(statement, errorMsg) {
+    if (! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
+  },
+
+  /**
+   * Expect that object has all given properties
+   * @param {Object} obj
+   * @param {Array|Object} props
+   * @param [{boolean}] isObject - default to `true`
+   */
+  hasAllProps: function(obj, props) {
+    var isObject = _.isArray(props) ? false : true;
+    return _.every(props, function(prop, key) {
+      var prop = isObject ? key : props[key];
+      return isObject ? _.has(obj, prop) : _.includes(obj, prop);
+    });
+  },
+
+  /**
+   * Determines if object can be extended.
+   * Check for `extend` function or if it's plain object
+   * @param {*} object
+   * @returns {boolean}
+   */
+  isExtendable: function(object) {
+    if (arguments.length > 1) object = _.toArray(arguments);
+    return _.every($fn.castArr(object), function(one) {
+      return _.isObject(one) && (_.isFunction(one.extend) || _.isPlainObject(one));
+    });
+  },
+
+  /**
+   * Determines if it is not restricted to access the `method` of the given `object`
+   * @param {Object} object
+   * @param {string} method
+   * @param {?string} [level]
+   * @returns {boolean}
+   */
+  isAllowedToAccess: function(object, method, level) {
+    level = $val(level, null, _.isString) || object[$Const.access.private];
+    if (! _.isObject(object) || ! level) return true;
+    var methods = $Const.access.allow[level];
+    if (! _.isArray(methods)) return !! methods;
+    if (_.includes(methods, method)) return false;
+    return true;
   },
 
   /**

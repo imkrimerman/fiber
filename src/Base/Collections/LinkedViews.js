@@ -1,9 +1,9 @@
 /**
  * Linked Views Collection, used internally
  * @class
- * @extends {Collection}
+ * @extends {$Collection}
  */
-Fiber.LinkedViews = Collection.extend({
+Fiber.LinkedViews = $Collection.extend({
 
   /**
    * Parent View
@@ -22,12 +22,6 @@ Fiber.LinkedViews = Collection.extend({
    * @type {Array|Function}
    */
   ownProps: ['parentView'],
-
-  /**
-   * Events namespace
-   * @type {string}
-   */
-  ns: 'linked',
 
   /**
    * Listen to views and propagate events
@@ -101,7 +95,7 @@ Fiber.LinkedViews = Collection.extend({
   reset: function() {
     this.forgetParentView();
     this.stopListening();
-    this.apply(Backbone.View, 'reset', arguments);
+    this.$super('reset', arguments);
     return this;
   },
 

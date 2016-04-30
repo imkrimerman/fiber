@@ -32,10 +32,10 @@ Fiber.Commands.Command = Fiber.Bag.extend({
   /**
    * Constructs Command
    * @param {Object} [storable]
+   * @param {?Object} [options]
    */
-  constructor: function(storable) {
-    this.__parent__.apply(this, arguments);
-
+  constructor: function(storable, options) {
+    this.$superInit(storable, options);
     this.execute = $fn.wrapFireCallCyclic(this.execute, 'execute', {
       fire: [this], call: [this]
     });

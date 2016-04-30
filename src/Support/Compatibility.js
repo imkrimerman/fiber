@@ -2,7 +2,7 @@
  * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
  * @type {_.each|*|(function((Array|Object), Function=): (Array|Object))}
  */
-$each = _.each.bind(_);
+$each = _.bind(_.each, _);
 
 /**
  * Adds backward compatibility for lodash `each` method

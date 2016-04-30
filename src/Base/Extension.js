@@ -1,8 +1,9 @@
 /**
  * Fiber Extension
  * @class
+ * @extends {Fiber.Class}
  */
-Fiber.Extension = $fn.class.create({
+Fiber.Extension = Fiber.Class.extend({
 
   /**
    * Method name to call when extension is initiating

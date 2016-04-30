@@ -1,7 +1,9 @@
-// define base variables
+// define base Fiber variables
 var Fr, Fiber, previousFiber,
 // define internal private variables
-$fn, $JS, $Const, $Log, $val, $valMerge, $isDef, $each, $trigger, $ioc;
+$fn, $Const, $Log, $val, $valMerge, $isDef, $each, $trigger, $ioc, $errors,
+// define internal common class variable
+$Model, $Collection, $Listeners, $RouterCollection;
 
 /**
  * Fiber main object
@@ -18,32 +20,19 @@ previousFiber = root.Fiber;
 
 /**
  * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
- * to its previous owner. Returns a reference to this Fiber object
+ * to its previous owner. Returns a reference to the  Fiber object
  * @returns {Fiber}
  */
 Fiber.noConflict = function() {
   root.Fiber = previousFiber;
-  return this;
+  return root.Fiber;
 };
-
-/**
- * Add `lodash` to the Fiber
- * @type {Function}
- */
-Fiber._ = _;
-
-/**
- * Exposed jQuery (or similar) from Backbone
- * @type {Function}
- */
-Fiber.$ = $;
 
 /**
  * Fiber Constants
  * @var {Object}
  */
 Fiber.Constants = $Const = {
-  allowGlobals: false,
   extensions: {
     private: '__extensions',
     hoisting: '__needPropsHoisting',
@@ -57,12 +46,29 @@ Fiber.Constants = $Const = {
     fallback: console.log
   },
   template: {
-    engine: _.template
+    engine: _.template,
+    imports: {
+      Fiber: Fiber,
+      Fr: Fiber,
+      $fn: $fn,
+      $val: $val,
+      $each: $each,
+      $ioc: $ioc
+    },
+    settings: {
+      evaluate: /{{%([\s\S]+?)}}/g,
+      interpolate: /{{([\s\S]+?)}}/g,
+      escape: /{{-([\s\S]+?)}}/g
+    }
+  },
+  validation: {
+    messages: '__messages'
   },
   state: {
     private: '__state'
   },
   access: {
+    private: '__access',
     methods: ['get', 'set', 'has', 'result', 'unset'],
     allow: {
       private: false,
@@ -76,7 +82,7 @@ Fiber.Constants = $Const = {
     modelPostfix: 'computePostfix',
   },
   injection: {
-    private: '__inject',
+    private: '__injection',
     allowedTypes: ['function'],
     sharedMethods: ['get', 'has', ['inject', 'applyInject']]
   },
@@ -97,25 +103,9 @@ Fiber.Constants = $Const = {
 Fiber.Commands = {};
 
 /**
- * Fiber system object
- * @type {Object}
- */
-Fiber.system = {};
-
-/**
  * Object to use internally
  * @type {Object}
  */
 Fiber.internal = {
   events: _.extend({}, Backbone.Events)
-};
-
-/**
- * Native JS prototypes
- * @type {Object}
- * @private
- */
-$JS = {
-  arr: Array.prototype,
-  obj: Object.prototype
 };

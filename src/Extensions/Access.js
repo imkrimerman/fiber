@@ -99,7 +99,7 @@ var $Access = new Fiber.Extension('Access', {
 /**
  * Register Extension
  */
-$fn.extensions.register($Access);
+$ioc.extension('Access', $Access);
 
 /**
  * Add access mixin to the Fiber

@@ -1,8 +1,9 @@
 /**
  * Fiber Logger
  * @class
+ * @extends {Fiber.Class}
  */
-Fiber.Log = $fn.class.create({
+Fiber.Log = Fiber.Class.extend({
 
   /**
    * Available log levels
@@ -27,8 +28,8 @@ Fiber.Log = $fn.class.create({
    * @type {Object}
    */
   templates: {
-    timestamp: '<%= timestamp %>',
-    intro: '[Fiber] Logger >> `<%= self.getLevel() %>`:'
+    timestamp: '{{ timestamp }}',
+    intro: '[Fiber] >> `{{ self.getLevel() }}`:'
   },
 
   /**
@@ -501,10 +502,4 @@ for (var i = 0; i < $Const.log.levels.length; i ++) {
  * Add system logger
  * @type {Object.<Fiber.Log>}
  */
-Fiber.system.log = $Log = new Fiber.Log();
-
-/**
- * Create system profiler
- * @type {Object.<Fiber.Log>}
- */
-Fiber.system.profiler = new Fiber.Log({level: 'info'});
+Fiber.log = $Log = new Fiber.Log();

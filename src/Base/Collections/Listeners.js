@@ -1,9 +1,9 @@
 /**
  * Listeners Collection, used internally
  * @class
- * @extends {Collection}
+ * @extends {$Collection}
  */
-var Listeners = Collection.extend({
+$Listeners = $Collection.extend({
 
   /**
    * Determine if event has listeners

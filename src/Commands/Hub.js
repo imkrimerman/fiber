@@ -29,7 +29,7 @@ Fiber.Commands.Hub = $fn.class.createWithExtensions({
   constructor: function(options) {
     options = $val(options, {}, _.isPlainObject);
     this.createRegistry(options.commands);
-    this.__parent__.apply(this, arguments);
+    this.$superInit(options);
   },
 
   /**
@@ -70,7 +70,7 @@ Fiber.Commands.Hub = $fn.class.createWithExtensions({
       // if is function then just call it with `command` and return
       if (_.isFunction(Handler)) return Handler(command);
       // if is Class constructor
-      if ($fn.class.is(Handler)) {
+      if ($fn.class.isClass(Handler)) {
         // then let's instantiate new Handler with `command` as argument
         handler = new Handler(command);
         // and trigger handle method on command

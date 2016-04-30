@@ -22,36 +22,17 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
    * @param {?boolean} [merge=true]
    * @returns {Object}
    */
-  applyOwnProps: function(props, merge) {
-    var appliedNew = [];
+  applyOwnProps: function(properties, merge) {
     merge = $val(merge, true, _.isBoolean);
-
-    var hasProps = _.result(this, 'ownProps', [])
-      , givenProps = $val(props, [], [_.isArray, _.isFunction], 'some');
-
-    if (_.isFunction(givenProps)) givenProps = givenProps();
-    if (merge) givenProps = hasProps.concat(givenProps);
-
-    for (var i = 0; i < givenProps.length; i ++) {
-      var prop = givenProps[i]
-        , propClassValue = _.get(this, prop);
-
-      if (_.has(this, prop) || this.hasOwnProperty(prop)) continue;
-      if (! _.includes(hasProps, prop)) appliedNew.push(prop);
-
-      _.set(this, prop, _.cloneDeep(propClassValue, function(value) {
-        if (_.isFunction(value)) return value;
-        return _.clone(value, true);
-      }));
+    var ownProperties = _.result(this, 'ownProps', [])
+      , properties = $val(properties, [], _.isArray);
+    if (merge) properties = $fn.concat(ownProperties, properties);
+    for (var i = 0; i < properties.length; i ++) {
+      var property = properties[i]
+        , propertyValue = _.get(this, property);
+      if (this.hasOwnProperty(property)) continue;
+      _.set(this, property, $fn.clone(propertyValue, true));
     }
-
-//    if (! appliedNew.length) return this;
-//
-//    if (_.isArray(this.ownProps)) this.ownProps = this.ownProps.concat(appliedNew);
-//    else this.ownProps = function() {
-//      return hasProps.concat(appliedNew);
-//    };
-
     return this;
   }
 });
@@ -59,4 +40,4 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 /**
  * Register Extension
  */
-$fn.extensions.register($OwnProps);
+$ioc.extension('OwnProps', $OwnProps);

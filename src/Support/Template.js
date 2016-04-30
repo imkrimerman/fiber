@@ -32,7 +32,7 @@ Fiber.fn.template = {
    */
   prepare: function(template) {
     var engine = $fn.template.getEngine()
-      // lets use all arguments and path them into the engine
+    // lets use all arguments and path them into the engine
       , prepared = engine.apply(engine, arguments);
     // adds static render function to the prepared template
     prepared.render = function() {
@@ -40,6 +40,15 @@ Fiber.fn.template = {
     };
     // and finally return wrapped template
     return prepared;
+  },
+
+  /**
+   * Adds global template import to the `data`
+   * @param {?Object} [data={}]
+   * @returns {Object}
+   */
+  imports: function(data) {
+    return _.extend({}, $val(data || {}), $Const.template.imports);
   },
 
   /**
@@ -108,3 +117,6 @@ Fiber.fn.template = {
     return _.isFunction(this.getFallback());
   },
 };
+
+_.templateSettings = $Const.template.settings;
+_.templateSettings.imports = $fn.template.imports({_: _});

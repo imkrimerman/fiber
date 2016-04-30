@@ -90,4 +90,4 @@ var $Extensions = new Fiber.Extension('Extensions', {
 /**
  * Register Extension
  */
-$fn.extensions.register($Extensions);
+$ioc.extension('Extensions', $Extensions);

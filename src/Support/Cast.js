@@ -9,7 +9,7 @@ Fiber.fn.cast = {
    * @param {Object} value
    * @returns {Array}
    */
-  array: function(value, wrap) {
+  toArray: function(value, wrap) {
     if (! value) return [];
     if (_.isArray(value)) return value;
     if (wrap == null || wrap) return [value];
@@ -21,14 +21,14 @@ Fiber.fn.cast = {
    * @param value
    * @returns {Object}
    */
-  plain: function(value) {
+  toPlain: function(value) {
     if (_.isPlainObject(value)) return value;
     if (! _.isObject(value) || _.isArray(value)) return {};
-    if (_.isFunction(value) && ! $fn.class.is(value)) {
+    if (_.isFunction(value) && ! $fn.class.isClass(value)) {
       var tryVal = value();
       if (_.isPlainObject(value)) return tryVal;
     }
-    return _.toPlainObject(value);
+    return {};
   },
 
   /**
@@ -36,7 +36,7 @@ Fiber.fn.cast = {
    * @param value
    * @returns {*}
    */
-  object: function(value) {
+  toObject: function(value) {
     if (! _.isObject(value)) return {};
     return value;
   },
@@ -46,7 +46,7 @@ Fiber.fn.cast = {
    * @param value
    * @returns {*}
    */
-  function: function(value) {
+  toFunction: function(value) {
     if (! _.isFunction(value)) return _.constant(value);
     return value;
   },
@@ -56,7 +56,7 @@ Fiber.fn.cast = {
    * @param value
    * @returns {string}
    */
-  string: function(value) {
+  toString: function(value) {
     return _.toString(value);
   },
 
@@ -65,7 +65,7 @@ Fiber.fn.cast = {
    * @param value
    * @returns {number}
    */
-  number: function(value) {
+  toNumber: function(value) {
     return _.toNumber(value);
   },
 
@@ -74,7 +74,7 @@ Fiber.fn.cast = {
    * @param value
    * @returns {number}
    */
-  integer: function(value) {
+  toInteger: function(value) {
     return _.toInteger(value);
   },
 
@@ -83,7 +83,7 @@ Fiber.fn.cast = {
    * @param value
    * @returns {boolean}
    */
-  boolean: function(value) {
+  toBoolean: function(value) {
     return !! value;
   }
 };

@@ -134,7 +134,7 @@ Fiber.getExtensionInitMethodMap = function(alias) {
  * Fiber.make('Bag', {one: 1, two: 2});
  */
 Fiber.make = function(abstract, parameters, scope) {
-  if (! Fiber.has('container')) return abstract;
+  if (! Fiber.hasOwnProperty('container')) return abstract;
   if (arguments.length > 1 && ! _.isArray(abstract))
     return Fiber.container.make(abstract, parameters, scope);
 
@@ -175,8 +175,8 @@ Fiber.retrieve = function(abstract) {
  * @returns {Array|*}
  */
 Fiber.resolve = function(dependencies, extensionToCode) {
-  if (! Fiber.has('container')) return dependencies;
-  return _.map(Fiber.container.resolve(dependencies), function(dep) {
-    return $fn.extensions.is(dep) && extensionToCode ? dep.toCode() : dep;
+  if (! Fiber.hasOwnProperty('container')) return dependencies;
+  return _.map(Fiber.container.resolve(dependencies), function(dependency) {
+    return $fn.extensions.isExtension(dependency) && extensionToCode ? dependency.toCode() : dependency;
   });
 };

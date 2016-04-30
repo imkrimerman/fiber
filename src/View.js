@@ -242,7 +242,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {Object.<Listeners>}
      */
     prepareListeners: function(listeners) {
-      return this.listeners = new Listeners(this.splitEvents(listeners));
+      return this.listeners = new $Listeners(this.splitEvents(listeners));
     },
 
     /**
@@ -288,7 +288,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
         selector = '';
       }
 
-      this.apply(Backbone.View, 'delegate', [event, selector, cb]);
+      this.$super('delegate', [event, selector, cb]);
     },
 
     /**
@@ -340,9 +340,9 @@ Fiber.View = $fn.class.make(Backbone.View, [
       var result;
 
       $fn.fireCallCyclic(this, 'render', function() {
-        this.apply(this, '__beforeRender');
+        this.$apply(this, '__beforeRender');
         result = render.call(this);
-        this.apply(this, '__afterRender');
+        this.$apply(this, '__afterRender');
       }, {fire: this, call: render});
 
       this.__rendered = true;
@@ -354,7 +354,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      */
     remove: function() {
       $fn.fireCallCyclic(this, 'remove', function() {
-        this.apply(Backbone.View, 'remove', {fire: this});
+        this.$super('remove', {fire: this});
       });
       this.__rendered = false;
     },

@@ -23,25 +23,21 @@ Fiber.Application = $fn.class.createWithExtensions({
   container: Fiber.container,
 
   /**
-   * Default options holder
-   * Will be used to retrieve options for instance construct
-   * @type {Object}
-   */
-  defaults: {
-    viewport: {},
-    router: {}
-  },
-
-  /**
    * Constructs Application
    * @param {?Object} [options={}]
    */
   constructor: function(options) {
     options = this.handleOptions(options);
-    $fn.extensions.init(this, options);
+
+    $fn.extensions.init(this, {
+      list: _.map($fn.extensions.list(), function(one) {
+        return one.getName();
+      })
+    });
+
     this.bootstrap(options);
     this.bindEvents();
-    $fn.apply(this, 'initialize', arguments);
+    this.$super('initialize', arguments);
   },
 
   /**
