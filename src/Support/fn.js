@@ -626,3 +626,5 @@ $val = $fn.val;
  * @inheritDoc
  */
 $valMerge = $fn.valMerge;
+
+_.extend($Const.template.imports, {$fn: $fn, $val: $val, $each: $each});

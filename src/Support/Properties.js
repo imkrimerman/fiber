@@ -61,11 +61,7 @@ Fiber.Constants = $Const = {
     engine: _.template,
     imports: {
       Fiber: Fiber,
-      Fr: Fiber,
-      $fn: $fn,
-      $val: $val,
-      $each: $each,
-      $ioc: $ioc
+      Fr: Fiber
     },
     settings: {
       evaluate: /{{([\s\S]+?)}}/g,

@@ -118,5 +118,5 @@ Fiber.fn.template = {
   },
 };
 
-_.templateSettings = $Const.template.settings;
-_.templateSettings.imports = $fn.template.imports({_: _});
+_.extend(_.templateSettings, $Const.template.settings);
+_.extend(_.templateSettings.imports, $fn.template.imports());
