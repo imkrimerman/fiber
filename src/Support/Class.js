@@ -11,7 +11,7 @@ Fiber.fn.class = {
    * @returns {FiberClassPreConstructor}
    */
   createPreConstructor: function (constructor, parentClass) {
-    var hoistingKey = $Const.extensions.hoisting;
+    var hoistingKey = $Const.extensions.migration;
     // fallback on constructor as Parent constructor to make available creation without Parent
     parentClass = $val(parentClass, constructor, _.isObject);
     // Return Class constructor
@@ -19,7 +19,7 @@ Fiber.fn.class = {
       // Attach Parent Class constructor and Parent prototype to the direct scope of child
       $fn.class.attachSuper(this, parentClass);
       // If we have properties that needs to be hoisted to the direct scope (this) of child, then lets apply
-      // hoisting to the current scope.
+      // migration to the current scope.
       if (! _.isEmpty(constructor[hoistingKey])) $fn.copyProps(constructor, this, constructor[hoistingKey]);
       // Apply constructor with arguments
       constructor.apply(this, arguments);

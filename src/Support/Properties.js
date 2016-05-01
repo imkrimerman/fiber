@@ -47,7 +47,7 @@ Fiber.$ = $;
 Fiber.Constants = $Const = {
   extensions: {
     private: '__extensions',
-    hoisting: '__needPropsHoisting',
+    migration: '__needsPropMigration',
   },
   bag: {
     holderKey: 'items'

@@ -263,7 +263,7 @@ Fiber.fn.extensions = {
    * @returns {*}
    */
   setIncluded: function(object, list, reset) {
-    var hoistingKey = $Const.extensions.hoisting
+    var hoistingKey = $Const.extensions.migration
       , extensionKey = $Const.extensions.private;
     if ($fn.class.isClass(object)) object[hoistingKey] = $fn.concat(extensionKey, object[hoistingKey] || []);
     if (reset || ! _.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];

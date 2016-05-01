@@ -17,8 +17,6 @@ Fiber.fn.computed = {
    * @returns {*}
    */
   get: function(model, prop) {
-    var privateCompute = model[$Const.computed.private];
-    if (privateCompute && _.has(privateCompute, prop))
     return $fn.computed.apply(model, prop, 'get');
   },
 
