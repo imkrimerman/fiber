@@ -41,7 +41,7 @@ Fiber.Router = $fn.class.createWithExtensions([
      */
     constructor: function(options) {
       options = $fn.class.handleOptions(this, options);
-      $fn.extensions.init(this, options);
+      $fn.extensions.init(this);
       this.createCollections(options);
       this.bindRoutes();
       $fn.apply(this, 'initialize', [arguments]);
@@ -82,7 +82,7 @@ Fiber.Router = $fn.class.createWithExtensions([
       var params = [route, args], result = true;
       $fn.fireCallCyclic(this, 'execute', function() {
         if (! this.executeRoute.apply(this, arguments)) result = false;
-      }, {fire: params, invoke: params, callback: arguments});
+      }, {fire: params, call: params, callback: arguments});
       return result;
     },
 

@@ -36,7 +36,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    */
   applyExtensions: function(extensions) {
     extensions = $val(extensions, false, _.isArray) || _.result(this, 'extensions');
-    if (extensions) this.includeExtension(extensions);
+    if (extensions && ! _.isEmpty(extensions)) this.includeExtension(extensions);
   },
 
   /**
@@ -81,7 +81,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @return {Object}
    */
   includeExtension: function(alias, override) {
-    Fiber.applyExtension(alias, this, override);
+    $fn.extensions.apply(this, alias)
     return this;
   }
 });

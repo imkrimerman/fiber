@@ -3,7 +3,7 @@
  * @class
  * @extends {Backbone.Collection}
  */
-$Collection = $fn.class.extend(Backbone.Collection, [
+$Collection = $fn.class.make(Backbone.Collection, [
   $Extend, $OwnProps, $Binder, {
 
   /**
@@ -25,7 +25,7 @@ $Collection = $fn.class.extend(Backbone.Collection, [
    */
   constructor: function(models, options) {
     $fn.class.handleOptions(this, options);
-    $fn.extensions.init(this, {list: ['Extend', 'OwnProps', 'Binder']});
+    $fn.extensions.init(this);
     Backbone.Collection.apply(this, arguments);
   },
 }]);

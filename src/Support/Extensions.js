@@ -12,6 +12,7 @@ Fiber.fn.extensions = {
    * @private
    */
   __access: function(method) {
+    if (! Fiber.hasOwnProperty('container')) return [];
     var container = Fiber.container.extensions;
     if (! arguments.length) return container;
     if (! _.isFunction(container[method])) return container[method];
@@ -117,6 +118,14 @@ Fiber.fn.extensions = {
   },
 
   /**
+   * Returns list of extensions names
+   * @return {*|Array}
+   */
+  listNames: function() {
+    return $fn.extensions.mapCall($fn.extensions.all(), 'getName');
+  },
+
+  /**
    * Calls extension method with arguments and bound scope
    * @param {Object.<Fiber.Extension>} extension
    * @param {?string} [method]
@@ -137,11 +146,12 @@ Fiber.fn.extensions = {
    * @returns {Fiber}
    */
   apply: function(alias, object, options) {
+    options = $valMerge(options, {override: false, init: true, list: [], args: {}});
     var extension = $fn.extensions.get(alias);
     if (! extension) return this;
     $fn.class.include(object, extension, options.override);
     $fn.extensions.setIncluded(object, alias);
-    $fn.extensions.init(object, options);
+    options.init && $fn.extensions.init(object, options.list, options.args);
     return this;
   },
 
@@ -150,24 +160,21 @@ Fiber.fn.extensions = {
    * You can also pass options to init method of each extension by specifying
    * extension name as key and arguments as value.
    * @param {Object} object
-   * @param {?Object} [options]
-   * @returns {boolean}
+   * @param {?Array|string} [list]
+   * @param {?Array|Object} [args]
+   * @return {Fiber.fn.extensions}
    */
-  init: function(object, options) {
-    var defaultOpts = {override: false, list: [], args: {}, detect: false};
-    options = $valMerge(options, defaultOpts, 'defaults');
-
-    if (_.isEmpty(options.list)) {
-      if (options.detect) options.list = options.list.concat($fn.extensions.detect(object));
-      else options.list = $fn.extensions.getIncluded(object) || [];
+  init: function(object, list, args) {
+    args = $val(args, {}, [_.isArray, _.isPlainObject], 'some');
+    var extensions = _.values($fn.extensions.all());
+    if (_.isArray(list) || _.isString(list)) extensions = $fn.extensions.get(list, false);
+    for (var i = 0; i < extensions.length; i ++) {
+      var extension = extensions[i]
+        , initMethod = extension.getInitMethod()
+        , resolve = $fn.class.resolveMethod(object, initMethod);
+      if (_.isFunction(resolve)) resolve(_.isArray(args) ? args : args[extension.getName()]);
     }
-
-    var initMethodsMap = _.zipObject(options.list, $fn.extensions.makeCall(options.list, 'getInitMethod'));
-    for (var name in initMethodsMap) {
-      if (! initMethodsMap[name]) continue;
-      var method = $fn.class.resolveMethod(object, initMethodsMap[name]);
-      if (_.isFunction(method)) method(options.args[name]);
-    }
+    return this;
   },
 
   /**

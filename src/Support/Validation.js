@@ -57,14 +57,14 @@ Fiber.fn.validation = {
        * `Attribute required` message.
        * @type {string|Function}
        */
-      required: 'Required attribute [{{ attribute }}] is missing.',
+      required: 'Required attribute [{{= attribute }}] is missing.',
 
       /**
        * Single validation message for all validators.
        * Will be used if validators type is not plain object.
        * @type {string|Function}
        */
-      single: 'Attribute [{{ attribute }}] is not valid.',
+      single: 'Attribute [{{= attribute }}] is not valid.',
 
       /**
        * Hash map of validation messages.

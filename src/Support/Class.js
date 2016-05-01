@@ -131,7 +131,7 @@ Fiber.fn.class = {
     return function(options) {
       options = $valMerge(options, {list: extensions || []}, 'extend');
       $fn.class.handleOptions(this, options);
-      $fn.extensions.init(this, options);
+      $fn.extensions.init(this, options.list, options.args);
       $fn.apply(this, 'initialize', arguments);
     };
   },

@@ -31,7 +31,7 @@ Fiber.Collection = $Collection.extend([
      */
     constructor: function(models, options) {
       $fn.class.handleOptions(this, options);
-      $fn.extensions.init(this, options);
+      $fn.extensions.init(this);
       this.extendModel(options.modelOptions);
       this.$superInit(models, options);
     },

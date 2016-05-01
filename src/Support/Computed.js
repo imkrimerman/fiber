@@ -63,7 +63,7 @@ Fiber.fn.computed = {
   apply: function(model, prop, action, args, options) {
     options = $valMerge(options, {denyCompute: true}, 'extend');
     var computedFn = $fn.class.resolveMethod(model, $fn.computed.createMethodName(prop, action, model))
-      , nativeArgs = [model.__super__[action].bind(model), $fn.computed, Fiber.container];
+      , nativeArgs = [model.$super().prototype[action].bind(model), $fn.computed, $ioc];
     if (! _.isFunction(computedFn)) return;
     var computedValue = computedFn.apply(model, $val(args, [], _.isArray).concat(nativeArgs));
     return action === 'set' && model.set(prop, computedValue, options) || computedValue;

@@ -29,6 +29,18 @@ Fiber.noConflict = function() {
 };
 
 /**
+ * Add `lodash` to the Fiber
+ * @type {Function}
+ */
+Fiber._ = _;
+
+/**
+ * Exposed jQuery (or similar) from Backbone
+ * @type {Function}
+ */
+Fiber.$ = $;
+
+/**
  * Fiber Constants
  * @var {Object}
  */
@@ -56,8 +68,8 @@ Fiber.Constants = $Const = {
       $ioc: $ioc
     },
     settings: {
-      evaluate: /{{%([\s\S]+?)}}/g,
-      interpolate: /{{([\s\S]+?)}}/g,
+      evaluate: /{{([\s\S]+?)}}/g,
+      interpolate: /{{=([\s\S]+?)}}/g,
       escape: /{{-([\s\S]+?)}}/g
     }
   },
@@ -70,6 +82,7 @@ Fiber.Constants = $Const = {
   access: {
     private: '__access',
     methods: ['get', 'set', 'has', 'result', 'unset'],
+    defaults: 'public',
     allow: {
       private: false,
       protected: ['get', 'result', 'has'],

@@ -28,13 +28,7 @@ Fiber.Application = $fn.class.createWithExtensions({
    */
   constructor: function(options) {
     options = this.handleOptions(options);
-
-    $fn.extensions.init(this, {
-      list: _.map($fn.extensions.list(), function(one) {
-        return one.getName();
-      })
-    });
-
+    $fn.extensions.init(this);
     this.bootstrap(options);
     this.bindEvents();
     this.$super('initialize', arguments);

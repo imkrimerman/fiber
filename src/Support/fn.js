@@ -416,7 +416,6 @@ $fn = Fiber.fn = {
 
     for (var i = 0; i < lifeCycle.length; i ++) {
       var now = lifeCycle[i]
-        , needCallbackEvent = _.startsWith(now, '@') && ~now.indexOf(':')
         , nowEvent = $fn.makeEventName([now, event]);
 
       if (now === '@callback' && _.isFunction(callback)) result = callback.apply(Class, args.callback);
@@ -459,11 +458,11 @@ $fn = Fiber.fn = {
    * @returns {*|Object|stream}
    */
   prepareFireCallArgs: function(args, defaults) {
-    var prepared = _.extend({}, defaults || {}, $val(args, {}, _.isPlainObject));
+    var prepared = $valMerge(args, defaults, 'defaults');
     for (var key in prepared) {
       var value = prepared[key];
       if (_.isArguments(value)) prepared[key] = value;
-      prepared[key] = $fn.castArr(value);
+      else prepared[key] = $fn.castArr(value);
     }
     return prepared;
   },
