@@ -58,7 +58,7 @@
     "open-anotate": "open -a \"Google Chrome\" docs/anotate/fiber.html"
   },
   "main": "fiber.js",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "repository": {
     "type": "git",
