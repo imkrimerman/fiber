@@ -4,7 +4,7 @@
  * @extends {Backbone.View}
  */
 Fiber.View = $fn.class.make(Backbone.View, [
-  'Extensions', 'Extend', 'OwnProps', 'Access', 'Binder', Fiber.Events, {
+  'Extensions', 'Extend', 'OwnProps', 'Access', 'Binder', 'Events', {
 
     /**
      * Parent element to auto attach

@@ -44,4 +44,4 @@ var $Extend = new Fiber.Extension('Extend', {
 /**
  * Register Extension
  */
-$ioc.extension('Extend', $Extend);
+$Ioc.extension('Extend', $Extend);

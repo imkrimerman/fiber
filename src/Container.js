@@ -236,7 +236,4 @@ $fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'e
  * Create default Fiber Inverse Of Control Container
  * @type {Object.<Fiber.Container>}
  */
-$ioc = Fiber.container = new Fiber.Container();
-
-_.extend(_.templateSettings.imports, {$ioc: $ioc});
-_.extend($Const.template.imports, {$ioc: $ioc});
+$Ioc = Fiber.container = new Fiber.Container();

@@ -63,6 +63,25 @@ Fiber.fn.delegator = {
   },
 
   /**
+   * Delegates all properties from delegatable to the object with scope bound
+   * @param {Object} object
+   * @param {Object} delegatable
+   * @param {?Object} [scope]
+   * @return {Object}
+   */
+  delegateForThis: function(object, delegatable, scope) {
+    _.each(delegatable, function(value, property) {
+      var originalValue = value;
+      if (_.isFunction(value)) value = function() {
+        return originalValue.apply(scope || object, $fn.argsConcat([this], arguments));
+      };
+
+      object[property] = value;
+    });
+    return object;
+  },
+
+  /**
    * Returns delegated object's method, that will dynamically resolve `attribute` from bound object
    * @param {Object} object
    * @param {string} method

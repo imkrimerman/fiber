@@ -110,16 +110,14 @@ Fiber.Extension = Fiber.Class.extend({
   },
 
   /**
-   * Binds extension `code` to the `object`
-   * @param {Object} object
-   * @param {?string} [attribute]
-   * @return {*}
+   * Calls `method` with the given `args`in the `scope`
+   * @param {string} method
+   * @param {?Array} [args]
+   * @param {?Object} [scope]
+   * @returns {*}
    */
-  bindTo: function(object, attribute) {
-    this.includeTo(object);
-    return _.each(this.getCodeCapsuleMethodList(), function(method) {
-      return $fn.delegator.delegate(object, method, attribute);
-    });
+  call: function(method, args, scope) {
+    return $fn.apply(this.getCodeCapsule(), method, args, scope);
   },
 
   /**
@@ -130,17 +128,6 @@ Fiber.Extension = Fiber.Class.extend({
    */
   includeTo: function(object, override) {
     return $fn.class.mix(object, this.copy(), override);
-  },
-
-  /**
-   * Calls `method` with the given `args`in the `scope`
-   * @param {string} method
-   * @param {?Array} [args]
-   * @param {?Object} [scope]
-   * @returns {*}
-   */
-  applyMethod: function(method, args, scope) {
-    return $fn.apply(this.getCodeCapsule(), method, args, scope);
   },
 
   /**
@@ -162,6 +149,7 @@ Fiber.Extension = Fiber.Class.extend({
     code = $valMerge(code, {initWith: false}, 'defaults');
     initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
     if (_.isString(name)) this.setName(name);
+    if (_.isFunction(_.get(code, '__init__'))) this.__init__ = code.__init__;
     this.setCodeCapsule(code);
     this.setInitMethod(initWith || code.initWith || code.__initWith || this.__initWith);
     delete code.initWith;

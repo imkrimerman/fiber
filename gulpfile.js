@@ -25,7 +25,7 @@ var _ = require('lodash')
 
 config.allFiles = config.files.concat([config.test]);
 
-gulp.task('default', ['compile', 'tdd', 'serve', 'lint', 'watch']);
+gulp.task('default', ['compile', 'tdd', 'lint', 'watch']);
 gulp.task('compile', ['build', 'build-test', 'build-doc', 'minify']);
 
 gulp.task('dev', ['build', 'watch-dev']);

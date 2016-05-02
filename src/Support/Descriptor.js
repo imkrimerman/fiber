@@ -4,12 +4,17 @@
  */
 Fiber.fn.descriptor = {
 
+  __private: {
+    locked: {},
+    defaults: 'public'
+  },
+
   /**
-   * State key to keep locked objects
-   * @type {string}
+   * Locked objects registry
+   * @type {Object}
    * @private
    */
-  __state: 'fn.descriptor.locked',
+  __locks: {},
 
   /**
    * Defaults
@@ -48,7 +53,8 @@ Fiber.fn.descriptor = {
           return this[property];
         },
         set: function(value) {
-          if ((_.isFunction(checkToSetFn) && checkToSetFn(value)) || ! _.isFunction(checkToSetFn)) {
+          if (_.isString(checkToSetFn) && _.isFunction(_.get(this, checkToSetFn))) checkToSetFn = this[checkToSetFn];
+          if ((_.isFunction(checkToSetFn) && checkToSetFn(value)) || ! $isDef(checkToSetFn)) {
             this[property] = value;
           }
         }
@@ -114,7 +120,12 @@ Fiber.fn.descriptor = {
    */
   defineMacros: function(object, property, macros, macrosArgs) {
     if (! $fn.descriptor.hasMacros(macros)) return object;
-    return $fn.descriptor.define(object, property, $fn.descriptor.macros[macros](macrosArgs));
+    macrosArgs = $fn.castArr($val(macrosArgs, []));
+    var macrosCreator = $fn.descriptor.getMacros(macros)
+      , descriptor = macrosCreator.apply(object, macrosArgs);
+    if (_.isFunction(macrosCreator)) return $fn.descriptor.define(object, property, descriptor);
+    $Log.error(macros + ' is not found.');
+    return object;
   },
 
   /**
@@ -122,11 +133,12 @@ Fiber.fn.descriptor = {
    * removed and prevents existing properties, or their enumerability, configurability, or writability,
    * from being changed. In essence the object is made effectively immutable.
    * @param {Object} object
+   * @param {?boolean} [deep=true]
    * @returns {Object|
    */
-  immutable: function(object) {
+  immutable: function(object, deep) {
     if (! _.isObject(object)) return object;
-    _.each($fn.properties(object), function(property) {
+    $val(deep, true, _.isBoolean) && _.each($fn.properties(object), function(property) {
       if ($fn.descriptor.canDescribe(property)) $fn.descriptor.immutable(property);
     });
     return Object.freeze(object);
@@ -136,11 +148,12 @@ Fiber.fn.descriptor = {
    * Makes object explicit. Preventing new properties from being added and marking all existing properties as
    * non-configurable. Values of present properties can still be changed as long as they are writable.
    * @param {Object} object
+   * @param {?boolean} [deep=true]
    * @returns {Object}
    */
-  explicit: function(object) {
+  explicit: function(object, deep) {
     if (! _.isObject(object)) return object;
-    _.each($fn.properties(object), function(property) {
+    $val(deep, true, _.isBoolean) &&  _.each($fn.properties(object), function(property) {
       if ($fn.descriptor.canDescribe(property)) $fn.descriptor.explicit(property);
     });
     return Object.seal(object);
@@ -168,14 +181,14 @@ Fiber.fn.descriptor = {
     override = $val(override, false);
 
     if ($fn.descriptor.isLocked(secret) && ! override)
-      return $fn.getState($fn.descriptor, secret, {}).locked;
+      return $fn.descriptor.__locks[secret];
 
-    var locked = $fn.descriptor.immutable(_.clone(object));
+    var locked = $fn.descriptor.immutable($fn.clone(object, true));
 
-    $fn.setState($fn.descriptor, secret, {
+    $fn.descriptor.__locks[secret] = {
       original: object,
       locked: locked
-    });
+    };
 
     return locked;
   },
@@ -190,28 +203,11 @@ Fiber.fn.descriptor = {
     if (! $fn.descriptor.canDescribe(object) || ! $fn.descriptor.isLocked(secret))
       return object;
 
-    var key = $fn.getStateKey($fn.descriptor, secret)
-      , original = Fiber.state.get(key, {}).original;
+    var locked = $fn.descriptor.__locks[secret]
+      , original = locked.original;
 
-    Fiber.state.forget(key);
+    delete $fn.descriptor.__locks[secret];
     return original;
-  },
-
-  /**
-   * Registers macros with descriptor
-   * @param {string} alias
-   * @param {Object} descriptor
-   */
-  registerMacros: function(alias, descriptor) {
-    $fn.descriptor.macros[alias] = $fn.cast.toFunction(descriptor);
-  },
-
-  /**
-   * Removes macros with descriptor
-   * @param {string} alias
-   */
-  unregisterMacros: function(alias) {
-    delete $fn.descriptor.macros[alias];
   },
 
   /**
@@ -221,6 +217,27 @@ Fiber.fn.descriptor = {
    */
   hasMacros: function(macros) {
     return _.has($fn.descriptor.macros, macros);
+  },
+
+  /**
+   * Returns registered macros
+   * @param {string} macros
+   * @param {*} [defaults]
+   * @returns {Function}
+   */
+  getMacros: function(macros, defaults) {
+    return _.get($fn.descriptor.macros, macros, defaults);
+  },
+
+  /**
+   * Registers macros
+   * @param {string} macros
+   * @param {Function} creator
+   * @return {Fiber.fn.descriptor}
+   */
+  setMacros: function(macros, creator) {
+    _.set($fn.descriptor.macros, macros, creator);
+    return this;
   },
 
   /**
@@ -256,7 +273,7 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   isLocked: function(secret) {
-    return Fiber.state.has($fn.getStateKey($fn.descriptor, secret));
+    return Fiber.state.has($fn.descriptor.state, secret);
   },
 
   /**

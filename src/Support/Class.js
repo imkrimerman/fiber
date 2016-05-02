@@ -11,7 +11,7 @@ Fiber.fn.class = {
    * @returns {FiberClassPreConstructor}
    */
   createPreConstructor: function (constructor, parentClass) {
-    var hoistingKey = $Const.extensions.migration;
+    var hoistingKey = $fn.extensions.migration;
     // fallback on constructor as Parent constructor to make available creation without Parent
     parentClass = $val(parentClass, constructor, _.isObject);
     // Return Class constructor

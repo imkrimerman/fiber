@@ -5,38 +5,104 @@
 Fiber.fn.template = {
 
   /**
-   * Template engine
-   * @type {Function}
-   * @private
+   * Private configuration
+   * @type {Object}
    */
-  engine: $Const.template.engine,
+  __private: {
+
+    /**
+     * Template engine
+     * @type {Function}
+     * @private
+     */
+    engine: _.template,
+
+    /**
+     * System template engine
+     * @type {Function}
+     * @private
+     */
+    system: _.template,
+
+    /**
+     * Fallback template engine
+     * @type {Function}
+     * @private
+     */
+    fallback: _.constant,
+
+    /**
+     * Available engines list
+     * @type {Array}
+     */
+    engines: ['engine', 'system', 'fallback'],
+
+    /**
+     * Template settings
+     * @type {Object}
+     */
+    settings: {
+      evaluate: /{{([\s\S]+?)}}/g,
+      interpolate: /{{=([\s\S]+?)}}/g,
+      escape: /{{-([\s\S]+?)}}/g,
+      imports: {
+        Fiber: Fiber,
+        Fr: Fiber,
+        $fn: Fiber.fn,
+        $each: $each,
+        $val: $val,
+        $valMerge: $valMerge,
+        $isDef: $isDef
+      }
+    },
+  },
 
   /**
-   * Fallback function that emulates template engine renderer
-   * @type {Function}
-   */
-  fallback: _.identity,
-
-  /**
-   * Templates string with given arguments
-   * @returns {string}
+   * Templates string with given arguments using main engine
+   * @param {string} template
+   * @param {?Object} [data]
+   * @return {string}
    */
   compile: function(template, data) {
-    return this.prepare(template)(data);
+    return $fn.template.prepare(template, 'engine')(data);
+  },
+
+  /**
+   * Templates string with given arguments using system engine
+   * @param {string} template
+   * @param {?Object} [data]
+   * @return {string}
+   */
+  system: function(template, data) {
+    return $fn.template.prepare(template, 'system')(data);
+  },
+
+  /**
+   * Templates string with given arguments using fallback engine
+   * @param {string} template
+   * @param {?Object} [data]
+   * @return {string}
+   */
+  fallback: function(template, data) {
+    return $fn.template.prepare(template, 'fallback')(data);
   },
 
   /**
    * Prepares template to compile
    * @param {string} template - Template to prepare
+   * @param {?string} [type='engine']
    * @returns {Function}
    */
-  prepare: function(template) {
-    var engine = $fn.template.getEngine()
-    // lets use all arguments and path them into the engine
-      , prepared = engine.apply(engine, arguments);
+  prepare: function(template, type) {
+    type = $val(type, 'engine', $fn.createIncludes($private($fn.template, '__engines')));
+    var engine = $fn.template['get' + _.capitalize(type)]();
+    // if engine is not found then lets wrap to return the same
+    if (! _.isFunction(engine)) return _.constant(template);
+    // otherwise lets use all arguments and path them into the engine
+    var prepared = engine.apply(engine, arguments);
     // adds static render function to the prepared template
-    prepared.render = function() {
-      return prepared.apply(prepared, arguments);
+    prepared.$render = function() {
+      return prepared.apply(prepared, _.drop(arguments, 2));
     };
     // and finally return wrapped template
     return prepared;
@@ -45,19 +111,25 @@ Fiber.fn.template = {
   /**
    * Adds global template import to the `data`
    * @param {?Object} [data={}]
+   * @param {?boolean} [inherit=false]
    * @returns {Object}
    */
-  imports: function(data) {
-    return _.extend({}, $val(data || {}), $Const.template.imports);
+  imports: function(data, inherit) {
+    data = $val(data, {}, _.isPlainObject);
+    var imports = $private($fn.template, 'settings.imports')
+      , args = [data, imports];
+    if (! inherit) args.unshift({});
+    return _.extend.apply(_, args);
   },
 
   /**
    * Returns template engine
+   * @param {?string} [type]
    * @returns {Function}
    */
   getEngine: function() {
-    var engine = $fn.template.engine;
-    if (! engine) return $fn.template.getFallback();
+    var engine = $private($fn.template, 'engine');
+    if (! _.isFunction(engine)) return $fn.template.getFallback();
     return engine;
   },
 
@@ -67,9 +139,9 @@ Fiber.fn.template = {
    * @return {Fiber.fn.template}
    */
   setEngine: function(engine) {
-    if (! _.isFunction(engine)) return this;
-    $fn.template.engine = engine;
-    return this;
+    if (! _.isFunction(engine)) return $fn.template;
+    $private($fn.template, 'engine', engine);
+    return $fn.template;
   },
 
   /**
@@ -77,26 +149,44 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasEngine: function() {
-    var engine = $fn.template.getEngine();
-    if (! engine || engine === $fn.template.fallback) return false;
+    var engine = $fn.template.getEngine()
+      , fallback = $private($fn.template, 'fallback');
+    if (! _.isFunction(engine) || engine === fallback) return false;
     return true;
   },
 
   /**
-   * Returns fallback template engine. Tries to return lodash template or
-   * `identity` function that emulate templating
+   * Returns system template engine
+   * @returns {Function}
+   */
+  getSystem: function() {
+    return $private($fn.template, 'system');
+  },
+
+  /**
+   * Sets system template engine
+   * @param {Function} engine
+   * @returns {Fiber.fn.template}
+   */
+  setSystem: function(engine) {
+    if (_.isFunction(engine)) $private($fn.template, '__system', engine);
+    return $fn.template;
+  },
+
+  /**
+   * Determines if has system template engine
+   * @returns {boolean}
+   */
+  hasSystem: function() {
+    return _.isFunction($fn.template.getSystem());
+  },
+
+  /**
+   * Returns fallback template engine.
    * @returns {Function}
    */
   getFallback: function() {
-    var result = _.attempt(function() {
-      // Try to prepare `template` string in `_.template` function,
-      // if it's not available then prepare it with function that will
-      // return the same value that is used as the argument.
-      return _ && _.template ? _.template : $fn.template.fallback;
-    });
-
-    if (_.isError(result)) return $fn.template.fallback;
-    return result;
+    return $private($fn.template, 'fallback');
   },
 
   /**
@@ -105,8 +195,8 @@ Fiber.fn.template = {
    * @returns {Fiber.fn.template}
    */
   setFallback: function(fallback) {
-    this.fallback = fallback;
-    return this;
+    if (_.isFunction(fallback)) $private($fn.template, 'fallback', fallback);
+    return $fn.template;
   },
 
   /**
@@ -114,9 +204,56 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasFallback: function() {
-    return _.isFunction(this.getFallback());
+    return _.isFunction($fn.template.getFallback());
+  },
+
+  /**
+   * Returns settings object or value by path
+   * @param {?string} [path]
+   * @returns {*}
+   */
+  getSettings: function(path) {
+    return $private($fn.template, $fn.join(['settings', path], '.'));
+  },
+
+  /**
+   * Sets setting by path
+   * @param path
+   * @param value
+   * @returns {Fiber.fn.template}
+   */
+  setSettings: function(path, value) {
+    if (_.isPlainObject(path)) {
+      path = 'settings';
+      value = path;
+    }
+
+    if (! path) return $fn.template;
+    $private($fn.template, path, value);
+    return $fn.template;
+  },
+
+  /**
+   * Determines if given setting is set or if template has valid settings object
+   * @param {string} path
+   * @returns {boolean}
+   */
+  hasSettings: function(path) {
+    return $privateHas($fn.template, path);
+  },
+
+  /**
+   * Includes template settings to the given object
+   * @param {Object} object
+   * @param {?string} [method='merge']
+   * @returns {*}
+   */
+  includeSettings: function(object, method) {
+    return _[$val(method, 'merge')](object, $fn.template.getSettings());
   },
 };
 
-_.extend(_.templateSettings, $Const.template.settings);
-_.extend(_.templateSettings.imports, $fn.template.imports());
+/**
+ * Mix settings to the lodash template
+ */
+$fn.template.includeSettings(_.templateSettings);

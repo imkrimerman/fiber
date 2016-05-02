@@ -1,9 +1,9 @@
 // define base Fiber variables
 var Fr, Fiber, previousFiber,
 // define internal private variables
-$fn, $Const, $Log, $val, $valMerge, $isDef, $each, $trigger, $ioc, $errors,
+$fn, $val, $valMerge, $isDef, $each, $trigger, $msg, $private, $privateHas,
 // define internal common class variable
-$Model, $Collection, $Listeners, $RouterCollection;
+$Log, $Ioc, $Env, $State, $Model, $Collection, $Listeners, $RouterCollection;
 
 /**
  * Fiber main object
@@ -41,71 +41,6 @@ Fiber._ = _;
 Fiber.$ = $;
 
 /**
- * Fiber Constants
- * @var {Object}
- */
-Fiber.Constants = $Const = {
-  extensions: {
-    private: '__extensions',
-    migration: '__needsPropMigration',
-  },
-  bag: {
-    holderKey: 'items'
-  },
-  log: {
-    levels: ['trace', 'debug', 'info', 'warn', 'error'],
-    default: 'error',
-    fallback: console.log
-  },
-  template: {
-    engine: _.template,
-    imports: {
-      Fiber: Fiber,
-      Fr: Fiber
-    },
-    settings: {
-      evaluate: /{{([\s\S]+?)}}/g,
-      interpolate: /{{=([\s\S]+?)}}/g,
-      escape: /{{-([\s\S]+?)}}/g
-    }
-  },
-  validation: {
-    messages: '__messages'
-  },
-  state: {
-    private: '__state'
-  },
-  access: {
-    private: '__access',
-    methods: ['get', 'set', 'has', 'result', 'unset'],
-    defaults: 'public',
-    allow: {
-      private: false,
-      protected: ['get', 'result', 'has'],
-      public: true
-    }
-  },
-  computed: {
-    private: '__willCompute',
-    defaultPostfix: 'Attribute',
-    modelPostfix: 'computePostfix',
-  },
-  injection: {
-    private: '__injection',
-    allowedTypes: ['function'],
-    sharedMethods: ['get', 'has', ['inject', 'applyInject']]
-  },
-  ioc: {
-    regex: {
-      ARGS: /^function\s*[^\(]*\(\s*([^\)]*)\)/m,
-      ARG_SPLIT: /,/,
-      ARG: /^\s*(_?)(\S+?)\1\s*$/,
-      STRIP_COMMENTS: /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg
-    }
-  }
-};
-
-/**
  * Fiber Command Bus module
  * @var {Object}
  */
@@ -116,5 +51,6 @@ Fiber.Commands = {};
  * @type {Object}
  */
 Fiber.internal = {
-  events: _.extend({}, Backbone.Events)
+  privateProperty: '__private',
+  events: _.extend({}, Backbone.Events),
 };

@@ -7,4 +7,4 @@ var $Events = new Fiber.Extension('Events', Fiber.Events.instance());
 /**
  * Register Extension
  */
-$ioc.extension('Events', $Events);
+$Ioc.extension('Events', $Events);

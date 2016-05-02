@@ -6,38 +6,23 @@
 Fiber.Log = Fiber.Class.extend({
 
   /**
-   * Available log levels
-   * @type {Array}
-   */
-  levels: $Const.log.levels.slice().reverse(),
-
-  /**
-   * Flag to hold if we are using colors in console
-   * @type {boolean}
-   */
-  colors: true,
-
-  /**
    * Log timestamp
    * @type {boolean}
    */
-  timestamp: false,
+  __timestamp: false,
 
   /**
-   * Templates
-   * @type {Object}
+   * Available log levels
+   * @type {Array}
    */
-  templates: {
-    timestamp: '{{ timestamp }}',
-    intro: '[Fiber] >> `{{ self.getLevel() }}`:'
-  },
+  __levels: ['trace', 'debug', 'info', 'warn', 'error'].reverse(),
 
   /**
    * Current log level
    * @type {string}
    * @private
    */
-  __level: $Const.log.default,
+  __level: 'error',
 
   /**
    * Writer object
@@ -52,6 +37,15 @@ Fiber.Log = Fiber.Class.extend({
    * @private
    */
   __method: 'log',
+
+  /**
+   * Templates
+   * @type {Object}
+   */
+  __templates: {
+    timestamp: '{{ timestamp }}',
+    intro: '[Fiber] >> `{{ self.getLevel() }}`:'
+  },
 
   /**
    * Console API Profiling map
@@ -83,17 +77,21 @@ Fiber.Log = Fiber.Class.extend({
   },
 
   /**
+   * Fallback log function
+   * @type {Function}
+   */
+  __fallback: console.log,
+
+  /**
    * Constructs log
    * @param {?Object} [options]
    */
   constructor: function(options) {
     options = $fn.class.handleOptions(this, options, {
       level: this.__level,
-      writer: this.__writer,
-      colors: this.colors
+      writer: this.__writer
     });
 
-    this.colors = options.colors;
     this.setLevel(options.level);
     this.setWriter(options.writer);
   },
@@ -264,13 +262,13 @@ Fiber.Log = Fiber.Class.extend({
    * @return {Fiber.Log}
    */
   setLevel: function(level) {
-    level = $val(level, $Const.log.default);
-    if (level && _.includes(this.levels, level)) this.__level = level;
+    level = $val(level, this.__level);
+    if (level && _.includes(this.__levels, level)) this.__level = level;
     return this;
   },
 
   /**
-   * Sets writer method to use by default for all log levels
+   * Sets writer method to use by default for all log __levels
    * @param {string} method
    * @returns {Fiber.Log}
    */
@@ -321,7 +319,7 @@ Fiber.Log = Fiber.Class.extend({
    */
   callWriter: function(level, args) {
     var details = this.renderDetails()
-      , method = this.colors && _.includes(this.__list, level) ? this.__list[level] : this.__method;
+      , method = _.includes(this.__list, level) ? this.__list[level] : this.__method;
     args = [details].concat($val(args, [], _.isArray));
     this.__callWriter(method, args);
     return this;
@@ -367,32 +365,6 @@ Fiber.Log = Fiber.Class.extend({
   },
 
   /**
-   * Enables color support for console
-   * @returns {Fiber.Log}
-   */
-  enableColors: function() {
-    return this.setColorsState(true);
-  },
-
-  /**
-   * Disables color support for console
-   * @returns {Fiber.Log}
-   */
-  disableColors: function() {
-    return this.setColorsState(false);
-  },
-
-  /**
-   * Sets colors support state
-   * @param {boolean} state
-   * @returns {Fiber.Log}
-   */
-  setColorsState: function(state) {
-    this.colors = $val(state, true, _.isBoolean);
-    return this;
-  },
-
-  /**
    * Enables timestamp logging
    * @returns {Fiber.Log}
    */
@@ -427,10 +399,10 @@ Fiber.Log = Fiber.Class.extend({
   renderDetails: function(data, delimiter) {
     var html = [];
     data = this.getTemplateData(data);
-    _.each(this.templates, function(template, key) {
+    _.each(this.__templates, function(template, key) {
       if (key === 'timestamp' && ! this.timestamp) return;
       html.push(this.renderTemplate(template, data));
-    }.bind(this));
+    }, this);
     return html.join($val(delimiter, ' ', _.isString));
   },
 
@@ -464,24 +436,24 @@ Fiber.Log = Fiber.Class.extend({
    * @returns {boolean}
    */
   isAllowedToWrite: function(level) {
-    if (! level || ! _.includes(this.levels, level) || ! this.hasWriter()) return false;
-    var index = this.levels.indexOf(level);
+    if (! level || ! _.includes(this.__levels, level) || ! this.hasWriter()) return false;
+    var index = this.__levels.indexOf(level);
     if (index === - 1) return false;
-    var currentLevelIndex = this.levels.indexOf(this.getLevel());
+    var currentLevelIndex = this.__levels.indexOf(this.getLevel());
     if (index > currentLevelIndex) return false;
     return true;
   },
 
   /**
    * Calls raw writer
-   * @param {string} method
+   * @param {string|Function} method
    * @param {?Array} [args]
    * @returns {*}
    * @private
    */
   __callWriter: function(method, args) {
     if (_.isString(method)) method = $fn.class.resolveMethod(this.__writer, method);
-    if (! _.isFunction(method) && _.isFunction($Const.log.fallback)) method = $Const.log.fallback;
+    if (! _.isFunction(method) && _.isFunction(this.__fallback)) method = this.__fallback;
     if (_.isFunction(method)) return method.apply(this.__writer, method, args);
   },
 });
@@ -489,17 +461,9 @@ Fiber.Log = Fiber.Class.extend({
 /**
  * Adds log level methods `trace`, `debug`, `info`, `warn`, `error` to the Log Class prototype
  */
-for (var i = 0; i < $Const.log.levels.length; i ++) {
-  var level = $Const.log.levels[i];
-  Fiber.Log.prototype[level] = function(level) {
-    return function() {
-      return this.write.apply(this, [level].concat(_.toArray(arguments)));
-    };
-  }(level);
-}
-
-/**
- * Add system logger
- * @type {Object.<Fiber.Log>}
- */
-Fiber.log = $Log = new Fiber.Log();
+$each(Fiber.Log.prototype.__levels, function(level) {
+  Fiber.Log.prototype[level] = function() {
+    var args = [level].concat(_.toArray(arguments));
+    return this.write.apply(this, args);
+  };
+});

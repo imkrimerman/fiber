@@ -10,6 +10,7 @@ module.exports = [
   './src/Support/Compatibility.js',
   './src/Support/Version.js',
   './src/Support/fn.js',
+  './src/Support/Access.js',
   './src/Support/Descriptor.js',
   './src/Support/Class.js',
   './src/Support/Cast.js',
@@ -20,6 +21,7 @@ module.exports = [
   './src/Support/Delegator.js',
   './src/Support/Computed.js',
   './src/Support/Injection.js',
+  './src/Support/Messages.js',
   // Core
   './src/Core.js',
   // Base

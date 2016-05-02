@@ -45,7 +45,8 @@
     "backbone": "^1.2.3",
     "combyne": "^0.8.1",
     "jquery": "^2.2.0",
-    "lodash": "^4.5.0"
+    "lodash": "^4.5.0",
+    "ractive": "^0.7.3"
   },
   "scripts": {
     "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",

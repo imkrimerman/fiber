@@ -5,10 +5,23 @@
 Fiber.fn.computed = {
 
   /**
-   * Computed accessor/mutator function postfix
-   * @type {string}
+   * Private configuration
+   * @type {Object}
    */
-  postfix: $Const.computed.defaultPostfix,
+  __private: {
+
+    /**
+     * Postfix to use to create method name
+     * @type {string}
+     */
+    postfix: 'Attribute',
+
+    /**
+     * Model property path to look up for specific postfix
+     * @type {string}
+     */
+    lookUp: 'compute.postfix',
+  },
 
   /**
    * Returns result of property computation
@@ -61,7 +74,7 @@ Fiber.fn.computed = {
   apply: function(model, prop, action, args, options) {
     options = $valMerge(options, {denyCompute: true}, 'extend');
     var computedFn = $fn.class.resolveMethod(model, $fn.computed.createMethodName(prop, action, model))
-      , nativeArgs = [model.$super().prototype[action].bind(model), $fn.computed, $ioc];
+      , nativeArgs = [model.$super().prototype[action].bind(model), $fn.computed, $Ioc];
     if (! _.isFunction(computedFn)) return;
     var computedValue = computedFn.apply(model, $val(args, [], _.isArray).concat(nativeArgs));
     return action === 'set' && model.set(prop, computedValue, options) || computedValue;
@@ -87,8 +100,9 @@ Fiber.fn.computed = {
    * @returns {string}
    */
   getPostfix: function(model) {
-    if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
-    var modelPostfix = _.get(model, $Const.computed.modelPostfix, $fn.computed.postfix);
-    return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
+    var pr = $private($fn.computed)
+      , modelPostfix = _.get(model, pr.lookUp, null);
+    if (! (model instanceof Backbone.Model)) return pr.postfix;
+    return _.isString(modelPostfix) ? modelPostfix : pr.postfix;
   },
 };

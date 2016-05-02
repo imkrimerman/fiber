@@ -5,6 +5,25 @@
 Fiber.fn.extensions = {
 
   /**
+   * Private configuration
+   * @type {Object}
+   */
+  __private: {
+
+    /**
+     * Private property name
+     * @type {string}
+     */
+    key: '__extensions',
+
+    /**
+     * Migration property name
+     * @type {string}
+     */
+    migrate: '__needsPropMigration',
+  },
+
+  /**
    * Reference to the extensions bag in ioc container
    * @param {?string} [method]
    * @param {...args}
@@ -252,7 +271,7 @@ Fiber.fn.extensions = {
    * @returns {Array|void}
    */
   getIncluded: function(object) {
-    return object[$Const.extensions.private];
+    return object[$fn.extensions.private];
   },
 
   /**
@@ -263,8 +282,8 @@ Fiber.fn.extensions = {
    * @returns {*}
    */
   setIncluded: function(object, list, reset) {
-    var hoistingKey = $Const.extensions.migration
-      , extensionKey = $Const.extensions.private;
+    var hoistingKey = $fn.extensions.migrate
+      , extensionKey = $fn.extensions.private;
     if ($fn.class.isClass(object)) object[hoistingKey] = $fn.concat(extensionKey, object[hoistingKey] || []);
     if (reset || ! _.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
     return object[extensionKey] = $fn.concat(object[extensionKey], list);
@@ -278,7 +297,7 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   hasIncluded: function(object, list, match) {
-    var key = $Const.extensions.private
+    var key = $fn.extensions.private
       , method = $val(match, 'every', $fn.createIncludes(['every', 'some']));
     if (! _.has(object, key) || ! _.isArray(object[key])) return false;
     return _[method](function(one) { return ~list.indexOf(one); });

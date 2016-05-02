@@ -149,7 +149,6 @@ $fn = Fiber.fn = {
     if (_.isFunction(fn)) return fn.apply($val(scope, fn), args);
   },
 
-
   /**
    * Checks if given array is array with objects
    * @param {Array} array - Array to check
@@ -168,7 +167,7 @@ $fn = Fiber.fn = {
    * @returns {boolean}
    */
   inArrayAllSame: function(array) {
-    return ! ! array.reduce(function(a, b) {
+    return !! array.reduce(function(a, b) {
       return a === b ? a : NaN;
     });
   },
@@ -228,7 +227,7 @@ $fn = Fiber.fn = {
     var n = 0, hasValue = $isDef(value);
     while (n < times) {
       array.push(hasValue ? value : n);
-      ++n;
+      ++ n;
     }
     return array;
   },
@@ -313,7 +312,7 @@ $fn = Fiber.fn = {
   cloneWith: function(object, customizer, scope) {
     var clone = {};
     $each(object, function(val, prop) {
-      clone[prop] = customizer.call(scope, null, val, prop);
+      clone[prop] = customizer.call(scope, val, prop);
     });
     return clone;
   },
@@ -338,7 +337,7 @@ $fn = Fiber.fn = {
     count = $val(count, 1);
     deep = $val(deep, false);
     var clones = [], cloneFn = $fn[deep ? 'cloneDeepWith' : 'cloneWith'];
-    while (count--) clones.push(cloneFn(object, $fn.cloneCustomizer));
+    while (count --) clones.push(cloneFn(object, $fn.cloneCustomizer));
     return clones;
   },
 
@@ -432,8 +431,9 @@ $fn = Fiber.fn = {
    * @returns {string}
    */
   makeEventName: function(events, delimiter) {
+    delimiter = $val(delimiter, ':', _.isString);
     return _.map($fn.castArr(events), function(event) {
-      return _.isString(event) && _.trim(event, $val(delimiter, ':', _.isString)) || $fn.cast.toString(event);
+      return _.isString(event) && $fn.trim(event, delimiter) || $fn.cast.toString(event);
     }).join(':');
   },
 
@@ -532,70 +532,64 @@ $fn = Fiber.fn = {
    * @returns {boolean}
    */
   isAllowedToAccess: function(object, method, level) {
-    level = $val(level, null, _.isString) || object[$Const.access.private];
+    level = $val(level, null, _.isString) || object[$fn.access.private];
     if (! _.isObject(object) || ! level) return true;
-    var methods = $Const.access.allow[level];
-    if (! _.isArray(methods)) return !! methods;
+    var methods = $private($fn.access, 'allow.' + level);
+    if (! _.isArray(methods)) return ! ! methods;
     if (_.includes(methods, method)) return false;
     return true;
   },
 
   /**
-   * Returns state key for the given object with path appended
-   * @param {Object} object
-   * @param {?string} [path='']
-   * @returns {string}
+   * Returns trimmed string or array of string
+   * @param {string|Array} string
+   * @param {?string} [delimiter]
+   * @returns {Array}
    */
-  getStateKey: function(object, path) {
-    path = $val(path, '', _.isString);
-    if (! $fn.hasStateKey(object)) return path;
-    return _.trim(object[$Const.state.private]) + '.' + _.trim(path, '.');
+  trim: function(string, delimiter) {
+    return _.map($fn.castArr(string), function(one) {
+      return _.trim(one, delimiter || '');
+    });
   },
 
   /**
-   * Determines if object has state key
-   * @param {Object} object
-   * @param {?string} [path='']
-   * @returns {boolean}
+   * Joins array of `strings` using `glue`.
+   * You can provide as many arguments as you need, in this case `glue` will be the last one
+   * @param {Array} strings
+   * @param {string} glue
+   * @returns {*|string}
    */
-  hasStateKey: function(object) {
-    if (_.has(object, $Const.state.private)) return true;
-    return false;
+  join: function(strings, glue) {
+    if (arguments.length > 2) {
+      strings = _.toArray(arguments);
+      glue = _.last(strings);
+    }
+
+    return $fn.trim($fn.castArr(strings), glue).join(glue);
   },
 
   /**
-   * Returns state container of the given object
+   * Returns private object or key from object if exists
    * @param {Object} object
-   * @param {?string} [path='']
-   * @param {*} [defaults]
+   * @param {?string} [key]
+   * @param {?*} [value]
    * @returns {*}
    */
-  getState: function(object, path, defaults) {
-    var key = $fn.getStateKey(object, path);
-    return Fiber.state.get(key, defaults);
+  private: function(object, key, value) {
+    if (! _.isPlainObject(object)) return object;
+    if (arguments.length === 2) return $fn.access.getPrivate(object, key);
+    else if (arguments.length === 3)return $fn.access.setPrivate(object, key, value);
+    else return $fn.access.getPrivate(object);
   },
 
   /**
-   * Returns state container of the given object
+   * Determines if key exists at the private configuration of object
    * @param {Object} object
-   * @param {?string} [path='']
-   * @param {*} [defaults]
-   * @returns {*}
-   */
-  setState: function(object, path, value) {
-    var key = $fn.getStateKey(object, path);
-    return Fiber.state.set(key, value);
-  },
-
-  /**
-   * Determines if object has state
-   * @param {Object} object
-   * @param {?string} [path='']
+   * @param {string} key
    * @returns {boolean}
    */
-  hasState: function(object, path) {
-    if (! $fn.hasStateKey(object) || ! Fiber.state.has($fn.getStateKey(object, path))) return false;
-    return true;
+  privateHas: function(object, key) {
+    return $fn.access.hasPrivate(object, key);
   },
 };
 
@@ -627,4 +621,12 @@ $val = $fn.val;
  */
 $valMerge = $fn.valMerge;
 
-_.extend($Const.template.imports, {$fn: $fn, $val: $val, $each: $each});
+/**
+ * @inheritDoc
+ */
+$private = $fn.private;
+
+/**
+ * @inheritDoc
+ */
+$privateHas = $fn.privateHas;

@@ -40,4 +40,4 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 /**
  * Register Extension
  */
-$ioc.extension('OwnProps', $OwnProps);
+$Ioc.extension('OwnProps', $OwnProps);

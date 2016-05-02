@@ -138,7 +138,7 @@ Fiber.make = function(abstract, parameters, scope) {
   if (arguments.length > 1 && ! _.isArray(abstract))
     return Fiber.container.make(abstract, parameters, scope);
 
-  return _.map(abstract, function(one) {
+  var made = _.map($fn.castArr(abstract), function(one) {
     var abstractAlias = null
       , parameters = []
       , scope = null;
@@ -153,6 +153,7 @@ Fiber.make = function(abstract, parameters, scope) {
 
     return Fiber.container.make(abstractAlias, parameters, scope);
   });
+  return _.isArray(abstract) ? made : _.first(made);
 };
 
 /**

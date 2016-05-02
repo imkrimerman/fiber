@@ -188,7 +188,7 @@ Fiber.fn.validation = {
    */
   addMessage: function(model, attribute, rule, type) {
     var isModel = model instanceof Fiber.Model
-      , property = isModel && model.errorBag || model[$Const.validation.messages]
+      , property = isModel && model.errorBag || model[$fn.validation.private]
       , isErrorBag = property instanceof Fiber.ErrorBag
       , scope = {attribute: attribute, model: model, rule: rule, type: type}
       , message = $fn.validation.getCompiledMessageByType(rule, type, scope);
