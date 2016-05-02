@@ -1,7 +1,7 @@
 // define base Fiber variables
 var Fr, Fiber, previousFiber,
 // define internal private variables
-$fn, $val, $valMerge, $isDef, $each, $trigger, $msg, $private, $privateHas,
+$fn, $val, $valMerge, $isDef, $each, $forEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
 // define internal common class variable
 $Log, $Ioc, $Env, $State, $Model, $Collection, $Listeners, $RouterCollection;
 

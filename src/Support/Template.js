@@ -49,7 +49,7 @@ Fiber.fn.template = {
         Fiber: Fiber,
         Fr: Fiber,
         $fn: Fiber.fn,
-        $each: $each,
+        $each: $forEach,
         $val: $val,
         $valMerge: $valMerge,
         $isDef: $isDef

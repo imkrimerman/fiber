@@ -19,26 +19,16 @@ Fiber.Model = $Model.extend({
   rules: {},
 
   /**
-   * The attributes that should be casted to native types.
-   * @type {Object}
-   */ //todo: implement
-  casts: {
-    name: 'string',
-    surname: 'string',
-    date: 'Date',
-  },
-
-  /**
    * Properties keys that will be auto extended from initialize object
    * @type {Array|Function}
    */
-  willExtend: ['collection', 'url', 'hidden', 'rules', 'ns', 'catalog', 'cast', 'compute'],
+  willExtend: ['collection', 'url', 'hidden', 'rules', 'eventsConfig'],
 
   /**
    * Properties keys that will be owned by the instance
    * @type {Array|Function}
    */
-  ownProps: ['hidden', 'rules', 'cast', 'compute'],
+  ownProps: ['hidden', 'rules', 'eventsConfig'],
 
   /**
    * Error bag
@@ -67,7 +57,8 @@ Fiber.Model = $Model.extend({
 
     this.set(attributes, options);
     this.changed = {};
-    this.listenTo(this, 'invalid', function() {
+
+    this.when('invalid', function() {
       $fn.apply(this, 'whenInvalid', arguments);
     });
 
@@ -113,15 +104,6 @@ Fiber.Model = $Model.extend({
     if ($fn.computed.has(this, attribute, 'get')) return true;
     return _.has(this.attributes, attribute);
   },
-
-  restrictAccess: {
-    properties: [],
-    methods: [],
-  },
-
-  unset: function() {},
-
-  clear: function() {},
 
   /**
    * Validates `attributes` of Model against `rules`
