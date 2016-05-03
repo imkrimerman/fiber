@@ -6,6 +6,13 @@
 Fiber.Extension = Fiber.Class.extend({
 
   /**
+   * Class type signature
+   * @type {string}
+   * @private
+   */
+  __type: '[object Fiber.Extension]',
+
+  /**
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
@@ -80,7 +87,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {boolean}
    */
   hasInitMethod: function() {
-    return !! this.__initWith;
+    return ! ! this.__initWith;
   },
 
   /**
@@ -187,5 +194,5 @@ Fiber.Extension = Fiber.Class.extend({
    */
   getCodeCapsuleKeysList: function() {
     return _.keys(this.getCodeCapsule());
-  },
+  }
 });

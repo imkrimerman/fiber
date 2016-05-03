@@ -6,23 +6,23 @@ Fiber.fn.cast = {
 
   /**
    * Casts value to array
-   * @param {Object} value
+   * @param {*} value
    * @returns {Array}
    */
-  toArray: function(value, wrap) {
-    if (! value) return [];
-    if (_.isArray(value)) return value;
-    if (wrap == null || wrap) return [value];
+  toArray: function(value) {
     return _.toArray(value);
   },
 
   /**
    * Casts value to plain object
-   * @param value
+   * @param {*} value
+   * @param {?boolean} [force=false]
    * @returns {Object}
    */
-  toPlain: function(value) {
+  toPlain: function(value, force) {
+    force = force == null || ! _.isBoolean(force) ? false : force;
     if (_.isPlainObject(value)) return value;
+    if (_.isArray(value) && force) return _.zipObject($fn.fill());
     if (! _.isObject(value) || _.isArray(value)) return {};
     if (_.isFunction(value) && ! $fn.class.isClass(value)) {
       var tryVal = value();
@@ -84,6 +84,6 @@ Fiber.fn.cast = {
    * @returns {boolean}
    */
   toBoolean: function(value) {
-    return !! value;
+    return ! ! value;
   }
 };

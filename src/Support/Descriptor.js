@@ -153,7 +153,7 @@ Fiber.fn.descriptor = {
    */
   explicit: function(object, deep) {
     if (! _.isObject(object)) return object;
-    $val(deep, true, _.isBoolean) &&  _.each($fn.properties(object), function(property) {
+    $val(deep, true, _.isBoolean) && _.each($fn.properties(object), function(property) {
       if ($fn.descriptor.canDescribe(property)) $fn.descriptor.explicit(property);
     });
     return Object.seal(object);

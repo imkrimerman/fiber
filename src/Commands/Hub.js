@@ -2,7 +2,7 @@
  * Fiber Command Hub
  * @class
  */
-Fiber.Commands.Hub = $fn.class.createWithExtensions({
+Fiber.Commands.Hub = Fiber.Object.extend({
 
   /**
    * Commands Registry

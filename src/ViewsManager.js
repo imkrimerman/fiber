@@ -133,9 +133,9 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    * @returns {*|jQuery|HTMLElement}
    */
   handleElement: function($el) {
-    if (! ($el instanceof $) && ! _.isString($el))
+    if (! ($el instanceof Fiber.$) && ! _.isString($el))
       $Log.errorThrow('`$el` should be a valid jQuery element or selector.', $el, this);
-    return this.$el = _.isString($el) ? $($el) : $el;
+    return this.$el = _.isString($el) ? Fiber.$($el) : $el;
   },
 
   /**

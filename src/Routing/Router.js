@@ -1,4 +1,4 @@
-Fiber.Router = $fn.class.createWithExtensions([
+Fiber.Router = Fiber.Object.extend([
   _.omit(Backbone.Router.prototype, ['routes', '_bindRoutes']), {
 
     /**

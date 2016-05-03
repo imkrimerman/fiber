@@ -5,25 +5,37 @@
 Fiber.fn.class = {
 
   /**
-   * Creates pre constructor function to execute constructor and attach inheritance chain
+   * Creates function to call constructor and attach lifecycle properties
    * @param {Function} constructor
    * @param {Object} parentClass
    * @returns {FiberClassPreConstructor}
    */
-  createPreConstructor: function (constructor, parentClass) {
-    var hoistingKey = $fn.extensions.migration;
+  createConstructorCaller: function(constructor, parentClass) {
+    var migration = $private($fn.extensions, 'migration');
     // fallback on constructor as Parent constructor to make available creation without Parent
     parentClass = $val(parentClass, constructor, _.isObject);
-    // Return Class constructor
-    return function FiberClassConstructor() {
+    // Return Class constructor wrapper
+    return function FiberClass() {
       // Attach Parent Class constructor and Parent prototype to the direct scope of child
       $fn.class.attachSuper(this, parentClass);
-      // If we have properties that needs to be hoisted to the direct scope (this) of child, then lets apply
-      // migration to the current scope.
-      if (! _.isEmpty(constructor[hoistingKey])) $fn.copyProps(constructor, this, constructor[hoistingKey]);
+      // If we have properties that needs to be migrated to the direct scope (this) of child, then we'll copy
+      // migration to this.
+      if (! _.isEmpty(constructor[migration])) $fn.copyProps(constructor, this, constructor[migration]);
       // Apply constructor with arguments
       constructor.apply(this, arguments);
       return this;
+    };
+  },
+
+  /**
+   * Creates common class constructor
+   * @returns {Function}
+   */
+  createConstructor: function(defaults) {
+    return function(options) {
+      $fn.class.handleOptions(this, options, $val(defaults, {}), true);
+      $fn.extensions.init(this);
+      $fn.apply(this, 'initialize', arguments);
     };
   },
 
@@ -36,10 +48,10 @@ Fiber.fn.class = {
    * @return {Function}
    */
   nativeExtend: function(parent, protoProps, staticProps) {
-    var child, construct = $fn.class.createPreConstructor;
+    var child, construct = $fn.class.createConstructorCaller;
     // if we don't have any parent then log error and return
     if (! parent) {
-      $Log.warn('Parent is not provided or not valid, setting to simple function', parent);
+      $Log.warn('`Parent` is not provided or not valid, setting to `noop` function', parent);
       parent = _.noop;
     }
     // The constructor function for the new subclass is either defined by you
@@ -55,6 +67,8 @@ Fiber.fn.class = {
     });
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);
+    // verify if Class has to follow and is following the contracts
+    $fn.class.expectFollowing(child);
     // and finally return child
     return child;
   },
@@ -86,11 +100,10 @@ Fiber.fn.class = {
    */
   make: function(Parent, proto, statics) {
     // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
-    Parent = $val(Parent, Fiber.Class);
+    Parent = $val(Parent, Fiber.Class, $fn.class.isClass);
     // If Parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(Parent) && Fiber.hasOwnProperty('container') && Fiber.container.bound(Parent)) {
-      Parent = Fiber.container.make(Parent);
-    }
+    if (_.isString(Parent) && Fiber.hasOwnProperty('container') && Fiber.container.bound(Parent))
+      Parent = Fiber.make(Parent);
     // resolve extension list from prototype and statics
     var extensionsToInclude = $fn.extensions.findIncluded(proto, statics);
     // extend parent with dependency injection
@@ -111,146 +124,15 @@ Fiber.fn.class = {
   },
 
   /**
-   * Creates Class that includes Backbone Events and all Extensions
-   * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
-   * @param {?Array|Object} [statics] - Static properties (available on the constructor)
-   * @returns {Function}
-   */
-  createWithExtensions: function(proto, statics) {
-    var extensions = $fn.extensions.mapCall($fn.extensions.list(), 'getCodeCapsule')
-      , Parent = $fn.class.createConstructor(extensions);
-    return $fn.class.extend(Parent, $fn.merge($fn.castArr(proto), extensions), statics);
-  },
-
-  /**
-   * Creates constructor for class with mixins that auto applies mixins on construct
-   * @param {Array.<Object>} mixins
-   * @returns {Function}
-   */
-  createConstructor: function(extensions) {
-    return function(options) {
-      options = $valMerge(options, {list: extensions || []}, 'extend');
-      $fn.class.handleOptions(this, options);
-      $fn.extensions.init(this, options.list, options.args);
-      $fn.apply(this, 'initialize', arguments);
-    };
-  },
-
-  /**
-   * Composes View with provided options
-   * @param {Function} View
-   * @param {?Object} [options]
-   * @param {...args}
-   * @returns {*|Function|Fiber.View}
-   */
-  composeView: function(View, options) {
-    if (! ($fn.class.isBackboneClass(View)))
-      $Log.errorThrow('View cannot be composed', View, options);
-
-    options = $val(options, {}, _.isPlainObject);
-
-    var args = _.drop(arguments, 2)
-      , CollectionClass = options.Collection
-      , ModelClass = options.Model
-      , hasCollection = ! _.isEmpty(CollectionClass)
-      , hasModel = ! _.isEmpty(ModelClass)
-      , util = $fn.class
-      , defaults = {};
-
-    if (hasCollection) defaults = {
-      collection: util.composeCollection(CollectionClass, (hasModel ? ModelClass : null))
-    };
-    else if (hasModel) defaults = {
-      model: util.compose(ModelClass)
-    };
-
-    return util.compose.apply(null, [View, defaults].concat(args));
-  },
-
-  /**
-   * Composes Collection
-   * @param {Array|Function} Collection
-   * @param {?Array|Function} [Model]
-   * @param {...args}
-   * @returns {Function}
-   */
-  composeCollection: function(Collection, Model) {
-    var args = _.drop(arguments, 2)
-      , util = $fn.class;
-
-    if (! Model) {
-      if (! args.length) return Collection;
-      return util.compose.apply(null, [Collection].concat(args));
-    }
-
-    var model = {model: util.compose(Model)};
-    return util.compose.apply(null, [Collection, model].concat(args));
-  },
-
-  /**
-   * Composes Component
-   * @param {Array|Function} Component
-   * @param {...args}
-   * @returns {Function}
-   */
-  compose: function(Component) {
-    var args = _.drop(arguments);
-
-    if (_.isArray(Component)) {
-      args = _.drop(Component).concat(args);
-      Component = _.first(Component);
-    }
-
-    if (! args.length) return new Component;
-    return $fn.class.createInstance(Component, args);
-  },
-
-  /**
-   * Determines if `object` is one of the Backbone Components
-   * @param {Function} instance
-   * @returns {boolean}
-   */
-  isBackboneClass: function(object) {
-    return $fn.class.isBackboneInstance(object.prototype);
-  },
-
-  /**
-   * Determines if `instance` is one of the Backbone Components
-   * @param {Object} instance
-   * @returns {boolean}
-   */
-  isBackboneInstance: function(instance) {
-    return instance instanceof Backbone.Model ||
-           instance instanceof Backbone.Collection ||
-           instance instanceof Backbone.View ||
-           instance instanceof Backbone.Router
-  },
-
-  /**
-   * Checks if given object is Class constructor
-   * @param {*} Class
-   * @returns {boolean}
-   */
-  isClass: function(object) {
-    return _.isFunction(object) && object.prototype && object.prototype.constructor;
-  },
-
-  /**
-   * Checks if given object is instance (not a Class)
-   * @param instance
-   * @returns {boolean}
-   */
-  isInstance: function(object) {
-    return ! $fn.class.isClass(object) && ! _.isPlainObject(object) && _.isObject(object);
-  },
-
-  /**
    * Creates new `Class` with array of arguments
    * @param {Function} Parent
    * @param {Array} args
    * @returns {Object}
    */
-  createInstance: function(Parent, args) {
+  instance: function(Parent, args) {
+    if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
+    if (! $fn.class.isClass(Parent)) $Log.errorThrow('Cannot instantiate from `Parent` Class - is not a Class or' +
+                                                     ' valid instance to retrieve Constructor.');
     function InstanceCreator() {return Parent.apply(this, args)};
     InstanceCreator.prototype = Parent.prototype;
     return new InstanceCreator();
@@ -342,17 +224,61 @@ Fiber.fn.class = {
         $apply: function(Class, method, args, context) {
           return $fn.apply(Class, method, args, context || this);
         },
-        $implement: function(proto, override) {
-          return $fn.class.mix(Object.getPrototypeOf(this), $fn.merge(Fiber.resolve(proto)), override);
+        $mutate: function(proto, override) {
+          return $fn.class.include(this.$super('prototype'), $fn.merge(Fiber.resolve(proto)), override);
         },
         $new: function() {
-          return $fn.class.createInstance(this.constructor, arguments);
+          return $fn.class.createNew.call(null, this, 'constructor');
+        },
+        toString: function() {
+          return _.get(this, $Config.type.key, '[object Fiber.Class]');
         },
       },
-      statics: {extend: $fn.delegator.proxy($fn.class.make)}
+      statics: {
+        extend: $fn.delegator.proxy($fn.class.make),
+        create: $fn.delegator.proxy($fn.class.createNew, null, 0),
+        implement: $fn.delegator.proxy($fn.class.implement),
+      }
     };
 
     return $val(key, false) ? map[key] : map;
+  },
+
+  /**
+   * Creates new Class instance
+   * @param {Function|Object} Class
+   * @param {?string} [property]
+   * @returns {Object}
+   */
+  createNew: function(Class, property) {
+    var isDef = $isDef(property)
+      , parent = _.isString(property) ? _.get(Class, property) : isDef ? property : Class;
+    return $fn.class.instance(parent, isDef ? _.drop(arguments) : arguments);
+  },
+
+  /**
+   * Adds `contract` to the `Class` to check on instantiation
+   * @param {Object} Class
+   * @param {Object.<Fiber.Contract>} contract
+   * @returns {Object}
+   */
+  implement: function(Class, contract) {
+    if (! Fiber.Contract) return Class;
+    if (arguments.length === 1 && Class instanceof Fiber.Contract) {
+      contract = Class;
+      Class = $fn.class.extend({});
+    }
+
+    if (_.isString(contract) && _.has(Fiber.Contracts, contract))
+      contract = _.get(Fiber.Contracts, contract);
+    if (contract instanceof Fiber.Contract) {
+      var follows = $val(Class.__follows, {}, _.isPlainObject)
+        , ContractClass = $fn.class.nativeExtend(Class);
+      ContractClass.__follows = _.extend({}, follows, $fn.createPlain(contract.getName(), contract));
+      return ContractClass;
+    }
+
+    $Log.errorThrow('`Contract` is not instance of Fiber.Contract', contract);
   },
 
   /**
@@ -365,8 +291,12 @@ Fiber.fn.class = {
   attachSuper: function(child, parent) {
     if (! parent) return child;
     child.$super = function(method, args, scope) {
+      var proto = parent.prototype, methodFn;
       if (! arguments.length) return parent;
-      return $fn.apply(parent, method, args, scope || this);
+      if (methodFn = $fn.class.getMethod(proto, method))
+        return $fn.applyFn(methodFn, args, scope || this);
+      if (method === 'prototype') proto = parent;
+      return $fn.get(proto, method);
     };
     child.$superInit = function() {
       return parent.apply(this, arguments);
@@ -385,9 +315,9 @@ Fiber.fn.class = {
    */
   resolveMethod: function(object, method, scope) {
     scope = $val(scope, object, _.isObject);
-    if (_.isString(method) && object[method] && _.isFunction(object[method])) {
+    if (_.isString(method)) {
       var fn = $fn.class.getMethod(object, method);
-      return scope ? _.bind(fn, scope) : fn;
+      if (_.isFunction(fn)) return _.bind(fn, scope);
     }
     return null;
   },
@@ -396,10 +326,14 @@ Fiber.fn.class = {
    * Returns Class method or void otherwise
    * @param {Object|Function} object
    * @param {string} method
-   * @returns {Function|null}
+   * @param {*} [defaults]
+   * @param {?boolean} [allowFunctions=true]
+   * @returns {*}
    */
-  getMethod: function(object, method, defaults) {
-    return _.get(object.prototype || object, method, defaults);
+  getMethod: function(object, method, defaults, allowFunctions) {
+    var method = _.get(object.prototype || object, method, defaults);
+    if ($val(allowFunctions, true) && ! _.isFunction(method)) return defaults;
+    return method;
   },
 
   /**
@@ -411,6 +345,18 @@ Fiber.fn.class = {
    */
   getProperty: function(object, property, fn) {
     return _[$val(fn, 'result', _.isString)](object.prototype || object, property);
+  },
+
+  /**
+   * Checks if Class has to follow the contracts
+   * @param {Function} Class
+   */
+  expectFollowing: function(Class) {
+    if ($fn.has(Class, '__follows')) {
+      $fn.expect(_.every($fn.get(Class, '__follows'), function(contract) {
+        return contract instanceof Fiber.Contract && contract.isImplementedBy(Class);
+      }), 'Given `Class` is not following the `Contracts`', Class);
+    }
   },
 
   /**
@@ -428,8 +374,8 @@ Fiber.fn.class = {
     for (var i = 0; i < methods.length; i ++) {
       var method = methods[i];
       object[method + condition] = function(abstract, concrete) {
-        if (! checkerMethod(abstract)) object[method](abstract, concrete);
-        return object;
+        if (! $fn.applyFn(checkerMethod, arguments)) return object;
+        return $fn.apply(object, method, [abstract, concrete]);
       };
     }
     return object;
@@ -441,10 +387,10 @@ Fiber.fn.class = {
    * @param {string|Function} checkerMethod
    * @returns {Function}
    */
-  prepareConditionCheckerMethod: function(object, checkerMethod) {
-    if (_.isString(checkerMethod)) checkerMethod = object[checkerMethod];
-    if (_.isBoolean(checkerMethod)) checkerMethod = _.constant(checkerMethod);
-    if (! _.isFunction(checkerMethod)) return _.constant(true);
+  prepareConditionCheckerMethod: function(object, method) {
+    if (_.isString(method)) method = object[method];
+    if (_.isBoolean(method)) method = _.constant(method);
+    if (! _.isFunction(method)) return _.constant(true);
   },
 
   /**
@@ -462,7 +408,7 @@ Fiber.fn.class = {
   },
 
   /**
-   * Handles options defaults
+   * Handles options default properties
    * @param {Object} options
    * @param {?Object} [defaults={}]
    * @param {?boolean} [deep=false]
@@ -470,8 +416,71 @@ Fiber.fn.class = {
    */
   handleOptionsDefaults: function(options, defaults, deep) {
     if (! _.isPlainObject(defaults) || _.isEmpty(defaults)) return options;
-    if (deep) _.defaultsDeep(options, defaults);
-    else _.defaults(options, defaults);
+    _[deep ? 'defaultsDeep' : 'defaults'](options, defaults);
     return options;
+  },
+
+  /**
+   * Checks if given object is Class constructor
+   * @param {*} Class
+   * @returns {boolean}
+   */
+  isClass: function(object) {
+    return _.isFunction(object) && object.prototype && object.prototype.constructor;
+  },
+
+  /**
+   * Checks if given object is instance (not a Class)
+   * @param instance
+   * @returns {boolean}
+   */
+  isInstance: function(object) {
+    return ! $fn.class.isClass(object) && ! _.isPlainObject(object) && _.isObject(object);
+  },
+
+  /**
+   * Determines if `object` is one of the Backbone Components
+   * @param {Function} instance
+   * @returns {boolean}
+   */
+  isBackboneClass: function(object) {
+    return $fn.class.isBackboneInstance(object.prototype);
+  },
+
+  /**
+   * Determines if `instance` is one of the Backbone Components
+   * @param {Object} instance
+   * @returns {boolean}
+   */
+  isBackboneInstance: function(instance) {
+    return instance instanceof Backbone.Model ||
+           instance instanceof Backbone.Collection ||
+           instance instanceof Backbone.View ||
+           instance instanceof Backbone.Router ||
+           instance instanceof Backbone.Events
+  },
+
+  /**
+   * Determines what backbone instance is given
+   * @param {Object} instance
+   * @param {?boolean} [returnAsClass]
+   * @returns {boolean}
+   */
+  whatBackboneInstance: function(instance, returnAsClass) {
+    var result = function(type) { return returnAsClass && Backbone[type] || type; };
+    switch (true) {
+      case instance instanceof Backbone.Model:
+        return result('Model');
+      case instance instanceof Backbone.Collection:
+        return result('Collection');
+      case instance instanceof Backbone.View:
+        return result('View');
+      case instance instanceof Backbone.Router:
+        return result('Router');
+      case instance instanceof Backbone.Events:
+        return result('Events');
+      default:
+        return false;
+    }
   },
 };

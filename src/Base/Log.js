@@ -351,7 +351,7 @@ Fiber.Log = Fiber.Class.extend({
    */
   errorThrow: function() {
     this.callWriter(this.getLevel(), arguments);
-    throw $fn.class.createInstance(Error, arguments);
+    throw $fn.class.instance(Error, arguments);
   },
 
   /**

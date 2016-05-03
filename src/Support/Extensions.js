@@ -141,7 +141,7 @@ Fiber.fn.extensions = {
    * @return {*|Array}
    */
   listNames: function() {
-    return $fn.extensions.mapCall($fn.extensions.all(), 'getName');
+    return $fn.extensions.mapCall(_.values($fn.extensions.all()), 'getName');
   },
 
   /**
@@ -191,7 +191,7 @@ Fiber.fn.extensions = {
       var extension = extensions[i]
         , initMethod = extension.getInitMethod()
         , resolve = $fn.class.resolveMethod(object, initMethod);
-      if (_.isFunction(resolve)) resolve(_.isArray(args) ? args : args[extension.getName()]);
+      if (_.isFunction(resolve)) resolve.apply(object, _.isArray(args) ? args : args[extension.getName()]);
     }
     return this;
   },
@@ -220,12 +220,24 @@ Fiber.fn.extensions = {
    * @returns {Array}
    */
   mapCall: function(extension, method, first, args, scope) {
+    if (_.isPlainObject(extension)) extension = _.values(extension);
     var casted = $fn.castArr(extension)
-      , boundCall = _.unary(_.partialRight($fn.extensions.call, method, args, scope));
-
+      , boundCall = function(ext) {return $fn.extensions.call(ext, method, args, scope);};
     first = $val(first, false);
     if (method) casted = casted.map(boundCall);
     return first ? _.first(casted) : casted;
+  },
+
+  /**
+   * Ensures that extension code capsule is returned
+   * @param {Object.<Fiber.Extension>|Array|*} extension
+   * @returns {Object|Array}
+   */
+  ensureCodeCapsule: function(extension) {
+    return $fn.multi(extension, function(one) {
+      if (! Fiber.Extension || ! (one instanceof Fiber.Extension)) return one;
+      return one.getCodeCapsule();
+    });
   },
 
   /**
@@ -271,7 +283,7 @@ Fiber.fn.extensions = {
    * @returns {Array|void}
    */
   getIncluded: function(object) {
-    return object[$fn.extensions.private];
+    return object[$private($fn.extensions, 'key')];
   },
 
   /**
@@ -282,8 +294,8 @@ Fiber.fn.extensions = {
    * @returns {*}
    */
   setIncluded: function(object, list, reset) {
-    var hoistingKey = $fn.extensions.migrate
-      , extensionKey = $fn.extensions.private;
+    var hoistingKey = $private($fn.extensions, 'migrate')
+      , extensionKey = $private($fn.extensions, 'key');
     if ($fn.class.isClass(object)) object[hoistingKey] = $fn.concat(extensionKey, object[hoistingKey] || []);
     if (reset || ! _.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
     return object[extensionKey] = $fn.concat(object[extensionKey], list);
@@ -297,10 +309,10 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   hasIncluded: function(object, list, match) {
-    var key = $fn.extensions.private
+    var key = $private($fn.extensions, 'key')
       , method = $val(match, 'every', $fn.createIncludes(['every', 'some']));
     if (! _.has(object, key) || ! _.isArray(object[key])) return false;
-    return _[method](function(one) { return ~list.indexOf(one); });
+    return _[method](function(one) { return ~ list.indexOf(one); });
   },
 
   /**

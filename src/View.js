@@ -217,7 +217,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {*|jQuery|HTMLElement}
      */
     resolveUiBy: function(selector, alias) {
-      return this.$ui[alias] = $(selector);
+      return this.$ui[alias] = Fiber.$(selector);
     },
 
     /**

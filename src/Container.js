@@ -144,7 +144,7 @@ Fiber.Container = Fiber.Class.extend({
    * @returns {*|Object}
    */
   instance: function(concrete, parameters) {
-    return $fn.class.createInstance(concrete, this.resolve(parameters));
+    return $fn.class.instance(concrete, this.resolve(parameters));
   },
 
   /**

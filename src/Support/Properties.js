@@ -1,9 +1,25 @@
 // define base Fiber variables
 var Fr, Fiber, previousFiber,
-// define internal private variables
-$fn, $val, $valMerge, $isDef, $each, $forEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
-// define internal common class variable
-$Log, $Ioc, $Env, $State, $Model, $Collection, $Listeners, $RouterCollection;
+// define Internal variables
+  $doc, $fn, $val, $valMerge, $isDef, $each, $origEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
+  $Types, $Config, $TypeChecker, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
+  $RouterCollection;
+
+/**
+ * Configuration
+ * @type {Object}
+ */
+$Config = {
+  private: {key: '__private'},
+  access: {key: '__access', default: 'public'},
+  type: {key: '__signature'}
+};
+
+/**
+ * Global document reference
+ * @type {HTMLElement|void}
+ */
+$doc = root.document;
 
 /**
  * Fiber main object
@@ -35,22 +51,22 @@ Fiber.noConflict = function() {
 Fiber._ = _;
 
 /**
- * Exposed jQuery (or similar) from Backbone
- * @type {Function}
+ * Object to use internally
+ * @type {Object}
  */
-Fiber.$ = $;
+Fiber.Internal = {
+  events: _.extend({}, Backbone.Events),
+  monitor: _.extend({}, Backbone.Events),
+};
 
 /**
- * Fiber Command Bus module
+ * Fiber Command Bus
  * @var {Object}
  */
 Fiber.Commands = {};
 
 /**
- * Object to use internally
+ * Fiber Contracts classes
  * @type {Object}
  */
-Fiber.internal = {
-  privateProperty: '__private',
-  events: _.extend({}, Backbone.Events),
-};
+Fiber.Contracts = {};

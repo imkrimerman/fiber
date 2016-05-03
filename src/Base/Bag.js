@@ -3,13 +3,20 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Bag = Fiber.Class.extend({
+Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
 
   /**
    * Flag to set if Bag is firing building events
    * @type {boolean}
    */
   firing: true,
+
+  /**
+   * Class type signature
+   * @type {string}
+   * @private
+   */
+  __type: '[object Fiber.Bag]',
 
   /**
    * Key to use to dynamically created storage for the bag items.
@@ -24,7 +31,7 @@ Fiber.Bag = Fiber.Class.extend({
    * @param {?Object} [options] - Bag initialize options
    */
   constructor: function(items, options) {
-    $fn.class.handleOptions(this, options, {firing: this.firing, holder: this.__holder});
+    $fn.class.handleOptions(this, options, {firing: this.firing, holder: $fn.result(this.__holder)});
     this.firing = this.options.firing;
     this.__holder = this.options.holder;
     this.handleHolder(items);
@@ -234,10 +241,9 @@ Fiber.Bag = Fiber.Class.extend({
     var triggerKeyEvent = _.isString(key) && ! _.isEmpty(key);
     this.fire.apply(this, [event].concat(args));
     if (triggerKeyEvent) {
-      var keyEvent =  _.trim(event, ':') + ':' + _.trim(key, ':');
+      var keyEvent = _.trim(event, ':') + ':' + _.trim(key, ':');
       this.fire.apply(this, [keyEvent].concat(args));
     }
     return this;
-  },
-
+  }
 });

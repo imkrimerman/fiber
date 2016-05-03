@@ -81,11 +81,17 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @return {Object}
    */
   includeExtension: function(alias, override) {
-    $fn.extensions.apply(this, alias)
+    alias = $fn.castArr(alias);
+    if (_.includes(alias, 'Extensions')) alias.splice(alias.indexOf('Extensions'), 1);
+    options = {override: override || false, init: true, list: [], args: {}};
+    var extension = $fn.extensions.get(alias);
+    if (! extension) return this;
+    $fn.class.include(this, extension, options.override);
+    $fn.extensions.setIncluded(this, alias);
+    $fn.extensions.init(object, alias, options.args);
     return this;
   }
 });
-
 
 /**
  * Register Extension

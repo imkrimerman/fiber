@@ -11,36 +11,19 @@ $fn.deepProps = {
   rules: {
     condition: [_.isArray, _.isPlainObject],
     exclude: ['fn'],
+    private: {
+      allow: false,
+      signature: '__'
+    },
     explore: [
       {owner: Fiber, path: 'container.shared.items'},
       {owner: Fiber, path: 'container.extensions.items'},
       {owner: Fiber, path: 'Events', direct: true},
       {owner: Fiber, path: 'Model.prototype', direct: true},
       {owner: Fiber, path: 'View.prototype', direct: true},
+      {owner: Fiber, path: 'Collection.prototype', direct: true},
       {owner: Fiber, path: 'CollectionView.prototype', direct: true}
     ],
-  },
-
-  /**
-   * Cached deep properties
-   * @type {Array}
-   */
-  __props: [],
-
-  /**
-   * Cached deep properties getter
-   * @returns {Array}
-   */
-  get props() {
-    return this.__props;
-  },
-
-  /**
-   * Cached deep properties setter
-   * @param {Array|string} list
-   */
-  set props(list) {
-    this.__props = $fn.concat(this.__props, list);
   },
 
   /**
@@ -52,7 +35,7 @@ $fn.deepProps = {
     // check arguments or set default values
     explorables = $fn.castArr($val(explorables, this.rules.explore));
     rules = $fn.castArr($val(rules, $fn.deepProps.rules.condition));
-    comparatorFn = $val(comparatorFn, 'some', $fn.createIncludes(['some', 'any']));
+    comparatorFn = $val(comparatorFn, 'some', $fn.createIncludes(['some', 'any', 'every']));
     // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
       var explorable = explorables[i]
@@ -63,9 +46,7 @@ $fn.deepProps = {
       if (explorable.direct) holder = [holder];
       // traverse through the holder of the properties container
       for (var key in holder) {
-        var explored = $fn.deepProps.exploreInObject(
-          $fn.extensions.mapCall(holder[key], 'getCodeCapsule', true), rules, comparatorFn
-        );
+        var explored = $fn.deepProps.exploreInObject($fn.extensions.ensureCodeCapsule(holder[key]), rules, comparatorFn);
         // explore properties in container using rules and comparator function
         properties = properties.concat(explored);
       }
@@ -84,9 +65,14 @@ $fn.deepProps = {
   exploreInObject: function(container, rules, method, exclude) {
     var properties = [];
     exclude = $fn.castArr($val(exclude, [], [_.isArray, _.isString]));
-    _.each(_.keys(container), function(key) { key[0] === '_' && key[1] === '_' && exclude.push(key); });
+
+    if (! $fn.deepProps.rules.private.allow) $each(_.keys(container), function(key) {
+      _.startsWith(key, $fn.deepProps.rules.private.signature) && exclude.push(key);
+    });
+
     container = _.omit(container, exclude.concat($fn.deepProps.rules.exclude));
-    _.each(container, function(value, prop) {
+
+    $each(container, function(value, prop) {
       if ($fn.deepProps.validate(value, rules, method)) properties.push(prop);
     });
     return _.uniq(properties);

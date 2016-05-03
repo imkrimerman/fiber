@@ -14,7 +14,7 @@ Fiber.fn.delegator = {
    */
   alias: function(Class, method, alias, toProto) {
     var castedAlias = $fn.castArr(alias);
-    var method = $fn.class.resolveMethod(Class, method);
+    var method = $fn.class.getMethod(Class, method);
     if (! method) return false;
     for (var i = 0; i < castedAlias.length; i ++) {
       var alias = castedAlias[i];
@@ -56,27 +56,23 @@ Fiber.fn.delegator = {
     var hasArgCount = $isDef(argCount);
     return function() {
       var args = arguments;
-      if (hasArgCount) args = argCount > 0 ? _.toArray(arguments).splice(0, argCount) : args;
+      if (hasArgCount) args = argCount > 0 ? _.toArray(arguments).splice(0, argCount) : argCount === 0 ? [] : args;
       scope = _.isString(scope) ? this[scope] : $val(scope, null);
       return method.apply(scope, $fn.argsConcat(this, args));
     };
   },
 
   /**
-   * Delegates all properties from delegatable to the object with scope bound
+   * Proxies mixin to the given object
    * @param {Object} object
-   * @param {Object} delegatable
-   * @param {?Object} [scope]
-   * @return {Object}
+   * @param {Object} mixin
+   * @returns {*}
    */
-  delegateForThis: function(object, delegatable, scope) {
-    _.each(delegatable, function(value, property) {
-      var originalValue = value;
-      if (_.isFunction(value)) value = function() {
-        return originalValue.apply(scope || object, $fn.argsConcat([this], arguments));
-      };
-
-      object[property] = value;
+  proxyMixin: function(object, mixin, toProto) {
+    $each(mixin, function(value, property) {
+      var container = object;
+      if (toProto) container = object.prototype;
+      if (_.isFunction(value)) container[property] = $fn.delegator.proxy(value, object);
     });
     return object;
   },
@@ -165,8 +161,10 @@ Fiber.fn.delegator = {
   expectFn: function(method, object) {
     if (_.isFunction(method)) return;
     method = $val(method, '', _.isString);
-    var args = ['Can\'t proxy method ' + (method ? ' ' + method : method) +
-                ', method is not available in the given object'];
+    var args = [
+      'Can\'t proxy method ' + (method ? ' ' + method : method) +
+      ', method is not available in the given object'
+    ];
 
     if (object) args.push(object);
     if (! _.isFunction(method)) $Log.errorThrow.apply($Log, args);

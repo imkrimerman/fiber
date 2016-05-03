@@ -2,7 +2,7 @@
  * Fiber Application Class
  * @class
  */
-Fiber.Application = $fn.class.createWithExtensions({
+Fiber.Application = Fiber.Object.extend({
 
   /**
    * Viewport instance

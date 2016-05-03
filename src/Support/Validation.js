@@ -161,7 +161,6 @@ Fiber.fn.validation = {
     return model.errorBag.hasErrors();
   },
 
-
   /**
    * Validates `attributes` hash with given `rules`
    * @param {Object} attributes - Attributes to validate
@@ -176,7 +175,6 @@ Fiber.fn.validation = {
     // return validation result
     return this.validate(model, null, options);
   },
-
 
   /**
    * Adds validation message to the model
@@ -276,7 +274,7 @@ Fiber.fn.validation = {
    * @returns {string}
    */
   getPathByRule: function(rule) {
-    return 'messages.' +  ($fn.validation.isHashMessageNeeded(rule) ? 'hash' : 'single');
+    return 'messages.' + ($fn.validation.isHashMessageNeeded(rule) ? 'hash' : 'single');
   },
 
   /**

@@ -87,7 +87,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
 
   /**
    * Adds global event `action` for the `event` with the given `scope`.
-   * Listens to the Fiber internal event system to give ability to set event listeners
+   * Listens to the Fiber Internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
    * @param {Function} action
@@ -95,12 +95,12 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   whenGlobal: function(event, action, scope) {
-    return Fiber.internal.events.on(event, _.bind(action, $val(scope, this)));
+    return Fiber.Internal.events.on(event, _.bind(action, $val(scope, this)));
   },
 
   /**
    * Adds global event `action` for the `event` with the given `scope` and remove after first trigger.
-   * Listens to the Fiber internal event system to give ability to set event listeners
+   * Listens to the Fiber Internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
    * @param {Function} action
@@ -108,12 +108,12 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   afterGlobal: function(event, action, scope) {
-    return Fiber.internal.events.once(event, _.bind(action, $val(scope, this)));
+    return Fiber.Internal.events.once(event, _.bind(action, $val(scope, this)));
   },
 
   /**
    * Stop listening global `event` with `action`.
-   * Listens to the Fiber internal event system to give ability to set event listeners
+   * Listens to the Fiber Internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
    * @param {Function} action
@@ -121,7 +121,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   stopGlobal: function(event, action, scope) {
-    return Fiber.internal.events.off(event, _.bind(action, $val(scope, this)));
+    return Fiber.Internal.events.off(event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -307,7 +307,7 @@ $trigger = Backbone.trigger;
 Backbone.trigger = function(name) {
   var args = _.toArray(arguments);
   if (arguments[1] !== this) args.splice(1, 0, this);
-  $trigger.apply(Fiber.internal.events, args);
+  $trigger.apply(Fiber.Internal.events, args);
   $trigger.apply(this, arguments);
   return this;
 };

@@ -5,16 +5,83 @@
 $fn = Fiber.fn = {
 
   /**
-   * List of properties to exclude when mixin functions to Class prototype
-   * @type {Array}
+   * Private configuration
+   * @type {Object}
    */
-  protoExclude: ['proto', 'protoExclude'],
+  __private: {
+
+    /**
+     * List of properties to exclude when mixin functions to Class prototype
+     * @type {Array}
+     */
+    protoExclude: ['proto', 'protoExclude'],
+
+    /**
+     * Value that represents not defined state.
+     * @type {string}
+     */
+    notDefined: '$__NULL__$'
+  },
 
   /**
-   * Value that represents not defined state.
-   * @type {string}
+   * Gets value by given `property` key. You can provide `defaults` value that
+   * will be returned if value is not found by the given key. If `defaults` is
+   * not provided that defaults will be set to `null`.
+   * @param {Object} object
+   * @param {string} property
+   * @param {?*} [defaults]
+   * @returns {*}
    */
-  notDefined: '$__NULL__$',
+  get: function(object, property, defaults) {
+    return _.get(object, property, defaults);
+  },
+
+  /**
+   * Sets `value` by given `property` key.
+   * @param {Object} object
+   * @param {string} property
+   * @param {*} value
+   * @returns {*}
+   */
+  set: function(object, property, value) {
+    _.set(object, property, value);
+    return object;
+  },
+
+  /**
+   * Determine if Class has given `property`.
+   * @param {Object} object
+   * @param {string} property
+   * @returns {boolean}
+   */
+  has: function(object, property) {
+    return _.has(object, property);
+  },
+
+  /**
+   * Gets value by the given `property` key, if `property` value is function then it will be called.
+   * You can provide `defaults` value that will be returned if value is not found
+   * by the given key. If `defaults` is not provided that defaults will be set to `null`.
+   * @param {Object} object
+   * @param {string} property
+   * @param {*} defaults
+   * @returns {*}
+   */
+  result: function(object, property, defaults) {
+    if (_.isFunction(object)) return object();
+    return _.result(object, property, defaults);
+  },
+
+  /**
+   * Alias for unset. Removes `value` by given `property` key.
+   * @param {Object} object
+   * @param {string} property
+   * @returns {Object}
+   */
+  forget: function(object, property) {
+    _.unset(object, property);
+    return object;
+  },
 
   /**
    * Returns value if not undefined or null,
@@ -28,7 +95,7 @@ $fn = Fiber.fn = {
    */
   val: function(value, defaults, checker, match) {
     // if defaults not specified then assign notDefined `$__NULL__$` value
-    defaults = arguments.length > 1 ? defaults : $fn.notDefined;
+    defaults = arguments.length > 1 ? defaults : $private($fn, 'notDefined');
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
     // if value check was made and it's not valid then return `defaults`
@@ -162,12 +229,31 @@ $fn = Fiber.fn = {
   },
 
   /**
+   * Casts `traversable` to array and run through it calling `cb` on each iteration.
+   * You can provide `final` argument to return any result
+   * @param {*} traversable
+   * @param {Function} cb
+   * @param {?Function|*} [final]
+   * @param {?string} [method]
+   * @param {?Object} [scope]
+   * @returns {*}
+   */
+  multi: function(traversable, cb, final, method, scope) {
+    final = $val(final, 'arrayFirstOrAll');
+    var fn = _[$val(method, 'map')]
+      , isMacros = _.isString(final) && $fn.macros.has(final)
+      , finalFn = isMacros ? $fn.macros.create(final, traversable) : $fn.cast.toFunction(final)
+      , result = $fn.applyFn(fn, [$fn.castArr($val(traversable, [])), cb], scope);
+    return _.isFunction(final) ? $fn.applyFn(finalFn, [result, traversable]) : result;
+  },
+
+  /**
    * Checks if all values in array are the same
    * @param {Array} array
    * @returns {boolean}
    */
   inArrayAllSame: function(array) {
-    return !! array.reduce(function(a, b) {
+    return ! ! array.reduce(function(a, b) {
       return a === b ? a : NaN;
     });
   },
@@ -179,9 +265,7 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   argsConcat: function() {
-    var args = _.toArray(arguments);
-    for (var i = 0; i < args.length; i ++)
-      if (_.isArguments(args[i])) args[i] = _.toArray(args[i]);
+    var args = _.map(_.toArray(arguments), $fn.cast.toArray);
     return $fn.concat.apply([], args);
   },
 
@@ -218,12 +302,12 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   fill: function(array, value, times) {
-    if (! _.isArray(array) && _.isNumber(array)) {
-      times = array;
+    if (! _.isArray(array)) {
+      times = $fn.cast.toNumber(array);
       array = [];
     }
 
-    if (! _.isNumber(times) || ! times) return array;
+    if (! _.isNumber(times)) times = array.length;
     var n = 0, hasValue = $isDef(value);
     while (n < times) {
       array.push(hasValue ? value : n);
@@ -234,11 +318,11 @@ $fn = Fiber.fn = {
 
   /**
    * Force object cast to array
-   * @param {Object} object
+   * @param {*} object
    * @returns {Array}
    */
   castArr: function(object) {
-    return $fn.cast.toArray(object);
+    return _.isArray(object) ? object : [object];
   },
 
   /**
@@ -271,23 +355,26 @@ $fn = Fiber.fn = {
   /**
    * Returns list of `object` methods
    * @param {Object} object
+   * @param {Array|string} [exclude]
    * @returns {Array}
    */
-  methods: function(object) {
+  methods: function(object, exclude) {
     var name, methods = [];
     if (! _.isObject(object) || _.isArray(object)) return methods;
     for (name in object) if (_.isFunction(object[name])) methods.push(name);
-    return methods;
+    return ! _.isEmpty(exclude) ? _.difference(methods, $fn.castArr(exclude)) : methods;
   },
 
   /**
    * Returns list of `object` properties
    * @param {Object} object
+   * @param {Array|string} [exclude]
    * @returns {Array}
    */
-  properties: function(object) {
+  properties: function(object, exclude) {
     if (! _.isObject(object) || _.isArray(object)) return methods;
-    return _.keys(_.omit(object, $fn.methods(object)));
+    var properties = _.keys(_.omit(object, $fn.methods(object)));
+    return ! _.isEmpty(exclude) ? _.difference(properties, $fn.castArr(exclude)) : properties;
   },
 
   /**
@@ -366,19 +453,50 @@ $fn = Fiber.fn = {
   },
 
   /**
+   * Returns trimmed string or array of string
+   * @param {string|Array} string
+   * @param {?string} [delimiter]
+   * @returns {Array}
+   */
+  trim: function(string, delimiter) {
+    return _.map($fn.castArr(string), function(one) {
+      return _.trim(one, delimiter || '');
+    });
+  },
+
+  /**
+   * Joins array of `strings` using `glue`.
+   * You can provide as many arguments as you need, in this case `glue` will be the last one
+   * @param {Array} strings
+   * @param {string} glue
+   * @returns {*|string}
+   */
+  join: function(strings, glue) {
+    if (arguments.length > 2) {
+      glue = _.last(arguments);
+      strings = _.dropRight(arguments, 1);
+    }
+
+    return $fn.trim($fn.castArr(strings), glue).join(glue);
+  },
+
+  /**
    * Fires two events on object, first is simple event, second is event for attribute
    * @param {Object} object
    * @param {string} event
    * @param {string} attribute
    * @param {?Array} [args]
+   * @param {?Function} [cb]
    */
-  fireAttribute: function(object, event, attribute, args) {
+  fireAttribute: function(object, event, attribute, args, cb) {
     var options = {prepare: false, call: false};
     event = _.trim(event, ':');
     attribute = _.trim(attribute, ':');
     args = $fn.prepareFireCallArgs({fire: args}, {fire: []});
     $fn.fireCall(object, event, args, options);
+    var result = _.isFunction(cb) ? $fn.applyFn(cb, args) : void 0;
     $fn.fireCall(object, event + ':' + attribute, args, options);
+    return result;
   },
 
   /**
@@ -473,7 +591,7 @@ $fn = Fiber.fn = {
    * @returns {Object}
    */
   proto: function(exclude) {
-    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], _.isArray)));
+    return _.omit($fn, $private($fn, 'protoExclude').concat($val(exclude, [], _.isArray)));
   },
 
   /**
@@ -532,40 +650,12 @@ $fn = Fiber.fn = {
    * @returns {boolean}
    */
   isAllowedToAccess: function(object, method, level) {
-    level = $val(level, null, _.isString) || object[$fn.access.private];
+    level = $val(level, $Config.access.default, _.isString) || object[$Config.access.key];
     if (! _.isObject(object) || ! level) return true;
-    var methods = $private($fn.access, 'allow.' + level);
-    if (! _.isArray(methods)) return ! ! methods;
-    if (_.includes(methods, method)) return false;
-    return true;
-  },
-
-  /**
-   * Returns trimmed string or array of string
-   * @param {string|Array} string
-   * @param {?string} [delimiter]
-   * @returns {Array}
-   */
-  trim: function(string, delimiter) {
-    return _.map($fn.castArr(string), function(one) {
-      return _.trim(one, delimiter || '');
-    });
-  },
-
-  /**
-   * Joins array of `strings` using `glue`.
-   * You can provide as many arguments as you need, in this case `glue` will be the last one
-   * @param {Array} strings
-   * @param {string} glue
-   * @returns {*|string}
-   */
-  join: function(strings, glue) {
-    if (arguments.length > 2) {
-      strings = _.toArray(arguments);
-      glue = _.last(strings);
-    }
-
-    return $fn.trim($fn.castArr(strings), glue).join(glue);
+    var methods = _.get(object, '__allow.' + level);
+    if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
+    if (_.includes(methods, method)) return true;
+    return false;
   },
 
   /**
@@ -577,9 +667,9 @@ $fn = Fiber.fn = {
    */
   private: function(object, key, value) {
     if (! _.isPlainObject(object)) return object;
-    if (arguments.length === 2) return $fn.access.getPrivate(object, key);
-    else if (arguments.length === 3)return $fn.access.setPrivate(object, key, value);
-    else return $fn.access.getPrivate(object);
+    if (arguments.length === 2) return $fn.getPrivate(object, key);
+    else if (arguments.length === 3)return $fn.setPrivate(object, key, value);
+    else return $fn.getPrivate(object);
   },
 
   /**
@@ -588,17 +678,66 @@ $fn = Fiber.fn = {
    * @param {string} key
    * @returns {boolean}
    */
-  privateHas: function(object, key) {
-    return $fn.access.hasPrivate(object, key);
+  hasPrivate: function(object, key) {
+    return _.has(object, $fn.makePrivateKey(key));
+  },
+
+  /**
+   * Sets private property to the given value.
+   * @param {Object} object
+   * @param {string} key
+   * @param {*} value
+   * @returns {Object}
+   */
+  setPrivate: function(object, key, value) {
+    _.set(object, $fn.makePrivateKey(key), value);
+    return object;
+  },
+
+  /**
+   * Returns private property of the object.
+   * @param {Object} object
+   * @param {string} [key]
+   * @returns {*}
+   */
+  getPrivate: function(object, key) {
+    return _.get(object, $fn.makePrivateKey(key));
+  },
+
+  /**
+   * Returns key transformed to private key.
+   * Adds prefix to the key with the private object destination path.
+   * @param {string} key
+   * @returns {string|*}
+   */
+  makePrivateKey: function(key) {
+    return $fn.join([$Config.private.key, key], '.');
   },
 };
+
+/**
+ * Returns private object or key from object if exists
+ * @param {Object} object
+ * @param {?string} [key]
+ * @param {?*} [value]
+ * @returns {*}
+ */
+$private = $fn.private;
+
+/**
+ * Determines if key exists at the private configuration of object
+ * @param {Object} object
+ * @param {string} key
+ * @returns {boolean}
+ */
+$privateHas = $fn.hasPrivate;
 
 /**
  * Adds not defined value to the statics of `val` function.
  * @type {string}
  * @static
  */
-$fn.val.notDefined = $fn.notDefined;
+$fn.val.notDefined = $fn.__private.notDefined;
 
 /**
  * Checks if value is defined
@@ -608,25 +747,31 @@ $fn.val.notDefined = $fn.notDefined;
  */
 $isDef = $fn.val.isDef = function(value) {
   if (! arguments.length) return false;
-  return $fn.val(value) !== $fn.notDefined;
+  return $fn.val(value) !== $fn.val.notDefined;
 };
 
 /**
- * @inheritDoc
+ * Returns value if not undefined or null,
+ * otherwise returns defaults or $__NULL__$ value
+ * @see https://github.com/imkrimerman/im.val (npm version)
+ * @param {*} value - value to check
+ * @param {*} defaults - default value to use
+ * @param {?Function|Function[]} [checker] - function to call to check validity
+ * @param {?string} [match='every'] - function to use ('every', 'some')
+ * @returns {*}
  */
 $val = $fn.val;
 
 /**
- * @inheritDoc
+ * Applies `val` checker function and extends checked value with `extender` if allowed.
+ * @param {*} value - value to check
+ * @param {Object} extender - object to extend with
+ * @param {?Function|string} [method=_.extend] - function to use to merge the objects (can be lodash method name or
+ * function)
+ * @param {?Function} [checker] - function to call to check validity
+ * @param {?string} [match='every'] - function to use ('every', 'some')
+ * @param {?boolean} [toOwn=false] - if true then sets extender directly to checked value,
+ * otherwise creates new object and merges checked value with extender
+ * @returns {Object|Function}
  */
 $valMerge = $fn.valMerge;
-
-/**
- * @inheritDoc
- */
-$private = $fn.private;
-
-/**
- * @inheritDoc
- */
-$privateHas = $fn.privateHas;

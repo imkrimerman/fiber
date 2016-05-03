@@ -159,7 +159,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {Fiber.CollectionView}
    */
   clearCollectionElement: function() {
-    if (this.$collectionElement instanceof $)
+    if (this.$collectionElement instanceof Fiber.$)
       this.$collectionElement.empty();
     return this;
   },
@@ -169,7 +169,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {jQuery|HTMLElement}
    */
   resolveCollectionElement: function() {
-    if (this.$collectionElement instanceof $) {
+    if (this.$collectionElement instanceof Fiber.$) {
       this.$el.append(this.$collectionElement);
       return this.$collectionElement;
     }
@@ -186,7 +186,7 @@ Fiber.CollectionView = Fiber.View.extend({
     else if (collectionEl[0] === '#')
       props.id = collectionEl.slice(1);
 
-    $element = $('<div />', props);
+    $element = $dom.create('div', props);
     this.$el.append($element);
     return this.$collectionElement = $element;
   },

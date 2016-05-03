@@ -10,7 +10,7 @@ module.exports = [
   './src/Support/Compatibility.js',
   './src/Support/Version.js',
   './src/Support/fn.js',
-  './src/Support/Access.js',
+  './src/Support/Macros.js',
   './src/Support/Descriptor.js',
   './src/Support/Class.js',
   './src/Support/Cast.js',
@@ -21,9 +21,15 @@ module.exports = [
   './src/Support/Delegator.js',
   './src/Support/Computed.js',
   './src/Support/Injection.js',
-  './src/Support/Messages.js',
+  './src/Support/Dom.js',
+  './src/Support/Types.js',
   // Core
   './src/Core.js',
+  // Contracts
+  './src/Contracts/Contract.js',
+  './src/Contracts/Type.js',
+  './src/Base/Type.js',
+  './src/Contracts/Storage.js',
   // Base
   './src/Base/Events.js',
   './src/Base/Class.js',
@@ -32,6 +38,7 @@ module.exports = [
   './src/Base/ErrorBag.js',
   './src/Base/Transmitter.js',
   './src/Base/Extension.js',
+  './src/Base/Dom/Element.js',
   // Set Globals
   './src/Support/Globals.js',
   // Inversion of control Container
@@ -43,7 +50,10 @@ module.exports = [
   './src/Extensions/Extensions.js',
   './src/Extensions/OwnProps.js',
   './src/Extensions/Events.js',
-  // Base collections
+  // Storage
+  './src/Storage.js',
+  // Base
+  './src/Base/Object.js',
   './src/Base/Models/Model.js',
   './src/Base/Collections/Collection.js',
   './src/Base/Collections/LinkedViews.js',
