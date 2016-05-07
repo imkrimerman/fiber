@@ -62,6 +62,7 @@ $fn = Fiber.fn = {
    */
   result: function(object, property, defaults) {
     if (_.isFunction(object)) return object();
+    else if (! _.isObject(object)) return object;
     return _.result(object, property, defaults);
   },
 

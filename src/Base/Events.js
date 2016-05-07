@@ -67,7 +67,7 @@ Fiber.Events = _.extend({
    */
   when: function(event, action, listenable, scope) {
     listenable = $val(listenable, this);
-    var event = this.prepareEventName(event, listenable);
+    var event = this._prepareEventName(event, listenable);
     return this.listenTo(listenable, event, _.bind(action, $val(scope, this)));
   },
 
@@ -81,8 +81,20 @@ Fiber.Events = _.extend({
    */
   after: function(event, action, listenable, scope) {
     listenable = $val(listenable, this);
-    var event = this.prepareEventName(event, listenable);
+    var event = this._prepareEventName(event, listenable);
     return this.listenToOnce(listenable, event, _.bind(action, $val(scope, this)));
+  },
+
+  /**
+   * Adds global event `action` for the `event` with the given `scope`.
+   * Listens to the Fiber internal event system to give ability to set event listeners
+   * even if you don't know what object will be triggering event.
+   * @param {string} event
+   * @param {...args}
+   * @returns {*}
+   */
+  fireGlobal: function(event) {
+    return $trigger.apply(Fiber.internal.events, [event].concat($fn.cast.toArray(_.drop(arguments))));
   },
 
   /**
@@ -132,7 +144,7 @@ Fiber.Events = _.extend({
    * @returns {Fiber.Events}
    */
   respondTo: function(event, action, scope) {
-    return this.setResponder(event, action, scope);
+    return this.set($fn.join('_responders', event, '.'), _.bind(action, $val(scope, this)))
   },
 
   /**
@@ -141,39 +153,9 @@ Fiber.Events = _.extend({
    * @param {...args}
    * @returns {*}
    */
-  requestFor: function(event) {
-    if (! this.hasResponder(event)) return void 0;
+  request: function(event) {
+    if (! this.has($fn.join('_responders', event, '.'))) return void 0;
     return this.callResponder(event, _.drop(_.toArray(arguments)));
-  },
-
-  /**
-   * Returns responder for the given event or defaults otherwise
-   * @param {string} event
-   * @param {?*} [defaults]
-   * @returns {*}
-   */
-  getResponder: function(event, defaults) {
-    return this.get('_responders.' + event, defaults);
-  },
-
-  /**
-   * Sets responder by `event`
-   * @param {string} event
-   * @param {Function} action
-   * @param {?Object} [scope=this]
-   * @returns {Fiber.Events}
-   */
-  setResponder: function(event, action, scope) {
-    return this.set('_responders.' + event, _.bind(action, $val(scope, this)));
-  },
-
-  /**
-   * Checks if responders contain action for the given `event`
-   * @param {string} event
-   * @returns {boolean}
-   */
-  hasResponder: function(event) {
-    return this.has('_responders.' + event);
   },
 
   /**
@@ -183,7 +165,7 @@ Fiber.Events = _.extend({
    * @returns {*}
    */
   callResponder: function(event, args) {
-    var responder = this.getResponder(event);
+    var responder = this.get($fn.join('_responders', event, '.'));
     args = $val(args, []);
     if (! _.isArray(args) && ! _.isArguments(args)) args = $fn.castArr(args);
     if (! responder) return responder;
@@ -224,14 +206,14 @@ Fiber.Events = _.extend({
   nsEvent: function(event) {
     var checkCatalog = true
       , ns = ! _.isEmpty(this.eventsConfig.ns) ? this.eventsConfig.ns + ':' : '';
-    // returns passed event as is if first char is `@`, used to support native backbone events
+    // returns passed event as is if first char is `@`
     if (event[0] === '@') return event.slice(1);
     // skip catalog look up by providing `!`
     else if (event[0] === '!') {
       event = event.slice(1);
       checkCatalog = false;
     }
-    return ns + (checkCatalog ? this.getCatalogEvent(event) : event);
+    return ns + (checkCatalog ? this.$getEvent(event) : event);
   },
 
   /**
@@ -239,7 +221,7 @@ Fiber.Events = _.extend({
    * @param {string} event
    * @returns {string|*}
    */
-  getCatalogEvent: function(event) {
+  $getEvent: function(event) {
     return $val(this.eventsConfig.catalog[event], event);
   },
 
@@ -248,8 +230,8 @@ Fiber.Events = _.extend({
    * @param {string} event
    * @returns {boolean}
    */
-  hasCatalogEvent: function(event) {
-    return _.has(this.eventsConfig.catalog, event);
+  $hasEvent: function(event) {
+    return $fn.has(this.eventsConfig.catalog, event);
   },
 
   /**
@@ -258,9 +240,17 @@ Fiber.Events = _.extend({
    * @param {string} event
    * @returns {*}
    */
-  setCatalogEvent: function(alias, event) {
+  $setEvent: function(alias, event) {
     this.eventsConfig.catalog[alias] = event;
     return this;
+  },
+
+  /**
+   * Clones Events object instance
+   * @returns {Fiber.Events}
+   */
+  $new: function() {
+    return _.extend({}, this);
   },
 
   /**
@@ -269,25 +259,8 @@ Fiber.Events = _.extend({
    * @param {Object} listenable
    * @returns {string}
    */
-  prepareEventName: function(event, listenable) {
+  _prepareEventName: function(event, listenable) {
     listenable = $val(listenable, this);
     return _.has(listenable, 'nsEvent') ? listenable.nsEvent(event) : event;
-  },
-
-  /**
-   * Clones Events object instance
-   * @returns {Fiber.Events}
-   */
-  instance: function() {
-    return _.extend({}, this);
-  },
-
-  /**
-   * Includes current Events to the given `object`
-   * @param {Object} object
-   * @returns {Object}
-   */
-  includeTo: function(object) {
-    return $fn.class.mix(object, this.instance());
-  },
+  }
 }, Backbone.Events);

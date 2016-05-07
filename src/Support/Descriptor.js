@@ -59,11 +59,11 @@ Fiber.fn.descriptor = {
     if (! $fn.descriptor.canDescribe(object)) return object;
     var properties = {}
       , args = [object, property]
-      , isObj = _.isPlainObject(property)
+      , isObject = _.isPlainObject(property)
       , getLevel = $fn.descriptor.getLevelDescriptor;
 
     if (arguments.length === 3) args.push(getLevel(level));
-    else if (arguments.length === 2 && isObj) {
+    else if (arguments.length === 2 && isObject) {
       for (var propName in property) properties[propName] = getLevel(property[name]);
       args.push(properties);
     }

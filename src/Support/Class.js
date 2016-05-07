@@ -251,7 +251,7 @@ Fiber.fn.class = {
           return $fn.class.createNew.call(null, this, 'constructor');
         },
         toString: function() {
-          return _.get(this, $Config.type.key, '[object Fiber.Class]');
+          return $fn.get(this, $Config.type.key, '[object Fiber.Class]');
         },
       },
       statics: {
@@ -539,5 +539,5 @@ Fiber.fn.class = {
       default:
         return false;
     }
-  },
+  }
 };

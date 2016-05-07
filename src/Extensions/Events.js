@@ -2,7 +2,7 @@
  * Events Extension
  * @type {Object.<Fiber.Extension>}
  */
-var $Events = new Fiber.Extension('Events', Fiber.Events.instance());
+var $Events = new Fiber.Extension('Events', Fiber.Events.$new());
 
 /**
  * Register Extension

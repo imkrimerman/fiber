@@ -28,7 +28,7 @@ Fiber.Transmitter = Fiber.Bag.extend({
    * @returns {Fiber.Events}
    */
   create: function(name) {
-    var channel = Fiber.Events.instance();
+    var channel = Fiber.Events.$new();
     this.set(name, channel);
     return channel;
   },

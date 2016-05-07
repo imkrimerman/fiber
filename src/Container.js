@@ -131,8 +131,8 @@ Fiber.Container = Fiber.Class.extend({
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete || ! _.isFunction(concrete)) $Log.errorThrow('[Resolution Exception]: ' + abstract +
-                                                                ', not a Class constructor or function.');
+    if (! concrete || ! _.isFunction(concrete)) $Log.errorThrow('Resolution Exception: ' + abstract +
+                                                                ', is not a Class constructor or function.');
     if ($fn.class.isClass(concrete)) return this.instantiate(concrete, parameters);
     return concrete.apply($val(scope, this), this.resolve(parameters).concat([this]));
   },

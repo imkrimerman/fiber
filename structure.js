@@ -5,9 +5,9 @@
  * @type {Array.<string>}
  */
 module.exports = [
+  './src/Support/Version.js',
   './src/Support/Properties.js',
   './src/Support/Compatibility.js',
-  './src/Support/Version.js',
   './src/Support/fn.js',
   './src/Support/Macros.js',
   './src/Support/Descriptor.js',
@@ -21,7 +21,7 @@ module.exports = [
   './src/Support/Computed.js',
   './src/Support/Compose.js',
   './src/Support/Injection.js',
-  './src/Support/Dom.js',
+//   './src/Support/Dom.js',
   './src/Support/Types.js',
   // Core
   './src/Core.js',

@@ -1,17 +1,15 @@
 // define base Fiber variables
-var Fr, Fiber, previousFiber,
+var Fr, Fiber, previousFiber, $Fiber = {},
 // define Internal variables
   $doc, $fn, $val, $valMerge, $isDef, $each, $origEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
   $Types, $Config, $TypeChecker, $BaseClass, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
-  $RouterCollection, BaseJSTypes, BaseFiberTypes
-
-
+  $RouterCollection, BaseJSTypes, BaseFiberTypes;
 
 /**
  * Configuration
  * @type {Object}
  */
-$Config = {
+$Fiber.Config = $Config = {
   access: {
     key: '_access',
     default: 'public',
@@ -27,7 +25,7 @@ $Config = {
  * Global document reference
  * @type {HTMLElement|void}
  */
-$doc = root.document;
+$Fiber.doc = $doc = root.document;
 
 /**
  * Fiber main object
@@ -59,18 +57,16 @@ Fiber.noConflict = function() {
 Fiber._ = _;
 
 /**
- * Object to use internally
- * @type {Object}
+ * Attach dom manipulation library if provided
+ * @type {Function}
  */
-Fiber.internal = {
-  events: _.extend({}, Backbone.Events),
-};
+Fiber.$ = $;
 
 /**
- * Fiber Command Bus
- * @var {Object}
+ * Fiber types
+ * @type {Object}
  */
-Fiber.Commands = {};
+Fiber.Types = {};
 
 /**
  * Fiber Contracts classes
@@ -79,7 +75,15 @@ Fiber.Commands = {};
 Fiber.Contracts = {};
 
 /**
- * Fiber types
+ * Fiber Command Bus
+ * @var {Object}
+ */
+Fiber.Commands = {};
+
+/**
+ * Object to use internally
  * @type {Object}
  */
-Fiber.Types = {};
+Fiber.internal = {
+  events: _.extend({}, Backbone.Events),
+};

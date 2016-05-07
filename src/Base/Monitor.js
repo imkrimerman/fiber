@@ -69,7 +69,7 @@ Fiber.Monitor = $BaseClass.extend({
     $fn.class.ensureOwn(this, this.ownProps);
     $fn.class.extendFromOptions(this, options, this.willExtend);
     this._logger = new Fiber.Log({level: 'debug', template: false});
-    this._monitor = Fiber.Events.instance();
+    this._monitor = Fiber.Events.$new();
   },
 
   /**
