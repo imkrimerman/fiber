@@ -25,6 +25,7 @@ module.exports = [
   './src/Support/Types.js',
   // Core
   './src/Core.js',
+  './src/Base/Events.js',
   './src/Base/Log.js',
   './src/Base/Monitor.js',
   './src/Base/Type.js',
@@ -33,7 +34,6 @@ module.exports = [
   './src/Contracts/Eventable.js',
   './src/Contracts/Storage.js',
   // Base
-  './src/Base/Events.js',
   './src/Base/Class.js',
   './src/Base/Bag.js',
   './src/Base/ErrorBag.js',

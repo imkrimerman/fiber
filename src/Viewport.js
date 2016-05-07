@@ -68,7 +68,7 @@ Fiber.Viewport = Fiber.View.extend({
   renderToViewportElement: function(view) {
     if (view instanceof Fiber.View) {
       view.render();
-      this.html(view.el);
+      this.$el.html(view.el);
       return true;
     }
 

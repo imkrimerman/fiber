@@ -3,17 +3,24 @@ var Fr, Fiber, previousFiber,
 // define Internal variables
   $doc, $fn, $val, $valMerge, $isDef, $each, $origEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
   $Types, $Config, $TypeChecker, $BaseClass, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
-  $RouterCollection, BaseJSTypes, BaseFiberTypes;
+  $RouterCollection, BaseJSTypes, BaseFiberTypes
+
+
 
 /**
  * Configuration
  * @type {Object}
  */
 $Config = {
-  private: {key: '_private'},
-  access: {key: '_access', default: 'public'},
+  access: {
+    key: '_access',
+    default: 'public',
+    properties: {const: '$$const', private: '$$private'}
+  },
+  private: {key: '__private'},
   type: {key: '_signature'},
   contracts: {key: '_implements'},
+  injection: {key: '_injection'}
 };
 
 /**
@@ -55,7 +62,7 @@ Fiber._ = _;
  * Object to use internally
  * @type {Object}
  */
-Fiber.Internal = {
+Fiber.internal = {
   events: _.extend({}, Backbone.Events),
 };
 

@@ -132,3 +132,22 @@ _.mixin({
   matches: $matches,
   matcher: $matches
 });
+
+/**
+ * Cached Backbone Events trigger method
+ * @type {Function}
+ */
+$trigger = Backbone.Events.trigger;
+
+/**
+ * Wraps Backbone Events trigger method to give ability to listen to global events.
+ * @param {string} name
+ * @param {...args}
+ * @returns {Backbone}
+ */
+Backbone.Events.trigger = function(name) {
+  var args = $fn.cast.toArray(arguments);
+  $trigger.apply(Fiber.internal.events, args);
+  $trigger.apply(this, arguments);
+  return this;
+};

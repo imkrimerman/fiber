@@ -35,13 +35,13 @@ Fiber.fn.injection = {
   },
 
   /**
-   * Returns injection holder or part of it retrieved by `key`
+   * Retrieves injection container or part of it by the `key`
    * @param {Function} fn
    * @param {?string} [key]
    * @returns {Object|Array}
    */
   get: function(fn, key) {
-    var injectKey = $private($fn.injection, 'key');
+    var injectKey = $fn.injection[$Config.injection.key];
     if (! $fn.injection.has(fn)) return [];
     if (! key) return fn[injectKey];
     if (_.has(fn[injectKey], key)) return fn[injectKey][key];
@@ -55,21 +55,21 @@ Fiber.fn.injection = {
    */
   has: function(fn) {
     if (! $fn.injection.isOneOfAllowed(fn)) return false;
-    return _.has(fn, $private($fn.injection, 'key'));
+    return _.has(fn, $Config.injection.key);
   },
 
   /**
    * Injects dependencies into the function
    * @param {Function} fn
    * @param {?Array|Arguments} [args]
-   * @returns {*}
+   * @returns {Function}
    */
   inject: function(fn) {
     var resolved = [];
     if (! $fn.injection.isOneOfAllowed(fn)) return fn;
     if (! $fn.injection.has(fn)) resolved = $fn.injection.resolve(fn);
 
-    fn[$private($fn.injection, 'key')] = {
+    fn[$Config.injection.key] = {
       dependencies: resolved,
       resolved: Fiber.make(resolved).map(function(one) {
         return one instanceof Fiber.Extension ? one.getCodeCapsule() : one;
@@ -78,7 +78,6 @@ Fiber.fn.injection = {
 
     fn.getInject = _.bind($fn.injection.get, this, fn);
     fn.applyInject = _.bind($fn.injection.apply, this, fn);
-
     return fn;
   },
 
@@ -101,12 +100,9 @@ Fiber.fn.injection = {
    */
   resolve: function(fn) {
     if ($fn.injection.has(fn)) return [];
-
-    var parsed = $fn.injection.parseArguments(fn)
-      , resolved = [];
-
+    var parsed = $fn.injection.parseArguments(fn), resolved = [];
     for (var i = 0; i < parsed.length; i ++) {
-      parsed[i].replace($private($fn.injection, 'regex.ARG'), function(a, b, name) {
+      parsed[i].replace($fn.injection.regex.ARG, function(a, b, name) {
         if (_.isString(name) && _.startsWith(name, '$', 0)) name = name.slice(1, name.length);
         resolved.push(name);
       });
@@ -117,11 +113,11 @@ Fiber.fn.injection = {
 
   /**
    * Parses arguments names of the given function
-   * @param {Function} fn
+   * @param {Object} fn
    * @returns {Array}
    */
   parseArguments: function(fn) {
-    var regex = $private($fn.injection, 'regex');
+    var regex = $fn.injection.regex;
     if (! _.isFunction(fn)) return [];
     return fn.toString()
       .replace(regex.STRIP_COMMENTS, '')
@@ -135,7 +131,7 @@ Fiber.fn.injection = {
    * @returns {boolean}
    */
   isOneOfAllowed: function(value) {
-    return _.any($private($fn.injection, 'allowedTypes'), function(type) {
+    return _.any($fn.injection.allowedTypes, function(type) {
       return _['is' + _.capitalize(type)](value);
     });
   },

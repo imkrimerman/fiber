@@ -5,23 +5,16 @@
 $fn = Fiber.fn = {
 
   /**
-   * Private configuration
-   * @type {Object}
+   * List of properties to exclude when mixin functions to Class prototype
+   * @type {Array}
    */
-  _private: {
+  protoExclude: ['proto', 'protoExclude'],
 
-    /**
-     * List of properties to exclude when mixin functions to Class prototype
-     * @type {Array}
-     */
-    protoExclude: ['proto', 'protoExclude'],
-
-    /**
-     * Value that represents not defined state.
-     * @type {string}
-     */
-    notDefined: '$_NULL_$'
-  },
+  /**
+   * Value that represents not defined state.
+   * @type {string}
+   */
+  notDefined: '$__NULL__$',
 
   /**
    * Gets value by given `property` key. You can provide `defaults` value that
@@ -85,7 +78,7 @@ $fn = Fiber.fn = {
 
   /**
    * Returns value if not undefined or null,
-   * otherwise returns defaults or $_NULL_$ value
+   * otherwise returns defaults or $__NULL__$ value
    * @see https://github.com/imkrimerman/im.val (npm version)
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
@@ -94,8 +87,8 @@ $fn = Fiber.fn = {
    * @returns {*}
    */
   val: function(value, defaults, checker, match) {
-    // if defaults not specified then assign notDefined `$_NULL_$` value
-    defaults = arguments.length > 1 ? defaults : $private($fn, 'notDefined');
+    // if defaults not specified then assign notDefined `$__NULL__$` value
+    defaults = arguments.length > 1 ? defaults : $fn.notDefined;
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
     // if value check was made and it's not valid then return `defaults`
@@ -451,19 +444,6 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Clones function
-   * @param {Function} fn
-   * @returns {Function}
-   */
-  cloneFunction: function(fn) {
-    var temp = function() { return fn.apply(this, arguments); };
-    _.forOwn(fn, function(value, prop) {
-      temp[prop] = value;
-    });
-    return temp;
-  },
-
-  /**
    * Returns pluralized word using count.
    * If word is irregular then you can provide it as third argument
    * @param {string} word
@@ -522,7 +502,6 @@ $fn = Fiber.fn = {
   compact: function(array) {
     var i = - 1, index = 0, result = []
       , length = (array = $fn.castArr(array)) ? array.length : 0;
-
     while (++i < length) if (array[i]) result[index++] = array[i];
     return result;
   },
@@ -638,7 +617,7 @@ $fn = Fiber.fn = {
    * @returns {Object}
    */
   proto: function(exclude) {
-    return _.omit($fn, $private($fn, 'protoExclude').concat($val(exclude, [], _.isArray)));
+    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], _.isArray)));
   },
 
   /**
@@ -696,10 +675,10 @@ $fn = Fiber.fn = {
    * @param {?string} [level]
    * @returns {boolean}
    */
-  isAllowedToAccess: function(object, method, level) {
+  isAllowedToCall: function(object, method, level) {
     level = $val(level, $Config.access.default, _.isString) || object[$Config.access.key];
     if (! _.isObject(object) || ! level) return true;
-    var methods = _.get(object, '_allow.' + level);
+    var methods = _.get(object, '_accessRules.' + level);
     if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
     if (_.includes(methods, method)) return true;
     return false;
@@ -784,7 +763,7 @@ $privateHas = $fn.hasPrivate;
  * @type {string}
  * @static
  */
-$fn.val.notDefined = $fn._private.notDefined;
+$fn.val.notDefined = $fn.notDefined;
 
 /**
  * Checks if value is defined

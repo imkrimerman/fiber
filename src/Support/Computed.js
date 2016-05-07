@@ -5,23 +5,16 @@
 Fiber.fn.computed = {
 
   /**
-   * Private configuration
-   * @type {Object}
+   * Postfix to use to create method name
+   * @type {string}
    */
-  _private: {
+  postfix: 'Attribute',
 
-    /**
-     * Postfix to use to create method name
-     * @type {string}
-     */
-    postfix: 'Attribute',
-
-    /**
-     * Model property path to look up for specific postfix
-     * @type {string}
-     */
-    lookUp: 'compute.postfix',
-  },
+  /**
+   * Model property path to look up for specific postfix
+   * @type {string}
+   */
+  lookUp: 'compute.postfix',
 
   /**
    * Returns result of property computation
@@ -100,9 +93,8 @@ Fiber.fn.computed = {
    * @returns {string}
    */
   getPostfix: function(model) {
-    var pr = $private($fn.computed)
-      , modelPostfix = _.get(model, pr.lookUp, null);
-    if (! (model instanceof Backbone.Model)) return pr.postfix;
-    return _.isString(modelPostfix) ? modelPostfix : pr.postfix;
+    var modelPostfix = _.get(model, $fn.computed.lookUp, null);
+    if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
+    return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
   },
 };

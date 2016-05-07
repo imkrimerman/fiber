@@ -1,30 +1,29 @@
 /**
- * Access extension brings getters, setters and unsetters that uses
- * `lodash` methods to support deep access to the Class.
+ * Retriever Extension
  * @type {Object.<Fiber.Extension>}
  */
-var $Access = new Fiber.Extension('Access', {
+var $Retriever = new Fiber.Extension('Retriever', {
 
   /**
-   * Default access level.
+   * Default retriever access level.
    * @type {string}
    * @private
    */
-  _access: 'public',
+  _retrieverAccess: 'public',
 
   /**
-   * Methods list.
+   * Retriever methods that will be used to for partial access.
    * @type {Array.<string>}
    * @private
    */
-  _methods: ['get', 'set', 'has', 'result', 'forget'],
+  _retrieverAccessMethods: ['get', 'set', 'has', 'result', 'forget'],
 
   /**
-   * Methods level map.
+   * Retriever access rules
    * @type {Object}
    * @private
    */
-  _allow: {
+  _retrieverAccessRules: {
     private: false,
     protected: ['get', 'result', 'has'],
     public: true
@@ -39,7 +38,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   get: function(property, defaults) {
-    if (! this.isAllowedToAccess('get')) return void 0;
+    if (! this.isAllowedToCall('get')) return void 0;
     return $fn.get(this, property, defaults);
   },
 
@@ -50,7 +49,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   set: function(property, value) {
-    if (this.isAllowedToAccess('set')) $fn.set(this, property, value);
+    if (this.isAllowedToCall('set')) $fn.set(this, property, value);
     return this;
   },
 
@@ -60,7 +59,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {boolean}
    */
   has: function(property) {
-    if (! this.isAllowedToAccess('has')) return void 0;
+    if (! this.isAllowedToCall('has')) return void 0;
     return $fn.has(this, property);
   },
 
@@ -73,7 +72,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   result: function(property, defaults) {
-    if (! this.isAllowedToAccess('result')) return void 0;
+    if (! this.isAllowedToCall('result')) return void 0;
     return $fn.result(this, property, defaults);
   },
 
@@ -83,7 +82,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   forget: function(property) {
-    if (this.isAllowedToAccess('unset')) $fn.forget(this, property);
+    if (this.isAllowedToCall('forget')) $fn.forget(this, property);
     return this;
   },
 
@@ -93,7 +92,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {Object}
    */
   setAccess: function(access) {
-    this._access = $val(access, this._access, $fn.createIncludes(this._methods));
+    this._retrieverAccess = $val(access, this._retrieverAccess, $fn.createIncludes(this._retrieverAccessMethods));
     return this;
   },
 
@@ -102,7 +101,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {string}
    */
   getAccess: function() {
-    return this._access;
+    return this._retrieverAccess;
   },
 
   /**
@@ -110,7 +109,7 @@ var $Access = new Fiber.Extension('Access', {
    * @param {string} method
    * @returns {boolean}
    */
-  isAllowedToAccess: function(method) {
+  isAllowedToCall: function(method) {
     return $fn.isAllowedToCall(this, method);
   }
 });
@@ -118,9 +117,9 @@ var $Access = new Fiber.Extension('Access', {
 /**
  * Register Extension
  */
-$Ioc.extension('Access', $Access);
+$Ioc.extension('Retriever', $Retriever);
 
 /**
- * Add access mixin to the Fiber
+ * Add retriever extension to the Fiber
  */
-$Access.includeTo(Fiber);
+$Retriever.includeTo(Fiber);

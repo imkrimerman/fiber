@@ -3,7 +3,7 @@
  * @class
  * @extends {$BaseClass}
  */
-Fiber.Monitor = $BaseClass.create({
+Fiber.Monitor = $BaseClass.extend({
 
   /**
    * Monitoring options
@@ -15,10 +15,10 @@ Fiber.Monitor = $BaseClass.create({
   },
 
   /**
-   * Notifier options
+   * Notify options
    * @type {Object}
    */
-  notifier: {
+  notifies: {
     log: true,
     callback: null
   },
@@ -27,20 +27,20 @@ Fiber.Monitor = $BaseClass.create({
    * Properties keys that will be owned by the instance
    * @type {Array|Function}
    */
-  ownProps: ['watches', '_monitor', '_monitoring', '_cache'],
+  ownProps: ['watches', 'notifies', '_monitor', '_monitoring', '_cache', '_logger'],
 
   /**
    * Properties keys that will be auto extended from the initialization object
    * @type {Array|Function|string|boolean}
    */
-  willExtend: ['watches'],
+  willExtend: ['watches', 'notifies'],
 
   /**
    * Events monitor
    * @type {Fiber.Events}
    * @private
    */
-  _monitor: Fiber.Events.instance(),
+  _monitor: null,
 
   /**
    * Monitoring state
@@ -55,6 +55,12 @@ Fiber.Monitor = $BaseClass.create({
   _cache: {},
 
   /**
+   * Logger instance
+   * @type {Object.<Fiber.Log>}
+   */
+  _logger: null,
+
+  /**
    * Constructs Debug
    * @param {?Object} [options]
    */
@@ -62,7 +68,8 @@ Fiber.Monitor = $BaseClass.create({
     $fn.class.handleOptions(this, options);
     $fn.class.ensureOwn(this, this.ownProps);
     $fn.class.extendFromOptions(this, options, this.willExtend);
-    this.logger = new Fiber.Log({level: 'debug', template: false});
+    this._logger = new Fiber.Log({level: 'debug', template: false});
+    this._monitor = Fiber.Events.instance();
   },
 
   /**
@@ -77,41 +84,28 @@ Fiber.Monitor = $BaseClass.create({
 
   /**
    * Starts monitoring
-   * @return {Fiber.Monitor}
+   * @return {boolean}
    */
   start: function() {
-    if (this.isMonitoring()) return this;
+    if (this.isMonitoring()) return false;
     if (this.watches.sync) this.watch(Backbone, 'sync');
     if (this.watches.events) this.watch(Backbone.Events, this.watches.events);
-    this._monitoring = true;
-    return this;
+    return this._monitoring = true;
   },
 
   /**
    * Stops monitoring, removes all event listeners and returns cached methods back to their owners.
-   * @return {Fiber.Monitor}
+   * @return {boolean}
    */
   stop: function() {
-    this._monitoring = false;
+    if (! this.isMonitoring()) return false;
     this._monitor.stopListening();
     for (var name in this._cache) {
       var orig = this._cache[name];
       if (orig.source) orig.source[name] = orig.fn;
     }
-    return this;
-  },
-
-  /**
-   * Notifies about intercepted case
-   * @param {string} msg
-   * @param {*} [args]
-   * @returns {Fiber.Monitor}
-   */
-  notify: function(msg, args) {
-    this.trigger.apply(this, ['notify'].concat($fn.cast.toArray(arguments)));
-    if (this.notifier.log) this.logger.callWriter('debug', $fn.cast.toArray(args));
-    else if (_.isFunction(this.notifier.callback)) $fn.applyFn(this.notifier.callback, arguments);
-    return this;
+    this._monitoring = false;
+    return true;
   },
 
   /**
@@ -128,6 +122,19 @@ Fiber.Monitor = $BaseClass.create({
         $fn.applyFn(orig.fn, arguments, source);
       };
     });
+  },
+
+  /**
+   * Notifies about intercepted case
+   * @param {string} msg
+   * @param {*} [args]
+   * @returns {Fiber.Monitor}
+   */
+  notify: function(msg, args) {
+    this.trigger.apply(this, ['notify'].concat($fn.cast.toArray(arguments)));
+    if (this.notifies.log) this._logger.callWriter('debug', $fn.cast.toArray(args));
+    else if (_.isFunction(this.notifies.callback)) $fn.applyFn(this.notifies.callback, arguments);
+    return this;
   },
 
   /**

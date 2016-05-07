@@ -11,14 +11,14 @@ $fn.deepProps = {
   rules: {
     condition: [_.isArray, _.isPlainObject],
     exclude: ['fn'],
-    private: {
-      allow: false,
-      signature: '_'
-    },
+    private: { allow: false, signature: '_' },
     explore: [
       {owner: Fiber, path: 'container.shared.items'},
+      {owner: Fiber, path: 'container.bindings.items'},
       {owner: Fiber, path: 'container.extensions.items'},
       {owner: Fiber, path: 'Events', direct: true},
+      {owner: Fiber, path: 'Monitor', direct: true},
+      {owner: Fiber, path: 'Application', direct: true},
       {owner: Fiber, path: 'Model.prototype', direct: true},
       {owner: Fiber, path: 'View.prototype', direct: true},
       {owner: Fiber, path: 'Collection.prototype', direct: true},

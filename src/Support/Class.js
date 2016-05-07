@@ -73,7 +73,7 @@ Fiber.fn.class = {
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
     // by us to simply call the parent's constructor.
-    if (! protoProps || ! _.has(protoProps, 'constructor')) child = construct(parent);
+    if (! protoProps || ! $fn.has(protoProps, 'constructor')) child = construct(parent);
     else child = construct(protoProps.constructor, parent);
     // Add static properties to the constructor function, if supplied.
     _.extend(child, parent, staticProps);
@@ -84,7 +84,7 @@ Fiber.fn.class = {
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);
     // verify if Class has to follow and is following the contracts
-    $fn.class.expectFollowing(child);
+    $fn.class.expectFollowingContracts(child);
     // and finally return child
     return child;
   },
@@ -378,7 +378,7 @@ Fiber.fn.class = {
    * Checks if Class has to follow the contracts
    * @param {Function} Class
    */
-  expectFollowing: function(Class) {
+  expectFollowingContracts: function(Class) {
     if ($fn.has(Class, $Config.contracts.key)) {
       $fn.expect(_.every($fn.get(Class, $Config.contracts.key), function(contract) {
         return contract instanceof Fiber.Contract && contract.isImplementedBy(Class);

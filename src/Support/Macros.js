@@ -5,24 +5,30 @@
 Fiber.fn.macros = {
 
   /**
-   * Private configuration
+   * Macros storage
    * @type {Object}
    */
-  _private: {
-
-    /**
-     * Macros holder
-     * @type {Object}
-     */
-    macros: {
-      arrayFirstOrAll: function(object) {
-        return function(result) {
-          return _.isArray(object) ? result : _.first(result);
-        };
-      },
-      constant: function(object) {
-        return function() { return object; };
-      },
+  _storage: {
+    arrayFirstOrAll: function(object) {
+      return function(result) {
+        return _.isArray(object) ? result : _.first(result);
+      };
+    },
+    constant: function(object) {
+      return function() { return object; };
+    },
+    'get/set': function(property, checkToSetFn) {
+      return {
+        get: function() {
+          return this[property];
+        },
+        set: function(value) {
+          if (_.isString(checkToSetFn) && _.isFunction(_.get(this, checkToSetFn))) checkToSetFn = this[checkToSetFn];
+          if ((_.isFunction(checkToSetFn) && checkToSetFn(value)) || ! $isDef(checkToSetFn)) {
+            this[property] = value;
+          }
+        }
+      };
     }
   },
 
@@ -33,7 +39,7 @@ Fiber.fn.macros = {
    * @returns {Function|*}
    */
   get: function(name, defaults) {
-    return $private($fn.macros, $fn.makePrivateKey(name)) || defaults;
+    return $fn.macros._storage[name] || defaults;
   },
 
   /**
@@ -43,7 +49,7 @@ Fiber.fn.macros = {
    * @returns {Object}
    */
   set: function(name, macrosCreator) {
-    $private($fn.macros, $fn.makePrivateKey(name), macrosCreator);
+    $fn.macros._storage[name] = macrosCreator;
     return $fn.macros;
   },
 
@@ -53,7 +59,7 @@ Fiber.fn.macros = {
    * @returns {boolean}
    */
   has: function(name) {
-    return $privateHas($fn.macros, $fn.makePrivateKey(name));
+    return $fn.macros._storage[name];
   },
 
   /**
@@ -73,7 +79,7 @@ Fiber.fn.macros = {
    * @returns {*|Object|Fiber.fn.class}
    */
   include: function(macrosMixin, override) {
-    return $fn.class.include($private($fn.macros, $fn.makePrivateKey()), macrosMixin, override);
+    return $fn.class.include($fn.macros._storage, macrosMixin, override);
   },
 
   /**

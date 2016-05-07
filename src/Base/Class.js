@@ -3,7 +3,7 @@
  * @class
  * @extends {$BaseClass}
  */
-Fiber.Class = $BaseClass.implement('Eventable').create([
+Fiber.Class = $BaseClass.implement('Eventable').extend([
   Fiber.Events, {
 
     /**

@@ -3,7 +3,7 @@
  * @class
  * @extends {$BaseClass}
  */
-Fiber.Type = $BaseClass.create({
+Fiber.Type = $BaseClass.extend({
 
   /**
    * Class type signature
