@@ -13,7 +13,7 @@ $fn.deepProps = {
     exclude: ['fn'],
     private: {
       allow: false,
-      signature: '__'
+      signature: '_'
     },
     explore: [
       {owner: Fiber, path: 'container.shared.items'},

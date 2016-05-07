@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
+Fiber.Bag = Fiber.Class.implement('Storage').extend({
 
   /**
    * Flag to set if Bag is firing building events
@@ -16,14 +16,14 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    * @type {string}
    * @private
    */
-  __signature: '[object Fiber.Bag]',
+  _signature: '[object Fiber.Bag]',
 
   /**
    * Key to use to dynamically created storage for the bag items.
    * @type {string|Function}
    * @private
    */
-  __holder: '__items',
+  _holder: '_items',
 
   /**
    * Constructs Bag.
@@ -31,9 +31,9 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    * @param {?Object} [options] - Bag initialize options
    */
   constructor: function(items, options) {
-    $fn.class.handleOptions(this, options, {firing: this.firing, holder: $fn.result(this.__holder)});
+    $fn.class.handleOptions(this, options, {firing: this.firing, holder: $fn.result(this._holder)});
     this.firing = this.options.firing;
-    this.__holder = this.options.holder;
+    this._holder = this.options.holder;
     this.handleHolder(items);
     $fn.extensions.init(this);
     $fn.apply(this, 'initialize', [items, this.options]);
@@ -195,7 +195,7 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    */
   handleHolder: function(items, delegate) {
     var holderKey = this.getHolderKey();
-    if (! this.hasHolderKey()) this.setHolderKey(this.__holder);
+    if (! this.hasHolderKey()) this.setHolderKey(this._holder);
     this.setHolder(holderKey, items);
     $val(delegate, true) && $fn.delegator.utilMixin('object', this, holderKey);
   },
@@ -205,7 +205,7 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    * @returns {string}
    */
   getHolderKey: function() {
-    return _.result(this, '__holder');
+    return _.result(this, '_holder');
   },
 
   /**
@@ -214,7 +214,7 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    * @return {Fiber.Bag}
    */
   setHolderKey: function(holderKey) {
-    this.__holder = holderKey;
+    this._holder = holderKey;
     return this;
   },
 
@@ -223,7 +223,7 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    * @returns {boolean}
    */
   hasHolderKey: function() {
-    var key = _.result(this, '__holder');
+    var key = _.result(this, '_holder');
     return _.isString(key) && ! _.isEmpty(key);
   },
 
@@ -253,6 +253,18 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
  */
 Fiber.Types.Bag = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Bag.prototype.__signature,
+  signature: Fiber.Bag.prototype._signature,
   defaults: Fiber.Bag
 });
+
+/**
+ * Global Environment container
+ * @type {Object.<Fiber.Bag>}
+ */
+Fiber.env = $Env = new Fiber.Bag();
+
+/**
+ * Global state container
+ * @type {Object.<Fiber.Bag>}
+ */
+Fiber.state = $State = new Fiber.Bag();

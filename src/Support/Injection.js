@@ -8,13 +8,13 @@ Fiber.fn.injection = {
    * Private configuration
    * @type {Object}
    */
-  __private: {
+  _private: {
 
     /**
      * Private key name
      * @type {string}
      */
-    key: '__injection',
+    key: '_injection',
 
     /**
      * Allowed list of types that can be used for injection

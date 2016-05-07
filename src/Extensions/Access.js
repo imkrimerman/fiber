@@ -10,21 +10,21 @@ var $Access = new Fiber.Extension('Access', {
    * @type {string}
    * @private
    */
-  __access: 'public',
+  _access: 'public',
 
   /**
    * Methods list.
    * @type {Array.<string>}
    * @private
    */
-  __methods: ['get', 'set', 'has', 'result', 'forget'],
+  _methods: ['get', 'set', 'has', 'result', 'forget'],
 
   /**
    * Methods level map.
    * @type {Object}
    * @private
    */
-  __allow: {
+  _allow: {
     private: false,
     protected: ['get', 'result', 'has'],
     public: true
@@ -93,7 +93,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {Object}
    */
   setAccess: function(access) {
-    this.__access = $val(access, this.__access, $fn.createIncludes(this.__methods));
+    this._access = $val(access, this._access, $fn.createIncludes(this._methods));
     return this;
   },
 
@@ -102,7 +102,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {string}
    */
   getAccess: function() {
-    return this.__access;
+    return this._access;
   },
 
   /**

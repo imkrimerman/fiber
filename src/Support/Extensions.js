@@ -8,19 +8,19 @@ Fiber.fn.extensions = {
    * Private configuration
    * @type {Object}
    */
-  __private: {
+  _private: {
 
     /**
      * Private property name
      * @type {string}
      */
-    key: '__extensions',
+    key: '_extensions',
 
     /**
      * Migration property name
      * @type {string}
      */
-    migrate: '__needsPropMigration',
+    migrate: '_needsPropMigration',
   },
 
   /**
@@ -30,7 +30,7 @@ Fiber.fn.extensions = {
    * @return {*}
    * @private
    */
-  __access: function(method) {
+  _access: function(method) {
     if (! Fiber.hasOwnProperty('container')) return [];
     var container = Fiber.container.extensions;
     if (! arguments.length) return container;
@@ -52,7 +52,7 @@ Fiber.fn.extensions = {
     var method = $val(retrieveCode, true, _.isBoolean) ? 'getCodeCapsule' : null;
 
     if (! _.isString(alias)) return alias;
-    var retrieved = this.__access('get', alias, null);
+    var retrieved = this._access('get', alias, null);
 
     if (! retrieved) return null;
     return _.isString(alias) ? $fn.extensions.mapCall(retrieved, method, true) : alias;
@@ -75,7 +75,7 @@ Fiber.fn.extensions = {
       if ($fn.extensions.has(alias) && ! $val(override, false)) return this;
       if ($fn.extensions.isNotExtension(extension)) extension = new Fiber.Extension(extension);
       extension.setName(alias);
-      this.__access('set', alias, extension);
+      this._access('set', alias, extension);
     }
     return this;
   },
@@ -91,7 +91,7 @@ Fiber.fn.extensions = {
     if (_.isArray(alias)) return _[method](alias, function(one) {
       return $fn.extensions.has(one);
     });
-    return this.__access('has', alias);
+    return this._access('has', alias);
   },
 
   /**
@@ -101,7 +101,7 @@ Fiber.fn.extensions = {
    */
   forget: function(alias) {
     _(alias).castArray().each(function(one) {
-      this.__access('forget', one);
+      this._access('forget', one);
     }.bind(this));
     return this;
   },
@@ -111,7 +111,7 @@ Fiber.fn.extensions = {
    * @returns {Object}
    */
   all: function() {
-    return this.__access('all');
+    return this._access('all');
   },
 
   /**

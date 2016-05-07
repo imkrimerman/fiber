@@ -1,4 +1,11 @@
 /**
+ * Base Class
+ * @class
+ * @extends {Backbone.Events}
+ */
+$BaseClass = $fn.class.create([Backbone.Events, { constructor: $fn.class.createConstructor() }]);
+
+/**
  * Returns extension if one is found or empty object otherwise
  * @param {Array|string} alias
  * @param {?string|boolean} [method='getCode']

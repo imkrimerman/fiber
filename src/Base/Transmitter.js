@@ -10,7 +10,7 @@ Fiber.Transmitter = Fiber.Bag.extend({
    * @type {string|Function}
    * @private
    */
-  __holderKey: 'channels',
+  _holderKey: 'channels',
 
   /**
    * Returns events channel, if one is not exists with given `name`, it will be created

@@ -1,21 +1,22 @@
 /**
  * Fiber Type
  * @class
+ * @extends {$BaseClass}
  */
-Fiber.Type = $fn.class.create({
+Fiber.Type = $BaseClass.create({
 
   /**
    * Class type signature
    * @type {string}
    * @private
    */
-  __signature: '[object Fiber.Type]',
+  _signature: '[object Fiber.Type]',
 
   /**
    * Type options defaults
    * @type {Object|Function}
    */
-  __defaults: {
+  _defaults: {
     type: null,
     signature: null,
     defaults: $val.notDefined,
@@ -27,8 +28,8 @@ Fiber.Type = $fn.class.create({
    * @param {Object} options
    */
   constructor: function(options) {
-    var config = $valMerge(options, $fn.result(this.__defaults), 'defaults');
-    if (! this.__isValidOptions(config)) $Log.errorThrow('Cannot create new type. `Options` are not valid.');
+    var config = $valMerge(options, $fn.result(this._defaults), 'defaults');
+    if (! this._isValidOptions(config)) $Log.errorThrow('Cannot create new type. `Options` are not valid.');
     this[$Config.private.key] = $fn.descriptor.immutable(config);
   },
 
@@ -73,7 +74,7 @@ Fiber.Type = $fn.class.create({
    * @returns {boolean}
    * @private
    */
-  __isValidOptions: function(options) {
+  _isValidOptions: function(options) {
     options = $val(options, {}, _.isPlainObject);
     return _.isString(options[$fn.types.lookUpKeys.type]) && _.isString(options[$fn.types.lookUpKeys.signature]);
   },
@@ -100,7 +101,7 @@ var BaseJSTypes = {
  * @type {Object}
  */
 var BaseFiberTypes = {
-  Type: {type: 'object', signature: Fiber.Type.prototype.__signature, defaults: Fiber.Type}
+  Type: {type: 'object', signature: Fiber.Type.prototype._signature, defaults: Fiber.Type}
 };
 
 /**

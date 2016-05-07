@@ -8,7 +8,7 @@ $fn = Fiber.fn = {
    * Private configuration
    * @type {Object}
    */
-  __private: {
+  _private: {
 
     /**
      * List of properties to exclude when mixin functions to Class prototype
@@ -20,7 +20,7 @@ $fn = Fiber.fn = {
      * Value that represents not defined state.
      * @type {string}
      */
-    notDefined: '$__NULL__$'
+    notDefined: '$_NULL_$'
   },
 
   /**
@@ -85,7 +85,7 @@ $fn = Fiber.fn = {
 
   /**
    * Returns value if not undefined or null,
-   * otherwise returns defaults or $__NULL__$ value
+   * otherwise returns defaults or $_NULL_$ value
    * @see https://github.com/imkrimerman/im.val (npm version)
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
@@ -94,7 +94,7 @@ $fn = Fiber.fn = {
    * @returns {*}
    */
   val: function(value, defaults, checker, match) {
-    // if defaults not specified then assign notDefined `$__NULL__$` value
+    // if defaults not specified then assign notDefined `$_NULL_$` value
     defaults = arguments.length > 1 ? defaults : $private($fn, 'notDefined');
     // if we don't have any `value` then return `defaults`
     if (! arguments.length) return defaults;
@@ -699,7 +699,7 @@ $fn = Fiber.fn = {
   isAllowedToAccess: function(object, method, level) {
     level = $val(level, $Config.access.default, _.isString) || object[$Config.access.key];
     if (! _.isObject(object) || ! level) return true;
-    var methods = _.get(object, '__allow.' + level);
+    var methods = _.get(object, '_allow.' + level);
     if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
     if (_.includes(methods, method)) return true;
     return false;
@@ -784,7 +784,7 @@ $privateHas = $fn.hasPrivate;
  * @type {string}
  * @static
  */
-$fn.val.notDefined = $fn.__private.notDefined;
+$fn.val.notDefined = $fn._private.notDefined;
 
 /**
  * Checks if value is defined
@@ -799,7 +799,7 @@ $isDef = $fn.val.isDef = function(value) {
 
 /**
  * Returns value if not undefined or null,
- * otherwise returns defaults or $__NULL__$ value
+ * otherwise returns defaults or $_NULL_$ value
  * @see https://github.com/imkrimerman/im.val (npm version)
  * @param {*} value - value to check
  * @param {*} defaults - default value to use

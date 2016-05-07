@@ -37,14 +37,14 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * Properties keys that will be owned by the instance
    * @type {Array|Function}
    */
-  ownProps: ['eventsConfig', '__responders'],
+  ownProps: ['eventsConfig', '_responders'],
 
   /**
    * Responders holder
    * @type {Object}
    * @private
    */
-  __responders: {},
+  _responders: {},
 
   /**
    * Fires `event` with namespace (if available) and `catalog` alias look up
@@ -153,7 +153,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {*}
    */
   getResponder: function(event, defaults) {
-    return this.get('__responders.' + event, defaults);
+    return this.get('_responders.' + event, defaults);
   },
 
   /**
@@ -164,7 +164,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {Fiber.Events}
    */
   setResponder: function(event, action, scope) {
-    return this.set('__responders.' + event, _.bind(action, $val(scope, this)));
+    return this.set('_responders.' + event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -173,7 +173,7 @@ Fiber.Events = _.extend({}, Backbone.Events, {
    * @returns {boolean}
    */
   hasResponder: function(event) {
-    return this.has('__responders.' + event);
+    return this.has('_responders.' + event);
   },
 
   /**

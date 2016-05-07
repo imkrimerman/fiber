@@ -8,7 +8,7 @@ Fiber.fn.computed = {
    * Private configuration
    * @type {Object}
    */
-  __private: {
+  _private: {
 
     /**
      * Postfix to use to create method name

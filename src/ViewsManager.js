@@ -13,7 +13,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
   constructor: function($el, viewMap) {
     this.handleElement($el);
     this.setHolder(this.getHolder(), $val(viewMap, {}, _.isPlainObject));
-    this.__shown = {};
+    this._shown = {};
   },
 
   /**
@@ -41,7 +41,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
       $Log.errorThrow('Destination selector: ' + selector + ' cannot be found', this.$el, this);
     }
 
-    this.__renderToDestination($destination, view)
+    this._renderToDestination($destination, view)
     return this.setShown(selector, $destination, view);
   },
 
@@ -61,7 +61,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
     }
 
     var shown = this.getShown(selector);
-    this.__renderToDestination(shown.$destination, shown.view);
+    this._renderToDestination(shown.$destination, shown.view);
     return this;
   },
 
@@ -82,7 +82,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    * @returns {Object}
    */
   getShown: function(selector) {
-    return this.__shown[selector];
+    return this._shown[selector];
   },
 
   /**
@@ -102,7 +102,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    * @returns {Fiber.ViewsManager}
    */
   setShown: function(selector, $destination, view) {
-    this.__shown[selector] = {$destination: $destination, view: view};
+    this._shown[selector] = {$destination: $destination, view: view};
     return this;
   },
 
@@ -123,7 +123,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
       shown.$destination.empty();
     }
 
-    delete this.__shown[selector];
+    delete this._shown[selector];
     return this;
   },
 
@@ -145,7 +145,7 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    * @returns {Fiber.ViewsManager}
    * @private
    */
-  __renderToDestination: function($destination, view) {
+  _renderToDestination: function($destination, view) {
     if (! (view instanceof Backbone.View)) {
       $Log.errorThrow('View is not valid instance of Backbone.View and ' +
                       'cannot be rendered', view, $destination, this);

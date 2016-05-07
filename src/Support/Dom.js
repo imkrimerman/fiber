@@ -8,7 +8,7 @@ $dom = Fiber.fn.dom = {
    * Private configuration.
    * @type {Object}
    */
-  __private: {
+  _private: {
 
     /**
      * Ready state detector helpers

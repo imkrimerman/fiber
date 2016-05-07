@@ -220,8 +220,8 @@ Fiber.CollectionView = Fiber.View.extend({
    * Before render private hook
    * @private
    */
-  __beforeRender: function() {
-    this.__resetModelsView();
+  _beforeRender: function() {
+    this._resetModelsView();
     this.linked.reset([]);
   },
 
@@ -229,7 +229,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * Resets models view reference
    * @private
    */
-  __resetModelsView: function() {
+  _resetModelsView: function() {
     this.collection.each(function(model) {
       model.resetView();
     });
@@ -239,7 +239,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * After render private hook
    * @private
    */
-  __afterRender: function() {
+  _afterRender: function() {
     this.resolveUi();
     this.resolveCollectionElement();
     this.renderCollection();

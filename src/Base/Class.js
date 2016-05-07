@@ -1,8 +1,9 @@
 /**
  * Fiber Base Class
  * @class
+ * @extends {$BaseClass}
  */
-Fiber.Class = $fn.class.create([
+Fiber.Class = $BaseClass.implement('Eventable').create([
   Fiber.Events, {
 
     /**
@@ -10,7 +11,7 @@ Fiber.Class = $fn.class.create([
      * @type {string}
      * @private
      */
-    __signature: '[object Fiber.Class]'
+    _signature: '[object Fiber.Class]'
   }
 ]);
 
@@ -19,6 +20,6 @@ Fiber.Class = $fn.class.create([
  */
 Fiber.Types.Class = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Class.prototype.__signature,
+  signature: Fiber.Class.prototype._signature,
   defaults: Fiber.Class
 });

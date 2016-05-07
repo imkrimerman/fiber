@@ -10,25 +10,25 @@ Fiber.Extension = Fiber.Class.extend({
    * @type {string}
    * @private
    */
-  __signature: '[object Fiber.Extension]',
+  _signature: '[object Fiber.Extension]',
 
   /**
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
-  __initWith: false,
+  _initWith: false,
 
   /**
    * Extension name
    * @type {string}
    */
-  __name: '',
+  _name: '',
 
   /**
    * Code capsule
    * @type {Object}
    */
-  __code: null,
+  _code: null,
 
   /**
    * Constructs extension
@@ -37,7 +37,7 @@ Fiber.Extension = Fiber.Class.extend({
    */
   constructor: function(name, code) {
     this.fromCode(code, name);
-    $fn.apply(this, '__init__', arguments);
+    $fn.apply(this, '_init_', arguments);
   },
 
   /**
@@ -45,7 +45,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @param {Object} code
    */
   setCodeCapsule: function(code) {
-    this.__code = code;
+    this._code = code;
   },
 
   /**
@@ -53,7 +53,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {Object}
    */
   getCodeCapsule: function() {
-    return this.__code;
+    return this._code;
   },
 
   /**
@@ -61,7 +61,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {boolean}
    */
   hasCodeCapsule: function() {
-    return _.isPlainObject(this.__code);
+    return _.isPlainObject(this._code);
   },
 
   /**
@@ -69,7 +69,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {string|boolean}
    */
   getInitMethod: function() {
-    return this.__initWith;
+    return this._initWith;
   },
 
   /**
@@ -78,7 +78,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {Fiber.Extension}
    */
   setInitMethod: function(method) {
-    this.__initWith = method;
+    this._initWith = method;
     return this;
   },
 
@@ -87,7 +87,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {boolean}
    */
   hasInitMethod: function() {
-    return ! ! this.__initWith;
+    return ! ! this._initWith;
   },
 
   /**
@@ -95,7 +95,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {string}
    */
   getName: function() {
-    return this.__name;
+    return this._name;
   },
 
   /**
@@ -104,7 +104,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {Fiber.Extension}
    */
   setName: function(name) {
-    this.__name = name;
+    this._name = name;
     return this;
   },
 
@@ -113,7 +113,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {boolean}
    */
   hasName: function() {
-    return ! _.isEmpty(this.__name);
+    return ! _.isEmpty(this._name);
   },
 
   /**
@@ -156,11 +156,11 @@ Fiber.Extension = Fiber.Class.extend({
     code = $valMerge(code, {initWith: false}, 'defaults');
     initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
     if (_.isString(name)) this.setName(name);
-    if (_.isFunction(_.get(code, '__init__'))) this.__init__ = code.__init__;
+    if (_.isFunction(_.get(code, '_init_'))) this._init_ = code._init_;
     this.setCodeCapsule(code);
-    this.setInitMethod(initWith || code.initWith || code.__initWith || this.__initWith);
+    this.setInitMethod(initWith || code.initWith || code._initWith || this._initWith);
     delete code.initWith;
-    delete code.__initWith;
+    delete code._initWith;
     return this;
   },
 
@@ -202,6 +202,6 @@ Fiber.Extension = Fiber.Class.extend({
  */
 Fiber.Types.Extension = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Extension.prototype.__signature,
+  signature: Fiber.Extension.prototype._signature,
   defaults: Fiber.Extension
 });

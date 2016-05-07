@@ -10,7 +10,7 @@ Fiber.Object = Fiber.Class.extend($fn.extensions.listNames().concat([{
    * @type {string}
    * @private
    */
-  __signature: '[object Fiber.Object]'
+  _signature: '[object Fiber.Object]'
 
 }]));
 
@@ -19,6 +19,6 @@ Fiber.Object = Fiber.Class.extend($fn.extensions.listNames().concat([{
  */
 Fiber.Types.Object = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Object.prototype.__signature,
+  signature: Fiber.Object.prototype._signature,
   defaults: Fiber.Object
 });

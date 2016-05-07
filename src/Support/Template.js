@@ -28,7 +28,7 @@ Fiber.fn.template = {
    * @type {Object}
    * @private
    */
-  __engines: {
+  _engines: {
 
     /**
      * Main template engine
@@ -120,7 +120,7 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   getEngine: function(alias) {
-    var engine = $fn.get($fn.template.__engines, alias || 'engine');
+    var engine = $fn.get($fn.template._engines, alias || 'engine');
     if (_.isFunction(engine)) return engine;
     return $fn.template.getFallback();
   },
@@ -133,7 +133,7 @@ Fiber.fn.template = {
    */
   setEngine: function(alias, engine) {
     if (! _.isFunction(engine)) return $fn.template;
-    return $fn.set($fn.template.__engines, alias, engine);
+    return $fn.set($fn.template._engines, alias, engine);
   },
 
   /**
@@ -152,7 +152,7 @@ Fiber.fn.template = {
    */
   forgetEngine: function(alias) {
     var engine = $fn.template.getEngine(alias);
-    $fn.forget($fn.template.__engines, alias);
+    $fn.forget($fn.template._engines, alias);
     return engine;
   },
 
@@ -161,7 +161,7 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   getFallback: function() {
-    return $fn.template.__fallback;
+    return $fn.template._fallback;
   },
 
   /**
@@ -239,7 +239,7 @@ Fiber.fn.template = {
    * @returns {Array}
    */
   getAliases: function() {
-    return _.keys($fn.template.__engines);
+    return _.keys($fn.template._engines);
   },
 
   /**

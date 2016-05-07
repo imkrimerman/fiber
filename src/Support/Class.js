@@ -57,7 +57,7 @@ Fiber.fn.class = {
 
   /**
    * Extend this Class to create a new one inheriting this one.
-   * Also adds `__super__` object pointing to the parent prototype and `__parent__`
+   * Also adds `_super_` object pointing to the parent prototype and `_parent_`
    * pointing to parent constructor.
    * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
    * @param  {?Object} [staticProps] - Static properties (available on the constructor)
@@ -272,7 +272,7 @@ Fiber.fn.class = {
    */
   createNew: function(Class, property) {
     var isDef = $isDef(property)
-      , parent = _.isString(property) ? _.get(Class, property) : isDef ? property : Class;
+      , parent = _.isString(property) ? $fn.get(Class, property) : isDef ? property : Class;
     return $fn.class.instance(parent, isDef ? _.drop(arguments) : arguments);
   },
 
@@ -284,12 +284,18 @@ Fiber.fn.class = {
    */
   implement: function(Class, contract) {
     if (! Fiber.Contract) return Class;
+
+    if (arguments.length > 2) {
+      Class = _.first(arguments);
+      return _.map(_.toArray(_.drop(arguments)), $fn.class.implement.bind(null, Class));
+    }
+
     if (arguments.length === 1 && Class instanceof Fiber.Contract) {
       contract = Class;
       Class = $fn.class.create();
     }
 
-    if (_.isString(contract) && (contract = _.capitalize(contract)) && _.has(Fiber.Contracts, contract))
+    if (_.isString(contract) && (contract = _.capitalize(contract)) && $fn.has(Fiber.Contracts, contract))
       contract = Fiber.Contracts[contract];
 
     if (contract instanceof Fiber.Contract) {
@@ -303,7 +309,7 @@ Fiber.fn.class = {
   },
 
   /**
-   * Attaches `__super__` and `__parent__` objects to child
+   * Attaches `_super_` and `_parent_` objects to child
    * @param {Object} child
    * @param {Function|Object} parent
    * @param {Function} constructor

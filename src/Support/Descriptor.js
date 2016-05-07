@@ -4,7 +4,7 @@
  */
 Fiber.fn.descriptor = {
 
-  __private: {
+  _private: {
     locked: {},
     defaults: 'public'
   },
@@ -14,7 +14,7 @@ Fiber.fn.descriptor = {
    * @type {Object}
    * @private
    */
-  __locks: {},
+  _locks: {},
 
   /**
    * Defaults
@@ -181,11 +181,11 @@ Fiber.fn.descriptor = {
     override = $val(override, false);
 
     if ($fn.descriptor.isLocked(secret) && ! override)
-      return $fn.descriptor.__locks[secret];
+      return $fn.descriptor._locks[secret];
 
     var locked = $fn.descriptor.immutable($fn.clone(object, true));
 
-    $fn.descriptor.__locks[secret] = {
+    $fn.descriptor._locks[secret] = {
       original: object,
       locked: locked
     };
@@ -203,10 +203,10 @@ Fiber.fn.descriptor = {
     if (! $fn.descriptor.canDescribe(object) || ! $fn.descriptor.isLocked(secret))
       return object;
 
-    var locked = $fn.descriptor.__locks[secret]
+    var locked = $fn.descriptor._locks[secret]
       , original = locked.original;
 
-    delete $fn.descriptor.__locks[secret];
+    delete $fn.descriptor._locks[secret];
     return original;
   },
 

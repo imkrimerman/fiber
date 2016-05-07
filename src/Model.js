@@ -228,7 +228,7 @@ Fiber.Model = $Model.extend({
    * @param {Fiber.View} view
    */
   setView: function(view) {
-    this.__view = view;
+    this._view = view;
   },
 
   /**
@@ -236,7 +236,7 @@ Fiber.Model = $Model.extend({
    * @returns {Fiber.View|*|null}
    */
   getView: function() {
-    return this.__view;
+    return this._view;
   },
 
   /**
@@ -244,7 +244,7 @@ Fiber.Model = $Model.extend({
    * @returns {boolean}
    */
   hasView: function() {
-    return ! _.isEmpty(this.__view);
+    return ! _.isEmpty(this._view);
   },
 
   /**
@@ -252,7 +252,7 @@ Fiber.Model = $Model.extend({
    * @returns {Fiber.Model}
    */
   resetView: function() {
-    this.__view = null;
+    this._view = null;
     return this;
   },
 

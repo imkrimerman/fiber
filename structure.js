@@ -5,20 +5,19 @@
  * @type {Array.<string>}
  */
 module.exports = [
-  // Support
   './src/Support/Properties.js',
   './src/Support/Compatibility.js',
   './src/Support/Version.js',
   './src/Support/fn.js',
   './src/Support/Macros.js',
   './src/Support/Descriptor.js',
-  './src/Support/Class.js',
   './src/Support/Cast.js',
-  './src/Support/Extensions.js',
+  './src/Support/Class.js',
+  './src/Support/Delegator.js',
   './src/Support/DeepProps.js',
+  './src/Support/Extensions.js',
   './src/Support/Template.js',
   './src/Support/Validation.js',
-  './src/Support/Delegator.js',
   './src/Support/Computed.js',
   './src/Support/Compose.js',
   './src/Support/Injection.js',
@@ -27,9 +26,11 @@ module.exports = [
   // Core
   './src/Core.js',
   './src/Base/Log.js',
+  './src/Base/Monitor.js',
   './src/Base/Type.js',
   // Contracts
   './src/Contracts/Contract.js',
+  './src/Contracts/Eventable.js',
   './src/Contracts/Storage.js',
   // Base
   './src/Base/Events.js',
@@ -39,8 +40,6 @@ module.exports = [
   './src/Base/Transmitter.js',
   './src/Base/Extension.js',
   './src/Base/Dom/Element.js',
-  // Set Globals
-  './src/Support/Globals.js',
   // Inversion of control Container
   './src/Container.js',
   // Extensions

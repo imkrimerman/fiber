@@ -1,21 +1,22 @@
 /**
  * Fiber Contract
  * @class
+ * @extends {$BaseClass}
  */
-Fiber.Contract = $fn.class.create({
+Fiber.Contract = $BaseClass.create({
 
   /**
    * Class type signature
    * @type {string}
    * @private
    */
-  __signature: '[object Fiber.Contract]',
+  _signature: '[object Fiber.Contract]',
 
   /**
    * Contract immutability flag
    * @type {boolean}
    */
-  __immutable: true,
+  _immutable: true,
 
   /**
    * Constructs contract
@@ -23,11 +24,11 @@ Fiber.Contract = $fn.class.create({
    * @param {Object} contract
    */
   constructor: function(name, contract) {
-    this.__name = '';
-    this.__contract = {};
+    this._name = '';
+    this._contract = {};
     this.setName(name);
     this.set(contract);
-    if (this.__immutable) $fn.descriptor.immutable(this);
+    if (this._immutable) $fn.descriptor.immutable(this);
   },
 
   /**
@@ -35,7 +36,7 @@ Fiber.Contract = $fn.class.create({
    * @param {Object} contract
    */
   set: function(contract) {
-    if (this.__isValid(contract)) this.__contract = contract;
+    if (this._isValid(contract)) this._contract = contract;
     return this;
   },
 
@@ -44,7 +45,7 @@ Fiber.Contract = $fn.class.create({
    * @returns {Object}
    */
   get: function() {
-    return this.__contract;
+    return this._contract;
   },
 
   /**
@@ -67,7 +68,7 @@ Fiber.Contract = $fn.class.create({
    * @returns {Fiber.Contract}
    */
   setName: function(name) {
-    if (_.isString(name)) this.__name = name;
+    if (_.isString(name)) this._name = name;
     return this;
   },
 
@@ -76,7 +77,7 @@ Fiber.Contract = $fn.class.create({
    * @returns {string}
    */
   getName: function() {
-    return this.__name;
+    return this._name;
   },
 
   /**
@@ -84,7 +85,7 @@ Fiber.Contract = $fn.class.create({
    * @returns {boolean}
    */
   isImmutable: function() {
-    return this.__immutable;
+    return this._immutable;
   },
 
   /**
@@ -93,7 +94,7 @@ Fiber.Contract = $fn.class.create({
    * @returns {boolean}
    * @private
    */
-  __isValid: function(contract) {
+  _isValid: function(contract) {
     return _.isPlainObject(contract) && _.every(_.values(contract), _.isString);
   },
 });
@@ -103,6 +104,6 @@ Fiber.Contract = $fn.class.create({
  */
 Fiber.Types.Contract = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Contract.prototype.__signature,
+  signature: Fiber.Contract.prototype._signature,
   defaults: Fiber.Contract
 });

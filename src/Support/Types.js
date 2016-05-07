@@ -68,8 +68,8 @@ Fiber.fn.types = {
    */
   matches: function(arg, type, oneArg) {
     type = _.isString(type) && Fiber.Types ? Fiber.Types[type] : type;
-    if (oneArg || ! _.isArray(arg)) return this.__matches(arg, type);
-    return $fn.multi(arg, this.__matches, null, 'every', this);
+    if (oneArg || ! _.isArray(arg)) return this.matchesOne(arg, type);
+    return $fn.multi(arg, this.matchesOne, null, 'every', this);
   },
 
   /**
@@ -79,7 +79,7 @@ Fiber.fn.types = {
    * @returns {boolean}
    * @private
    */
-  __matches: function(arg, type) {
+  matchesOne: function(arg, type) {
     return $fn.types.matchesType(arg, type) && $fn.types.matchesSignature(arg, type);
   },
 };

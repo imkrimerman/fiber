@@ -60,7 +60,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * Rendered flag
      * @type {boolean}
      */
-    __rendered: false,
+    _rendered: false,
 
     /**
      * Properties keys that will be auto extended from initialize object
@@ -76,7 +76,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @type {Array|Function}
      */
     ownProps: [
-      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '__rendered',
+      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '_rendered',
       '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'transmit', 'viewsManager'
     ],
 
@@ -93,8 +93,8 @@ Fiber.View = $fn.class.make(Backbone.View, [
       this.applyBinder();
       this.resolveListenable();
       this.startTransmitting();
-      this.__handleEventsUi();
-      this.__wrapRender();
+      this._handleEventsUi();
+      this._wrapRender();
       this._ensureElement();
       this.viewsManager = new Fiber.ViewsManager(this.$el);
       this.initialize.apply(this, arguments);
@@ -118,7 +118,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {boolean}
      */
     isRendered: function() {
-      return this.__rendered;
+      return this._rendered;
     },
 
     /**
@@ -340,12 +340,12 @@ Fiber.View = $fn.class.make(Backbone.View, [
       var result;
 
       $fn.fireCallCyclic(this, 'render', function() {
-        this.$apply(this, '__beforeRender');
+        this.$apply(this, '_beforeRender');
         result = render.call(this);
-        this.$apply(this, '__afterRender');
+        this.$apply(this, '_afterRender');
       }, {fire: this, call: render});
 
-      this.__rendered = true;
+      this._rendered = true;
       return result;
     },
 
@@ -356,7 +356,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
       $fn.fireCallCyclic(this, 'remove', function() {
         this.$super('remove', {fire: this});
       });
-      this.__rendered = false;
+      this._rendered = false;
     },
 
     /**
@@ -364,14 +364,14 @@ Fiber.View = $fn.class.make(Backbone.View, [
      */
     destroy: function() {
       this.remove();
-      this.__reset();
+      this._reset();
     },
 
     /**
      * After render private hook
      * @private
      */
-    __afterRender: function() {
+    _afterRender: function() {
       this.resolveUi();
     },
 
@@ -379,7 +379,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * Resets View
      * @private
      */
-    __reset: function() {
+    _reset: function() {
       this.$ui = {};
       this.$parent = null;
       delete this.options;
@@ -390,7 +390,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * Handles events with @ui
      * @private
      */
-    __handleEventsUi: function() {
+    _handleEventsUi: function() {
       if (! this.events) return;
       var isValidUi = this.ui && ! _.isEmpty(this.ui),
         events = this.result('events'),
@@ -412,7 +412,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {Fiber.View}
      * @private
      */
-    __wrapRender: function() {
+    _wrapRender: function() {
       this.render = _.wrap(this.render, this.callRender.bind(this));
       return this;
     },

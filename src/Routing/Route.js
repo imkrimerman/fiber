@@ -111,7 +111,7 @@ Fiber.Route = Fiber.Model.extend({
    * @returns {Fiber.Route}
    */
   setComposedState: function(state) {
-    this.__isComposed = state;
+    this._isComposed = state;
     return this;
   },
 
@@ -120,6 +120,6 @@ Fiber.Route = Fiber.Model.extend({
    * @returns {boolean}
    */
   getComposedState: function() {
-    return this.__isComposed;
+    return this._isComposed;
   }
 });

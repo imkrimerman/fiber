@@ -2,7 +2,7 @@
 var Fr, Fiber, previousFiber,
 // define Internal variables
   $doc, $fn, $val, $valMerge, $isDef, $each, $origEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
-  $Types, $Config, $TypeChecker, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
+  $Types, $Config, $TypeChecker, $BaseClass, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
   $RouterCollection, BaseJSTypes, BaseFiberTypes;
 
 /**
@@ -10,10 +10,10 @@ var Fr, Fiber, previousFiber,
  * @type {Object}
  */
 $Config = {
-  private: {key: '__private'},
-  access: {key: '__access', default: 'public'},
-  type: {key: '__signature'},
-  contracts: {key: '__implements'},
+  private: {key: '_private'},
+  access: {key: '_access', default: 'public'},
+  type: {key: '_signature'},
+  contracts: {key: '_implements'},
 };
 
 /**

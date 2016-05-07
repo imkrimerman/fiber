@@ -8,7 +8,7 @@ Fiber.fn.macros = {
    * Private configuration
    * @type {Object}
    */
-  __private: {
+  _private: {
 
     /**
      * Macros holder
