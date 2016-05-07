@@ -47,7 +47,7 @@ Fiber.fn.cast = {
    * @returns {*}
    */
   toFunction: function(value) {
-    if (! _.isFunction(value)) return _.constant(value);
+    if (! _.isFunction(value)) return $fn.constant(value);
     return value;
   },
 

@@ -19,7 +19,7 @@ Fiber.Type = $fn.class.create({
     type: null,
     signature: null,
     defaults: $val.notDefined,
-    caster: _.constant
+    caster: $fn.constant
   },
 
   /**

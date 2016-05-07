@@ -5,56 +5,48 @@
 Fiber.fn.template = {
 
   /**
-   * Private configuration
+   * System template settings
    * @type {Object}
    */
-  __private: {
+  settings: {
+    evaluate: /{{([\s\S]+?)}}/g,
+    interpolate: /{{=([\s\S]+?)}}/g,
+    escape: /{{-([\s\S]+?)}}/g,
+    imports: {
+      Fiber: Fiber,
+      Fr: Fiber,
+      $fn: Fiber.fn,
+      $each: $each,
+      $val: $val,
+      $valMerge: $valMerge,
+      $isDef: $isDef
+    }
+  },
+
+  /**
+   * Available engines
+   * @type {Object}
+   * @private
+   */
+  __engines: {
 
     /**
-     * Template engine
+     * Main template engine
      * @type {Function}
-     * @private
      */
     engine: _.template,
 
     /**
      * System template engine
      * @type {Function}
-     * @private
      */
     system: _.template,
 
     /**
      * Fallback template engine
      * @type {Function}
-     * @private
      */
-    fallback: _.constant,
-
-    /**
-     * Available engines list
-     * @type {Array}
-     */
-    engines: ['engine', 'system', 'fallback'],
-
-    /**
-     * Template settings
-     * @type {Object}
-     */
-    settings: {
-      evaluate: /{{([\s\S]+?)}}/g,
-      interpolate: /{{=([\s\S]+?)}}/g,
-      escape: /{{-([\s\S]+?)}}/g,
-      imports: {
-        Fiber: Fiber,
-        Fr: Fiber,
-        $fn: Fiber.fn,
-        $each: $each,
-        $val: $val,
-        $valMerge: $valMerge,
-        $isDef: $isDef
-      }
-    },
+    fallback: $fn.constant,
   },
 
   /**
@@ -93,11 +85,11 @@ Fiber.fn.template = {
    * @param {?string} [type='engine']
    * @returns {Function}
    */
-  prepare: function(template, type) {
-    type = $val(type, 'engine', $fn.createIncludes($private($fn.template, '__engines')));
-    var engine = $fn.template['get' + _.capitalize(type)]();
+  prepare: function(template, engineName) {
+    engineName = $val(engineName, 'engine', $fn.createIncludes($fn.template.getAliases()));
+    var engine = $fn.template.getEngine(engineName);
     // if engine is not found then lets wrap to return the same
-    if (! _.isFunction(engine)) return _.constant(template);
+    if (! _.isFunction(engine)) $Log.errorThrow('Template engine is not a function');
     // otherwise lets use all arguments and path them into the engine
     var prepared = engine.apply(engine, arguments);
     // adds static render function to the prepared template
@@ -116,7 +108,7 @@ Fiber.fn.template = {
    */
   imports: function(data, inherit) {
     data = $val(data, {}, _.isPlainObject);
-    var imports = $private($fn.template, 'settings.imports')
+    var imports = $fn.template.getSettings('imports')
       , args = [data, imports];
     if (! inherit) args.unshift({});
     return _.extend.apply(_, args);
@@ -124,61 +116,44 @@ Fiber.fn.template = {
 
   /**
    * Returns template engine
-   * @param {?string} [type]
+   * @param {?string} [type='engine']
    * @returns {Function}
    */
-  getEngine: function() {
-    var engine = $private($fn.template, 'engine');
-    if (! _.isFunction(engine)) return $fn.template.getFallback();
-    return engine;
+  getEngine: function(alias) {
+    var engine = $fn.get($fn.template.__engines, alias || 'engine');
+    if (_.isFunction(engine)) return engine;
+    return $fn.template.getFallback();
   },
 
   /**
    * Sets template engine
+   * @param {string} alias
    * @param {Function} engine
    * @return {Fiber.fn.template}
    */
-  setEngine: function(engine) {
+  setEngine: function(alias, engine) {
     if (! _.isFunction(engine)) return $fn.template;
-    $private($fn.template, 'engine', engine);
-    return $fn.template;
+    return $fn.set($fn.template.__engines, alias, engine);
   },
 
   /**
    * Checks if template engine is valid and not the fallback one
+   * @param {?string} [alias='engine']
    * @returns {boolean}
    */
-  hasEngine: function() {
-    var engine = $fn.template.getEngine()
-      , fallback = $private($fn.template, 'fallback');
-    if (! _.isFunction(engine) || engine === fallback) return false;
-    return true;
+  hasEngine: function(alias) {
+    return _.isFunction($fn.template.getEngine(alias))
   },
 
   /**
-   * Returns system template engine
+   * Removes engine by alias and returns it
+   * @param {string} alias
    * @returns {Function}
    */
-  getSystem: function() {
-    return $private($fn.template, 'system');
-  },
-
-  /**
-   * Sets system template engine
-   * @param {Function} engine
-   * @returns {Fiber.fn.template}
-   */
-  setSystem: function(engine) {
-    if (_.isFunction(engine)) $private($fn.template, '__system', engine);
-    return $fn.template;
-  },
-
-  /**
-   * Determines if has system template engine
-   * @returns {boolean}
-   */
-  hasSystem: function() {
-    return _.isFunction($fn.template.getSystem());
+  forgetEngine: function(alias) {
+    var engine = $fn.template.getEngine(alias);
+    $fn.forget($fn.template.__engines, alias);
+    return engine;
   },
 
   /**
@@ -186,16 +161,16 @@ Fiber.fn.template = {
    * @returns {Function}
    */
   getFallback: function() {
-    return $private($fn.template, 'fallback');
+    return $fn.template.__fallback;
   },
 
   /**
    * Sets fallback template engine
-   * @param {Function} fallback
+   * @param {Function} engine
    * @returns {Fiber.fn.template}
    */
-  setFallback: function(fallback) {
-    if (_.isFunction(fallback)) $private($fn.template, 'fallback', fallback);
+  setFallback: function(engine) {
+    if (_.isFunction(engine)) $fn.template.setEngine('fallback', engine);
     return $fn.template;
   },
 
@@ -213,7 +188,7 @@ Fiber.fn.template = {
    * @returns {*}
    */
   getSettings: function(path) {
-    return $private($fn.template, $fn.join(['settings', path], '.'));
+    return $fn.get($fn.template, $fn.template.makeSettingsPath(path));
   },
 
   /**
@@ -229,8 +204,7 @@ Fiber.fn.template = {
     }
 
     if (! path) return $fn.template;
-    $private($fn.template, path, value);
-    return $fn.template;
+    return $fn.set($fn.template, $fn.template.makeSettingsPath(path), value);
   },
 
   /**
@@ -239,7 +213,33 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasSettings: function(path) {
-    return $privateHas($fn.template, path);
+    return $fn.has($fn.template, $fn.template.makeSettingsPath(path));
+  },
+
+  /**
+   * Removes settings at the path
+   * @param {string} path
+   * @returns {boolean}
+   */
+  forgetSettings: function(path) {
+    return $fn.get($fn.template, $fn.template.makeSettingsPath(path));
+  },
+
+  /**
+   * Makes settings access key
+   * @param {?string} [path]
+   * @returns {string}
+   */
+  makeSettingsPath: function(path) {
+    return $fn.join('settings', path, '.');
+  },
+
+  /**
+   * Returns list of engines aliases
+   * @returns {Array}
+   */
+  getAliases: function() {
+    return _.keys($fn.template.__engines);
   },
 
   /**

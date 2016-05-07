@@ -18,22 +18,16 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 
   /**
    * Ensures that class owns properties
-   * @param {?Array|Function} [props]
+   * @param {?Array} [properties]
    * @param {?boolean} [merge=true]
    * @returns {Object}
    */
   applyOwnProps: function(properties, merge) {
     merge = $val(merge, true, _.isBoolean);
-    var ownProperties = _.result(this, 'ownProps', [])
-      , properties = $val(properties, [], _.isArray);
-    if (merge) properties = $fn.concat(ownProperties, properties);
-    for (var i = 0; i < properties.length; i ++) {
-      var property = properties[i]
-        , propertyValue = _.get(this, property);
-      if (this.hasOwnProperty(property)) continue;
-      _.set(this, property, $fn.clone(propertyValue, true));
-    }
-    return this;
+    var own = $fn.result(this, 'ownProps', []);
+    if (_.isString(own) && own === 'all' || own) own = $fn.properties(this);
+    if (merge && _.isArray(own)) properties = $fn.concat(own, $fn.castArr(properties));
+    return $fn.class.ensureOwn(this, properties);
   }
 });
 

@@ -90,7 +90,7 @@ Fiber.RouteCollection = $RouterCollection.extend({
    * @returns {Function}
    */
   wrap: function(route) {
-    return _.constant(route);
+    return $fn.constant(route);
   },
 
 });

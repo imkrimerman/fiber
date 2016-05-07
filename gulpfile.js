@@ -11,7 +11,6 @@ var _ = require('lodash')
   , karma = require('karma')
   , packageJson = require('./package')
   , structure = require('./structure')
-
   , config = {
     input: 'fiber.js',
     output: 'build',
@@ -28,7 +27,7 @@ config.allFiles = config.files.concat([config.test]);
 gulp.task('default', ['compile', 'tdd', 'lint', 'watch']);
 gulp.task('compile', ['build', 'build-test', 'build-doc', 'minify']);
 
-gulp.task('dev', ['build', 'watch-dev']);
+gulp.task('dev', ['build', 'serve', 'watch-dev-test']);
 gulp.task('dev-doc', ['build', 'build-doc', 'watch-dev']);
 gulp.task('dev-test', ['build', 'build-test', 'mocha', 'watch-dev-test']);
 
@@ -45,7 +44,8 @@ gulp.task('karma', CreateKarmaServer(true));
 gulp.task('tdd', CreateKarmaServer(false));
 
 gulp.task('lint', Lint);
-gulp.task('mocha', Mocha);
+gulp.task('mocha', Connect);
+gulp.task('serve', Connect);
 
 gulp.task('reload', function() {
   gulp.src(config.allFiles).pipe(connect.reload());
@@ -113,7 +113,7 @@ function Lint() {
     .pipe(eslint.format());
 }
 
-function Mocha() {
+function Connect() {
   connect.server({
     root: './',
     port: 3030,

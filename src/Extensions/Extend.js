@@ -27,17 +27,7 @@ var $Extend = new Fiber.Extension('Extend', {
    * @returns {*}
    */
   applyExtend: function(options) {
-    options = $val(options, {});
-    var willExtend = _.result(this, 'willExtend')
-      , passedWillExtend = options.willExtend && $fn.castArr(options.willExtend) || [];
-
-    if (! willExtend) return this;
-
-    if (_.isBoolean(willExtend) && willExtend || _.isString(willExtend) && willExtend === 'all')
-      return _.extend(this, options);
-
-    willExtend = willExtend.concat(passedWillExtend);
-    return _.extend(this, _.pick(options, _.compact(willExtend)));
+    $fn.class.extendFromOptions(this, $val(options, {}), $fn.result(this, 'willExtend', []));
   }
 });
 

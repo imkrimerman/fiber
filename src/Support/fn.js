@@ -170,7 +170,7 @@ $fn = Fiber.fn = {
   merge: function(array) {
     if (arguments.length > 1) array = _.toArray(arguments);
     if (! _.isArray(array)) return array;
-    array = _.compact(array);
+    array = $fn.compact(array);
     if ($fn.isArrayOf(array, 'array'))
       return _.flattenDeep(array);
     else if ($fn.isArrayOf(array, 'object'))
@@ -464,6 +464,19 @@ $fn = Fiber.fn = {
   },
 
   /**
+   * Returns pluralized word using count.
+   * If word is irregular then you can provide it as third argument
+   * @param {string} word
+   * @param {number} count
+   * @param {?string} [irregular]
+   * @returns {string}
+   */
+  plural: function(word, count, irregular) {
+    irregular = $val(irregular, false, _.isString);
+    return +count > 1 ? irregular ? irregular : word + 's' : word;
+  },
+
+  /**
    * Returns trimmed string or array of string
    * @param {string|Array} string
    * @param {?string} [delimiter]
@@ -488,7 +501,30 @@ $fn = Fiber.fn = {
       strings = _.dropRight(arguments, 1);
     }
 
-    return $fn.trim($fn.castArr(strings), glue).join(glue);
+    return $fn.trim($fn.compact($fn.castArr(strings)), glue).join(glue);
+  },
+
+  /**
+   * Creates function that returns `value`
+   * @param {*} value
+   * @returns {Function}
+   */
+  constant: function(value) {
+    return function() {return value;};
+  },
+
+  /**
+   * Removes all falsey values from array.
+   * Falsey values `false`, `null`, `0`, `""`, `undefined`, and `NaN`.
+   * @param {Array} array
+   * @returns {Array}
+   */
+  compact: function(array) {
+    var i = - 1, index = 0, result = []
+      , length = (array = $fn.castArr(array)) ? array.length : 0;
+
+    while (++i < length) if (array[i]) result[index++] = array[i];
+    return result;
   },
 
   /**

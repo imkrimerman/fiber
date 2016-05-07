@@ -322,7 +322,7 @@ Fiber.fn.extensions = {
    */
   findIncluded: function(object) {
     if (arguments.length > 1) {
-      var args = _.compact(_.toArray(arguments)), result = [];
+      var args = $fn.compact(_.toArray(arguments)), result = [];
       for (var i = 0; i < args.length; i ++)
         result = result.concat($fn.extensions.findIncluded(args[i]));
       return $fn.concat.apply(null, result);

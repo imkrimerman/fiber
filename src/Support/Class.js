@@ -410,8 +410,8 @@ Fiber.fn.class = {
    */
   prepareConditionCheckerMethod: function(object, method) {
     if (_.isString(method)) method = object[method];
-    if (_.isBoolean(method)) method = _.constant(method);
-    if (! _.isFunction(method)) return _.constant(true);
+    if (_.isBoolean(method)) method = $fn.constant(method);
+    if (! _.isFunction(method)) return $fn.constant(true);
   },
 
   /**
@@ -439,6 +439,36 @@ Fiber.fn.class = {
     if (! _.isPlainObject(defaults) || _.isEmpty(defaults)) return options;
     _[deep ? 'defaultsDeep' : 'defaults'](options, defaults);
     return options;
+  },
+
+  /**
+   * Ensures that class owns properties
+   * @param {Object} object
+   * @param {Array} properties
+   * @returns {Object}
+   */
+  ensureOwn: function(object, properties) {
+    if (! _.isObject(object)) return object;
+    properties = $fn.castArr(properties);
+    for (var i = 0; i < properties.length; i ++) {
+      var property = properties[i]
+        , propertyValue = $fn.get(object, property);
+      if (object.hasOwnProperty(property)) continue;
+      $fn.set(object, property, $fn.clone(propertyValue, true));
+    }
+    return object;
+  },
+
+  /**
+   * Merges options to object
+   * @param {Object} object
+   * @param {Object} options
+   * @param {?Array} [willExtend]
+   * @returns {object}
+   */
+  extendFromOptions: function(object, options, willExtend) {
+    if (willExtend && _.isArray(willExtend)) options = _.pick(options, $fn.compact(willExtend));
+    return _.extend(object, options);
   },
 
   /**

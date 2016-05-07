@@ -57,7 +57,6 @@ Fiber._ = _;
  */
 Fiber.Internal = {
   events: _.extend({}, Backbone.Events),
-  monitor: _.extend({}, Backbone.Events),
 };
 
 /**

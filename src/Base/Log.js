@@ -6,12 +6,6 @@
 Fiber.Log = $fn.class.create({
 
   /**
-   * Log timestamp
-   * @type {boolean}
-   */
-  __timestamp: false,
-
-  /**
    * Available log levels
    * @type {Array}
    */
@@ -39,12 +33,38 @@ Fiber.Log = $fn.class.create({
   __method: 'log',
 
   /**
-   * Templates
+   * Fallback log function
+   * @type {Function}
+   */
+  __fallback: console.log,
+
+  /**
+   * Log timestamp
+   * @type {boolean}
+   */
+  __timestamp: false,
+
+  /**
+   * Log template
    * @type {Object}
    */
-  __templates: {
-    timestamp: '{{ timestamp }}',
-    intro: '[Fiber] >> `{{ self.getLevel() }}`:'
+  __template: '{{ timestamp }} [Fiber]: `{{ self.getLevel() }}` >> ',
+
+  /**
+   * Console API Methods map
+   * @type {Object}
+   */
+  __methods: {
+    log: 'log',
+    debug: 'debug',
+    info: 'info',
+    warn: 'warn',
+    error: 'error',
+    dir: 'dir',
+    table: 'table',
+    clear: 'clear',
+    count: 'count',
+    assert: 'assert'
   },
 
   /**
@@ -60,36 +80,14 @@ Fiber.Log = $fn.class.create({
   },
 
   /**
-   * Console API Methods map
-   * @type {Object}
-   */
-  __list: {
-    log: 'log',
-    debug: 'debug',
-    info: 'info',
-    warn: 'warn',
-    error: 'error',
-    dir: 'dir',
-    table: 'table',
-    clear: 'clear',
-    count: 'count',
-    assert: 'assert'
-  },
-
-  /**
-   * Fallback log function
-   * @type {Function}
-   */
-  __fallback: console.log,
-
-  /**
    * Constructs log
    * @param {?Object} [options]
    */
   constructor: function(options) {
     options = $fn.class.handleOptions(this, options, {
       level: this.__level,
-      writer: this.__writer
+      writer: this.__writer,
+      template: this.__template
     });
 
     this.setLevel(options.level);
@@ -97,7 +95,7 @@ Fiber.Log = $fn.class.create({
   },
 
   /**
-   * Writes arguments using `writer` function
+   * Writes using `writer` function
    * @param {string} level
    * @param {...args}
    * @return {Fiber.Log}
@@ -106,14 +104,6 @@ Fiber.Log = $fn.class.create({
     var args = _.drop(_.toArray(arguments));
     if (this.isAllowedToWrite(level)) this.callWriter(level, args);
     return this;
-  },
-
-  /**
-   * Logs arguments using current level
-   * @returns {Fiber.Log}
-   */
-  log: function() {
-    return this.write.apply(this, [this.getLevel()].concat(_.toArray(arguments)));
   },
 
   /**
@@ -205,7 +195,7 @@ Fiber.Log = $fn.class.create({
    * @returns {Fiber.Log}
    */
   dir: function() {
-    this.__callWriter(this.__list.dir, arguments);
+    this.__callWriter(this.__methods.dir, arguments);
     return this;
   },
 
@@ -216,7 +206,7 @@ Fiber.Log = $fn.class.create({
    * @returns {Fiber.Log}
    */
   table: function(data, columns) {
-    this.__callWriter(this.__list.table, arguments);
+    this.__callWriter(this.__methods.table, arguments);
     return this;
   },
 
@@ -225,7 +215,7 @@ Fiber.Log = $fn.class.create({
    * @returns {Fiber.Log}
    */
   clear: function() {
-    this.__callWriter(this.__list.clear, arguments);
+    this.__callWriter(this.__methods.clear, arguments);
     return this;
   },
 
@@ -234,7 +224,7 @@ Fiber.Log = $fn.class.create({
    * @returns {Fiber.Log}
    */
   count: function() {
-    this.__callWriter(this.__list.count, arguments);
+    this.__callWriter(this.__methods.count, arguments);
     return this;
   },
 
@@ -244,7 +234,7 @@ Fiber.Log = $fn.class.create({
    * @returns {Fiber.Log}
    */
   assert: function() {
-    this.__callWriter(this.__list.assert, arguments);
+    this.__callWriter(this.__methods.assert, arguments);
     return this;
   },
 
@@ -314,12 +304,12 @@ Fiber.Log = $fn.class.create({
   /**
    * Calls writer function with the given arguments
    * @param {string} level
-   * @param {...args}
+   * @param {Array} arguments - to path to writer function
    * @return {Fiber.Log}
    */
   callWriter: function(level, args) {
     var details = this.renderDetails()
-      , method = _.includes(this.__list, level) ? this.__list[level] : this.__method;
+      , method = _.includes(this.__methods, level) ? this.__methods[level] : this.__method;
     args = [details].concat($val(args, [], _.isArray));
     this.__callWriter(method, args);
     return this;
@@ -391,46 +381,6 @@ Fiber.Log = $fn.class.create({
   },
 
   /**
-   * Renders details info
-   * @param {?Object} [data={}]
-   * @param {?string} [delimiter=' ']
-   * @returns {string}
-   */
-  renderDetails: function(data, delimiter) {
-    var html = [];
-    data = this.getTemplateData(data);
-    _.each(this.__templates, function(template, key) {
-      if (key === 'timestamp' && ! this.timestamp) return;
-      html.push(this.renderTemplate(template, data));
-    }, this);
-    return html.join($val(delimiter, ' ', _.isString));
-  },
-
-  /**
-   * Renders template with the given data
-   * @param {string} template
-   * @param {?Object} [data]
-   * @returns {Function}
-   */
-  renderTemplate: function(template, data) {
-    return _.template(template)(data);
-  },
-
-  /**
-   * Returns template data to render details
-   * @param {?Object} [data={}]
-   * @returns {Object}
-   */
-  getTemplateData: function(data) {
-    var date = new Date();
-    return _.extend({}, {
-      timestamp: date.toTimeString().slice(0, 8),
-      self: this,
-      msg: ''
-    }, $val(data, {}, _.isPlainObject));
-  },
-
-  /**
    * Determines if we allow to write log
    * @param {string} level
    * @returns {boolean}
@@ -442,6 +392,29 @@ Fiber.Log = $fn.class.create({
     var currentLevelIndex = this.__levels.indexOf(this.getLevel());
     if (index > currentLevelIndex) return false;
     return true;
+  },
+
+  /**
+   * Renders details info
+   * @param {?Object} [data={}]
+   * @returns {string}
+   */
+  renderDetails: function(data) {
+    if (! this.__template) return '';
+    return $fn.template.system($fn.result(this.__template), this.getTemplateData(data));
+  },
+
+  /**
+   * Returns template data to render details
+   * @param {?Object} [data={}]
+   * @returns {Object}
+   */
+  getTemplateData: function(data) {
+    return _.extend({
+      msg: '',
+      self: this,
+      timestamp: (new Date()).toTimeString().slice(0, 8)
+    }, $val(data, {}, _.isPlainObject));
   },
 
   /**
