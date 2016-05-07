@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Log = Fiber.Class.extend({
+Fiber.Log = $fn.class.create({
 
   /**
    * Log timestamp
@@ -351,7 +351,7 @@ Fiber.Log = Fiber.Class.extend({
    */
   errorThrow: function() {
     this.callWriter(this.getLevel(), arguments);
-    throw $fn.class.instance(Error, arguments);
+    throw new Error(arguments[0]);
   },
 
   /**
@@ -467,3 +467,9 @@ $each(Fiber.Log.prototype.__levels, function(level) {
     return this.write.apply(this, args);
   };
 });
+
+/**
+ * Add system logger
+ * @type {Object.<Fiber.Log>}
+ */
+Fiber.log = $Log = new Fiber.Log();

@@ -20,20 +20,20 @@ module.exports = [
   './src/Support/Validation.js',
   './src/Support/Delegator.js',
   './src/Support/Computed.js',
+  './src/Support/Compose.js',
   './src/Support/Injection.js',
   './src/Support/Dom.js',
   './src/Support/Types.js',
   // Core
   './src/Core.js',
+  './src/Base/Log.js',
+  './src/Base/Type.js',
   // Contracts
   './src/Contracts/Contract.js',
-  './src/Contracts/Type.js',
-  './src/Base/Type.js',
   './src/Contracts/Storage.js',
   // Base
   './src/Base/Events.js',
   './src/Base/Class.js',
-  './src/Base/Log.js',
   './src/Base/Bag.js',
   './src/Base/ErrorBag.js',
   './src/Base/Transmitter.js',

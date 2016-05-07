@@ -58,7 +58,7 @@ Fiber.fn.delegator = {
       var args = arguments;
       if (hasArgCount) args = argCount > 0 ? _.toArray(arguments).splice(0, argCount) : argCount === 0 ? [] : args;
       scope = _.isString(scope) ? this[scope] : $val(scope, null);
-      return method.apply(scope, $fn.argsConcat(this, args));
+      return method.apply(scope, [this].concat($fn.cast.toArray(args)));
     };
   },
 

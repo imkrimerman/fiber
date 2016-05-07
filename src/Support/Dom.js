@@ -333,4 +333,4 @@ $dom = Fiber.fn.dom = {
  * Exposed Fiber Dom manipulation support
  * @type {Function}
  */
-Fiber.$ = $fn.dom.$;
+Fiber.$ = $;

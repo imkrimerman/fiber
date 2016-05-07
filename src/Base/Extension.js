@@ -10,7 +10,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @type {string}
    * @private
    */
-  __type: '[object Fiber.Extension]',
+  __signature: '[object Fiber.Extension]',
 
   /**
    * Method name to call when extension is initiating
@@ -195,4 +195,13 @@ Fiber.Extension = Fiber.Class.extend({
   getCodeCapsuleKeysList: function() {
     return _.keys(this.getCodeCapsule());
   }
+});
+
+/**
+ * Add Extension type to Fiber
+ */
+Fiber.Types.Extension = new Fiber.Type({
+  type: 'object',
+  signature: Fiber.Extension.prototype.__signature,
+  defaults: Fiber.Extension
 });

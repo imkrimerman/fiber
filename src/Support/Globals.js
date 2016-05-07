@@ -1,10 +1,4 @@
 /**
- * Add system logger
- * @type {Object.<Fiber.Log>}
- */
-Fiber.log = $Log = new Fiber.Log();
-
-/**
  * Global Environment container
  * @type {Object.<Fiber.Bag>}
  */

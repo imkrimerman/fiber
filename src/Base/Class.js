@@ -10,12 +10,15 @@ Fiber.Class = $fn.class.create([
      * @type {string}
      * @private
      */
-    __type: '[object Fiber.Class]',
-
-    /**
-     * Constructs class
-     * @param {?Object} [options]
-     */
-    constructor: $fn.class.createConstructor()
+    __signature: '[object Fiber.Class]'
   }
 ]);
+
+/**
+ * Add Class type to Fiber
+ */
+Fiber.Types.Class = new Fiber.Type({
+  type: 'object',
+  signature: Fiber.Class.prototype.__signature,
+  defaults: Fiber.Class
+});

@@ -322,17 +322,28 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   castArr: function(object) {
-    return _.isArray(object) ? object : [object];
+    if (_.isArray(object)) return object;
+    if (_.isArguments(object)) return $fn.cast.toArray(object);
+    return [object];
   },
 
   /**
-   * Creates plain object with the given key and value
-   * @param {string} key
+   * Creates plain object with the given key and value,
+   * or if key is Array then will zip object from keys and values
+   * @param {string|Array} key
    * @param {*} value
    * @returns {Object}
    */
   createPlain: function(key, value) {
     var obj = {};
+
+    if (_.isArray(key)) {
+      value = $fn.castArr(value);
+      return $fn.multi(key, function(one, index) {
+        _.extend(obj, $fn.createPlain(one, value[index]));
+      }, function() {return obj;}, 'each');
+    }
+
     obj[key] = value;
     return obj;
   },

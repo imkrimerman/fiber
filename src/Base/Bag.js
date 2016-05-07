@@ -16,7 +16,7 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
    * @type {string}
    * @private
    */
-  __type: '[object Fiber.Bag]',
+  __signature: '[object Fiber.Bag]',
 
   /**
    * Key to use to dynamically created storage for the bag items.
@@ -246,4 +246,13 @@ Fiber.Bag = Fiber.Class.implement(Fiber.Contracts.Storage).extend({
     }
     return this;
   }
+});
+
+/**
+ * Add Bag type to Fiber
+ */
+Fiber.Types.Bag = new Fiber.Type({
+  type: 'object',
+  signature: Fiber.Bag.prototype.__signature,
+  defaults: Fiber.Bag
 });

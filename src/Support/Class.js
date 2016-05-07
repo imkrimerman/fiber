@@ -14,6 +14,8 @@ Fiber.fn.class = {
     var migration = $private($fn.extensions, 'migration');
     // fallback on constructor as Parent constructor to make available creation without Parent
     parentClass = $val(parentClass, constructor, _.isObject);
+    // ensures that contracts will be extended from `parentClass`
+    $fn.class.ensureContractsInSync(constructor, parentClass);
     // Return Class constructor wrapper
     return function FiberClass() {
       // Attach Parent Class constructor and Parent prototype to the direct scope of child
@@ -25,6 +27,20 @@ Fiber.fn.class = {
       constructor.apply(this, arguments);
       return this;
     };
+  },
+
+  /**
+   * Ensures that contracts will be extended from `parent` to `child`
+   * @param {Function|Object} child
+   * @param {Function|Object} parent
+   * @returns {Function|Object}
+   */
+  ensureContractsInSync: function(child, parent) {
+    if ($fn.has(parent, $Config.contracts.key)) {
+      if (! $fn.has(child, $Config.contracts.key)) child[$Config.contracts.key] = {};
+      _.extend(child[$Config.contracts.key], parent[$Config.contracts.key]);
+    }
+    return child;
   },
 
   /**
@@ -133,7 +149,7 @@ Fiber.fn.class = {
     if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
     if (! $fn.class.isClass(Parent)) $Log.errorThrow('Cannot instantiate from `Parent` Class - is not a Class or' +
                                                      ' valid instance to retrieve Constructor.');
-    function InstanceCreator() {return Parent.apply(this, args)};
+    function InstanceCreator() {return Parent.apply(this, $fn.castArr(args))};
     InstanceCreator.prototype = Parent.prototype;
     return new InstanceCreator();
   },
@@ -227,6 +243,10 @@ Fiber.fn.class = {
         $mutate: function(proto, override) {
           return $fn.class.include(this.$super('prototype'), $fn.merge(Fiber.resolve(proto)), override);
         },
+        $implement: function(contract) {
+          $fn.class.implement(this.constructor, contract);
+          return this;
+        },
         $new: function() {
           return $fn.class.createNew.call(null, this, 'constructor');
         },
@@ -266,15 +286,16 @@ Fiber.fn.class = {
     if (! Fiber.Contract) return Class;
     if (arguments.length === 1 && Class instanceof Fiber.Contract) {
       contract = Class;
-      Class = $fn.class.extend({});
+      Class = $fn.class.create();
     }
 
-    if (_.isString(contract) && _.has(Fiber.Contracts, contract))
-      contract = _.get(Fiber.Contracts, contract);
+    if (_.isString(contract) && (contract = _.capitalize(contract)) && _.has(Fiber.Contracts, contract))
+      contract = Fiber.Contracts[contract];
+
     if (contract instanceof Fiber.Contract) {
-      var follows = $val(Class.__follows, {}, _.isPlainObject)
+      var follows = $val(Class[$Config.contracts.key], {}, _.isPlainObject)
         , ContractClass = $fn.class.nativeExtend(Class);
-      ContractClass.__follows = _.extend({}, follows, $fn.createPlain(contract.getName(), contract));
+      ContractClass[$Config.contracts.key] = _.extend({}, follows, $fn.createPlain(contract.getName(), contract));
       return ContractClass;
     }
 
@@ -352,8 +373,8 @@ Fiber.fn.class = {
    * @param {Function} Class
    */
   expectFollowing: function(Class) {
-    if ($fn.has(Class, '__follows')) {
-      $fn.expect(_.every($fn.get(Class, '__follows'), function(contract) {
+    if ($fn.has(Class, $Config.contracts.key)) {
+      $fn.expect(_.every($fn.get(Class, $Config.contracts.key), function(contract) {
         return contract instanceof Fiber.Contract && contract.isImplementedBy(Class);
       }), 'Given `Class` is not following the `Contracts`', Class);
     }

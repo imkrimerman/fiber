@@ -3,7 +3,7 @@ var Fr, Fiber, previousFiber,
 // define Internal variables
   $doc, $fn, $val, $valMerge, $isDef, $each, $origEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
   $Types, $Config, $TypeChecker, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
-  $RouterCollection;
+  $RouterCollection, BaseJSTypes, BaseFiberTypes;
 
 /**
  * Configuration
@@ -12,7 +12,8 @@ var Fr, Fiber, previousFiber,
 $Config = {
   private: {key: '__private'},
   access: {key: '__access', default: 'public'},
-  type: {key: '__signature'}
+  type: {key: '__signature'},
+  contracts: {key: '__implements'},
 };
 
 /**
@@ -70,3 +71,9 @@ Fiber.Commands = {};
  * @type {Object}
  */
 Fiber.Contracts = {};
+
+/**
+ * Fiber types
+ * @type {Object}
+ */
+Fiber.Types = {};
