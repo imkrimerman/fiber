@@ -49,7 +49,7 @@ Fiber.Viewport = Fiber.View.extend({
 
   renderViewToLayout: function(view) {
     if (! this.hasLayout())
-      $Log.errorThrow('`renderViewToLayout` should be called' +
+      $log.errorThrow('`renderViewToLayout` should be called' +
                       ' only if layout is available', this.layout, this);
 
     if (! this.layout.isRendered()) {

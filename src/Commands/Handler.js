@@ -23,6 +23,6 @@ Fiber.Commands.Handler = Fiber.Class.extend({
    * @returns {Fiber.Services.Commands.Handler}
    */
   handle: function() {
-    $Log.errorThrow('`Handler` should implement it\'s own `handle` method.');
+    $log.errorThrow('`Handler` should implement it\'s own `handle` method.');
   }
 });

@@ -109,6 +109,7 @@ $fn.deepProps = {
     _.each(properties, function(property) {
       // check and grab `property` from `parent` object prototype
       var objProtoProp = $fn.has(parent.prototype, property) && parent.prototype[property];
+      if (_.isFunction(objProtoProp)) objProtoProp = $fn.applyFn(objProtoProp, [], parent.prototype);
       // if we don't have given `property` in `child` or in `parent` object prototype
       // then we'll return same `child` object
       if (! $fn.has(child, property) || ! objProtoProp) return child;

@@ -167,7 +167,7 @@ Fiber.fn.delegator = {
     ];
 
     if (object) args.push(object);
-    if (! _.isFunction(method)) $Log.errorThrow.apply($Log, args);
+    if (! _.isFunction(method)) $log.errorThrow.apply($log, args);
   },
 
   /**

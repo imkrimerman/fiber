@@ -30,12 +30,6 @@ Fiber.CollectionView = Fiber.View.extend({
   comparator: null,
 
   /**
-   * Collection of initial data models to create collection
-   * @type {Array}
-   */
-  data: [],
-
-  /**
    * Element to render Collection to
    * @type {string|function()}
    */
@@ -48,17 +42,24 @@ Fiber.CollectionView = Fiber.View.extend({
   $collectionElement: null,
 
   /**
-   * Instance key to listen to
-   * @type {string|function()}
-   */
-  listens: 'collection',
-
-  /**
-   * Events to listen on `listens` instance and trigger methods map
+   * Listener configuration
    * @type {Object}
    */
-  listeners: {
-    'sync update reset': 'render'
+  listens: {
+
+    /**
+     * Instance key to listen to
+     * @type {string}
+     */
+    to: 'collection',
+
+    /**
+     * Events listeners
+     * @type {Object}
+     */
+    on: {
+      'sync update reset': 'render'
+    }
   },
 
   /**
@@ -83,8 +84,8 @@ Fiber.CollectionView = Fiber.View.extend({
    * Constructs collection view
    */
   constructor: function() {
-    Fiber.View.apply(this, arguments);
-    if (! this.collection) this.createCollection(this.data);
+    this.$superInit(arguments);
+    if (! this.collection) this.createCollection();
   },
 
   /**
@@ -113,10 +114,8 @@ Fiber.CollectionView = Fiber.View.extend({
   renderOne: function(model) {
     var View = this.getModelViewClass(model)
       , view = this.createModelView(View, {model: model});
-
-    view.render();
-
     this.$collectionElement.append(view.el);
+    view.render();
     return view;
   },
 
@@ -139,7 +138,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   createModelView: function(View, options) {
     var view = new View(options);
-    this.linked.addView(view);
+    this._linked.addView(view);
     view.model.setView(view);
     return view;
   },
@@ -159,8 +158,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {Fiber.CollectionView}
    */
   clearCollectionElement: function() {
-    if (this.$collectionElement instanceof Fiber.$)
-      this.$collectionElement.empty();
+    if (this.$collectionElement instanceof Fiber.$) this.$collectionElement.empty();
     return this;
   },
 
@@ -193,11 +191,12 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Creates collection
-   * @param {Array} models
-   * @param {Object} [options]
+   * @param {Array} [models=[]]
+   * @param {Object} [options={}]
    * @returns {Object.<Fiber.Collection>}
    */
   createCollection: function(models, options) {
+    models = $val(models, [], _.isArray);
     options = $val(options, {}, _.isPlainObject);
     options.comparator = this.comparator;
     return this.collection = new this.CollectionClass(models, options);
@@ -222,7 +221,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   _beforeRender: function() {
     this._resetModelsView();
-    this.linked.reset([]);
+    this._linked.reset([]);
   },
 
   /**

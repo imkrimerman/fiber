@@ -4,19 +4,13 @@
  * @extends {Backbone.View}
  */
 Fiber.View = $fn.class.make(Backbone.View, [
-  'Extensions', 'Extend', 'OwnProps', 'Retriever', 'Binder', 'Events', {
+  $Access, $OwnProps, $Events, $Extend, $Binder, $Extensions, {
 
     /**
      * Parent element to auto attach
-     * @type {jQuery}
+     * @type {jQuery|HTMLElement|string}
      */
     $parent: null,
-
-    /**
-     * Linked views collection
-     * @type {Object.<Fiber.LinkedView>}
-     */
-    linked: null,
 
     /**
      * View ui selectors
@@ -31,30 +25,37 @@ Fiber.View = $fn.class.make(Backbone.View, [
     $ui: {},
 
     /**
-     * Instance key to listen to
-     * @type {string}
-     */
-    listens: 'model',
-
-    /**
-     * Events listeners
+     * Listener configuration
      * @type {Object}
      */
-    listeners: {
-      change: 'render'
+    listens: {
+
+      /**
+       * Instance key to listen to
+       * @type {string}
+       */
+      to: 'model',
+
+      /**
+       * Events listeners
+       * @type {Object}
+       */
+      on: {
+        change: 'render'
+      }
     },
 
     /**
-     * Events that should be retransmitted
-     * @type {Object}
+     * Linked views collection
+     * @type {Object.<Fiber.LinkedView>}
      */
-    transmit: {},
+    _linked: null,
 
     /**
      * Views manager instance
-     * @type {Object.<Fiber.ViewsManager>}
+     * @type {Object.<Fiber.Views>}
      */
-    viewsManager: null,
+    _views: null,
 
     /**
      * Rendered flag
@@ -67,38 +68,40 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @type {Array|function()|string}
      */
     willExtend: [
-      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events',
-      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', 'transmit'
+      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'template', 'templateData',
+      '$parent', 'ui', 'listens'
     ],
 
     /**
      * Properties keys that will be owned by the instance
      * @type {Array|function()}
      */
-    ownProps: [
-      'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '_rendered',
-      '$parent', 'ui', 'listens', 'listeners', 'template', 'templateData', '$ui', 'transmit', 'viewsManager'
-    ],
+    ownProps: function() {
+      return this.willExtend.concat(['$ui', '_linked', '_views', '_rendered']);
+    },
+
+    /**
+     * Methods list to bind
+     * @type {Array|function()}
+     */
+    bindMethods: ['render', '_callRender'],
 
     /**
      * Constructs View
      * @param {?Object} [options={}]
      */
     constructor: function(options) {
-      this.options = options;
-      this.cid = _.uniqueId('view-');
-      this.linked = new Fiber.LinkedViews();
-      this.applyExtend(options);
-      this.applyOwnProps();
-      this.applyBinder();
-      this.resolveListenable();
-      this.startTransmitting();
+      this.cid = _.uniqueId('view@');
+      $fn.class.handleOptions(this, options);
+      $fn.extensions.init(this);
+      this._handleListeners();
       this._handleEventsUi();
       this._wrapRender();
       this._ensureElement();
-      this.viewsManager = new Fiber.ViewsManager(this.$el);
+      this._linked = new Fiber.LinkedViews();
+      this._views = new Fiber.Views(this.$el);
       this.initialize.apply(this, arguments);
-      this.$el.data('fiber.view', this);
+      Fiber.$ && this.$el.data('fiber.view', this);
     },
 
     /**
@@ -106,39 +109,21 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {Fiber.View}
      */
     render: function() {
-      if (this.has('template'))
-        this.html(this.renderTemplate(this.get('template')));
-      if (this.has('$parent'))
-        this.attachToParent(this.result('$parent'));
+      if (this.has('template')) this.renderTemplate(this.get('template'));
+      if (this.has('$parent')) this.attachToParent(this.result('$parent'));
       return this;
-    },
-
-    /**
-     * Determine if view is rendered
-     * @returns {boolean}
-     */
-    isRendered: function() {
-      return this._rendered;
     },
 
     /**
      * Attaches View to parent element
      * @param {string|$} $parent
+     * @param {string} [fn='html']
      * @returns {Fiber.View}
      */
-    attachToParent: function($parent) {
+    attachToParent: function($parent, fn) {
+      if (! Fiber.$) return this;
       if (_.isString($parent)) $parent = Fiber.$($parent);
-      if ($parent instanceof Fiber.$) $parent.html(this.$el);
-      return this;
-    },
-
-    /**
-     * Sets view element html or returns it
-     * @param {string} html
-     * @returns {Fiber.View}
-     */
-    html: function(html) {
-      this.$el.html(html);
+      if ($parent instanceof Fiber.$) $parent[$val(fn, 'html')](this.$el);
       return this;
     },
 
@@ -149,6 +134,16 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {string}
      */
     renderTemplate: function(template, data) {
+      return this.html(this.compileTemplate(template, data));
+    },
+
+    /**
+     * Compiles template
+     * @param {string|function()} template
+     * @param {?Object} [data={}]
+     * @returns {string}
+     */
+    compileTemplate: function(template, data) {
       data = this.makeTemplateData(data);
       if (_.isString(template)) return $fn.template.compile(template, data);
       if (_.isFunction(template)) template = template(data);
@@ -162,42 +157,9 @@ Fiber.View = $fn.class.make(Backbone.View, [
      */
     makeTemplateData: function(additional) {
       var data = this.result('templateData', {});
-      if (this.model) data = _.extend({}, data, this.model.toJSON());
-      _.isPlainObject(additional) && (data = _.extend({}, data, additional));
+      if (this.model) data = $fn.merge(data, this.model.toJSON(), additional || {});
       data.self = this;
       return data;
-    },
-
-    /**
-     * Shows sub view at the given selector
-     * @param {string} selector
-     * @param {Object.<Fiber.View>} view
-     * @returns {Fiber.View}
-     */
-    showView: function(selector, view) {
-      this.viewsManager.show(selector, view);
-      return this;
-    },
-
-    /**
-     * Shuts down sub view and cleans up
-     * @param {string} selector
-     * @returns {Fiber.View}
-     */
-    closeView: function(selector) {
-      this.viewsManager.close(selector);
-      return this;
-    },
-
-    /**
-     * Refreshes view at the given selector
-     * @param {string} selector
-     * @param {?boolean} [hard=false]
-     * @returns {Fiber.View}
-     */
-    refreshView: function(selector, hard) {
-      this.viewsManager.refresh(selector, hard);
-      return this;
     },
 
     /**
@@ -206,7 +168,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      */
     resolveUi: function() {
       this.$ui = {};
-      _.each(this.result('ui'), this.resolveUiBy, this);
+      $each(this.result('ui'), this.resolveOneUi, this);
       return this.$ui;
     },
 
@@ -216,58 +178,20 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @param {string} alias
      * @returns {*|jQuery|HTMLElement}
      */
-    resolveUiBy: function(selector, alias) {
+    resolveOneUi: function(selector, alias) {
+      if (! Fiber.$) return {};
       return this.$ui[alias] = Fiber.$(selector);
     },
 
     /**
-     * Resolves listenable instance and starts listening
+     * Sets view element html or returns it
+     * @param {string} html
      * @returns {Fiber.View}
      */
-    resolveListenable: function() {
-      this.prepareListeners(this.result('listeners'));
-      var listenable = null;
-
-      if (_.isString(this.listens) && this.has(this.listens))
-        listenable = this.result(this.listens);
-      else if (_.isFunction(this.listens)) listenable = this.listens;
-
-      if (listenable) this.listenTo(listenable, 'all', this.allEventsHandler.bind(this));
+    html: function(html) {
+      if (! Fiber.$) return this;
+      this.$el.html(html);
       return this;
-    },
-
-    /**
-     * Creates listeners collection from given `listeners`
-     * @param {Object} listeners
-     * @returns {Object.<Listeners>}
-     */
-    prepareListeners: function(listeners) {
-      return this.listeners = new Listeners(this.splitEvents(listeners));
-    },
-
-    /**
-     * Splits events object to events and handlers arrays
-     * @param {Object} events
-     * @returns {Array}
-     */
-    splitEvents: function(events) {
-      var options = [];
-      for (var key in events) options.push({
-        events: key.split(' '),
-        handlers: events[key].split(' ')
-      });
-      return options;
-    },
-
-    /**
-     * All events handler
-     * @param {string} event
-     * @param {...args}
-     */
-    allEventsHandler: function(event, listenable) {
-      var args = _.tail(arguments);
-      this.listeners.applyHandler(this, event, args);
-      this.fire.apply(this, [event].concat(args));
     },
 
     /**
@@ -287,85 +211,95 @@ Fiber.View = $fn.class.make(Backbone.View, [
         cb = selector;
         selector = '';
       }
-
       this.$super('delegate', [event, selector, cb]);
     },
 
     /**
-     * Starts transmitting events
-     * @return {Fiber.View}
+     * Shows sub view at the given selector
+     * @param {string} selector
+     * @param {Object.<Fiber.View>} view
+     * @returns {Fiber.View}
      */
-    startTransmitting: function() {
-      var transmit = this.splitEvents(this.result('transmit'));
-      for (var i = 0; i < transmit.length; i ++) {
-        var transmitted = transmit[i];
-
-        for (var j = 0; j < transmitted.events.length; j ++) {
-          var event = transmitted.events[j];
-
-          this.when(event, function() {
-            for (var k = 0; k < transmitted.handlers.length; k ++) {
-              var handlerEvent = transmitted.handlers[k];
-              this.fire.apply(this, [handlerEvent].concat(_.toArray(arguments)));
-            }
-          }.bind(this));
-        }
-      }
+    showView: function(selector, view) {
+      this._views.show(selector, view);
       return this;
     },
 
     /**
-     * Stops transmitting events
+     * Shuts down sub view and cleans up
+     * @param {string} selector
      * @returns {Fiber.View}
      */
-    stopTransmitting: function() {
-      var transmit = this.splitEvents(this.result('transmit'));
-      for (var i = 0; i < transmit.length; i ++) {
-        var eventObj = transmit.events[i];
-        for (var j = 0; j < eventObj.events.length; j ++) {
-          var event = eventObj.events[j];
-          this.stopListening(this, event);
-        }
-      }
-
+    closeView: function(selector) {
+      this._views.close(selector);
       return this;
+    },
+
+    /**
+     * Refreshes view at the given selector
+     * @param {string} selector
+     * @returns {Fiber.View}
+     */
+    refreshView: function(selector) {
+      this._views.refresh(selector);
+      return this;
+    },
+
+    /**
+     * Removes view
+     * @return {Fiber.View}
+     */
+    remove: function() {
+      $fn.fireCallCyclic(this, 'remove', function() {
+        this.clearBoundEvents();
+        this.$super('remove', {fire: this});
+      });
+      this._rendered = false;
+      return this;
+    },
+
+    /**
+     * Destroys View
+     * @return {Fiber.View}
+     */
+    destroy: function() {
+      this.remove();
+      this.clearChannels();
+      this.resetEventProperties();
+      this._resetProperties();
+      return this;
+    },
+
+    /**
+     * Determine if view is rendered
+     * @returns {boolean}
+     */
+    isRendered: function() {
+      return this._rendered;
     },
 
     /**
      * Real render function
      * @param {function()} render
      * @return {*}
+     * @private
      */
-    callRender: function(render) {
+    _callRender: function(render) {
       var result;
-
       $fn.fireCallCyclic(this, 'render', function() {
         this.$apply(this, '_beforeRender');
         result = render.call(this);
         this.$apply(this, '_afterRender');
       }, {fire: this, call: render});
-
       this._rendered = true;
       return result;
     },
 
     /**
-     * Removes view
+     * Before render private hook
+     * @private
      */
-    remove: function() {
-      $fn.fireCallCyclic(this, 'remove', function() {
-        this.$super('remove', {fire: this});
-      });
-      this._rendered = false;
-    },
-
-    /**
-     * Destroys View
-     */
-    destroy: function() {
-      this.remove();
-      this._reset();
-    },
+    _beforeRender: function() {},
 
     /**
      * After render private hook
@@ -376,45 +310,105 @@ Fiber.View = $fn.class.make(Backbone.View, [
     },
 
     /**
-     * Resets View
-     * @private
-     */
-    _reset: function() {
-      this.$ui = {};
-      this.$parent = null;
-      delete this.options;
-      this.linked.reset([]);
-    },
-
-    /**
-     * Handles events with @ui
-     * @private
-     */
-    _handleEventsUi: function() {
-      if (! this.events) return;
-      var isValidUi = this.ui && ! _.isEmpty(this.ui),
-        events = this.result('events'),
-        handled = {};
-
-      for (var selector in events) {
-        var handler = events[selector];
-        if (~ selector.indexOf('@ui.') && isValidUi) {
-          var key = selector.split('@ui.')[1];
-          if (this.ui[key]) selector = selector.replace('@ui.' + key, this.ui[key]);
-        }
-        handled[selector] = handler;
-      }
-      this.events = handled;
-    },
-
-    /**
      * Wraps render function
      * @returns {Fiber.View}
      * @private
      */
     _wrapRender: function() {
-      this.render = _.wrap(this.render, this.callRender.bind(this));
+      this.render = _.wrap(this.render, this._callRender.bind(this));
       return this;
     },
+
+    /**
+     * Resolves listenable object if exists and starts listening to the specified events
+     * @returns {Fiber.View}
+     * @private
+     */
+    _handleListeners: function() {
+      var listens = this.result('listens', {to: '', on: {}})
+        , events = listens.on
+        , listenable = listens.to;
+      this._createListeners(events);
+      if (_.isString(listenable) && this.has(listenable)) listenable = this.result(listenable);
+      else if (! listenable || ! (listenable instanceof Backbone.Events)) $log.logReturn(
+        'warn', 'Can not subscribe. `Listenable` is not instance of Backbone.Events.', [listenable], this
+      );
+      this.listenTo(listenable, 'all', this._allEventsHandler.bind(this));
+      return this;
+    },
+
+    /**
+     * Handles events with @ui prefix
+     * @return {Fiber.View}
+     * @private
+     */
+    _handleEventsUi: function() {
+      if (! this.events) return this;
+      var ui = this.result('ui')
+        , signature = '@ui.'
+        , isValidUi = ! _.isEmpty(ui)
+        , events = this.result('events')
+        , handled = {};
+
+      $each(events, function(handler, selector) {
+        if (! _.startsWith(selector, signature) || ! isValidUi)
+          return $log.warn('Can not resolve selector `' + selector + '`. Not found in `ui` object or is not valid.');
+        var key = selector.split(signature)[1];
+        if (ui[key]) selector = selector.replace(signature + key, ui[key]);
+        handled[selector] = handler;
+      });
+
+      this.events = handled;
+    },
+
+    /**
+     * Creates listeners collection from given `listeners`
+     * @param {Object} listeners
+     * @returns {Object.<Listeners>}
+     * @private
+     */
+    _createListeners: function(listeners) {
+      return this.listeners = new Listeners(this._splitListenerEvents(listeners));
+    },
+
+    /**
+     * Splits events object to events and handlers arrays
+     * @param {Object} events
+     * @returns {Array}
+     * @private
+     */
+    _splitListenerEvents: function(events) {
+      var options = [];
+      for (var key in events) options.push({
+        events: key.split(' '),
+        handlers: events[key].split(' ')
+      });
+      return options;
+    },
+
+    /**
+     * All events handler
+     * @param {string} event
+     * @param {...args}
+     * @private
+     */
+    _allEventsHandler: function(event, listenable) {
+      var args = _.tail(arguments);
+      this.listeners.applyHandler(this, event, args);
+      this.fire.apply(this, [event].concat(args));
+    },
+
+    /**
+     * Resets View properties
+     * @return {Fiber.View}
+     * @private
+     */
+    _resetProperties: function() {
+      this.$ui = {};
+      this.$parent = null;
+      delete this.options;
+      this._linked.reset([]);
+      return this;
+    }
   }
 ]);

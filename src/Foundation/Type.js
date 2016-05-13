@@ -29,7 +29,7 @@ Fiber.Type = BaseClass.extend({
    */
   constructor: function(options) {
     options = $valMerge(options, $fn.result(this._defaults), 'defaults');
-    if (! this._isValidOptions(options)) $Log.errorThrow('Can not create new type. `Options` are not valid.');
+    if (! this._isValidOptions(options)) $log.errorThrow('Can not create new type. `Options` are not valid.');
     this._type = $fn.descriptor.immutable(options);
   },
 

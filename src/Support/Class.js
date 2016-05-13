@@ -49,7 +49,7 @@ Fiber.fn.class = {
    */
   createConstructor: function(defaults) {
     return function(options) {
-      $fn.apply(this, 'initEventProperties');
+      $fn.apply(this, 'resetEventProperties');
       $fn.class.handleOptions(this, options, $val(defaults, {}), true);
       $fn.extensions.init(this);
       $fn.apply(this, 'initialize', arguments);
@@ -68,7 +68,7 @@ Fiber.fn.class = {
     var child, construct = $fn.class.createConstructorCaller;
     // if we don't have any parent then log error and return
     if (! parent) {
-      $Log.warn('`Parent` is not provided or not valid, setting to `noop` function', parent);
+      $log.warn('`Parent` is not provided or not valid, setting to `noop` function', parent);
       parent = _.noop;
     }
     // The constructor function for the new subclass is either defined by you
@@ -148,7 +148,7 @@ Fiber.fn.class = {
    */
   instance: function(Parent, args) {
     if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
-    if (! $fn.class.isClass(Parent)) $Log.errorThrow('Cannot instantiate from `Parent` Class - is not a Class or' +
+    if (! $fn.class.isClass(Parent)) $log.errorThrow('Cannot instantiate from `Parent` Class - is not a Class or' +
                                                      ' valid instance to retrieve Constructor.');
     function InstanceCreator() {return Parent.apply(this, $fn.castArr(args))};
     InstanceCreator.prototype = Parent.prototype;
@@ -311,7 +311,7 @@ Fiber.fn.class = {
       }
     }
 
-    $Log.errorThrow('`Contract` is not instance of Fiber.Contract', contract);
+    $log.errorThrow('`Contract` is not instance of Fiber.Contract', contract);
   },
 
   /**
@@ -435,7 +435,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   handleOptions: function(scope, options, defaults, deep) {
-    if (! scope) return $Log.error('Scope is not provided or not valid', scope);
+    if (! scope) return $log.error('Scope is not provided or not valid', scope);
     options = $val(options, {}, _.isPlainObject);
     return scope.options = $fn.class.handleOptionsDefaults(options, defaults, deep);
   },

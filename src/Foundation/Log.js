@@ -354,13 +354,28 @@ Fiber.Log = BaseClass.extend({
   },
 
   /**
+   * Logs message with a given level and args and returns given value
+   * @param {string} level
+   * @param {string} msg
+   * @param {Array|Arguments|*} args
+   * @param {*} returnVal
+   * @param {boolean} [tryToCall=true]
+   * @returns {*}
+   */
+  logReturn: function(level, msg, args, returnVal, tryToCall) {
+    this.callWriter(level, [msg, args]);
+    return $val(tryToCall, true) ? $fn.result(returnVal) : returnVal;
+  },
+
+  /**
    * Writes arguments using `writer` function and
    * immediately throws Error with the same arguments
    * @param {...args}
    */
-  errorThrow: function() {
-    this.callWriter(this.getLevel(), arguments);
-    throw new Error(arguments[0]);
+  errorThrow: function(msg) {
+    return this.logReturn('error', msg, _.drop(arguments), function() {
+      throw new Error(msg);
+    });
   },
 
   /**
@@ -368,25 +383,8 @@ Fiber.Log = BaseClass.extend({
    * @param {...args}
    * @return {boolean}
    */
-  errorReturn: function() {
-    this.callWriter(this.getLevel(), arguments);
-    return false;
-  },
-
-  /**
-   * Enables timestamp logging
-   * @returns {Fiber.Log}
-   */
-  enableTimestamp: function() {
-    return this.setTimestampState(true);
-  },
-
-  /**
-   * Disables timestamp logging
-   * @returns {Fiber.Log}
-   */
-  disableTimestamp: function() {
-    return this.setTimestampState(false);
+  errorReturn: function(msg) {
+    return this.logReturn('error', msg, _.drop(arguments), false);
   },
 
   /**
@@ -398,21 +396,6 @@ Fiber.Log = BaseClass.extend({
     this.timestamp = $val(state, true, _.isBoolean);
     return this;
   },
-
-  /**
-   * Determines if we allow to write log
-   * @param {string} level
-   * @returns {boolean}
-   */
-  isAllowedToWrite: function(level) {
-    if (! level || ! _.includes(this._levels, level) || ! this.hasWriter()) return false;
-    var index = this._levels.indexOf(level);
-    if (index === - 1) return false;
-    var currentLevelIndex = this._levels.indexOf(this.getLevel());
-    if (index > currentLevelIndex) return false;
-    return true;
-  },
-
   /**
    * Renders details info
    * @param {?Object} [data={}]
@@ -440,6 +423,21 @@ Fiber.Log = BaseClass.extend({
     }, $val(data, {}, _.isPlainObject));
   },
 
+
+  /**
+   * Determines if we allow to write log
+   * @param {string} level
+   * @returns {boolean}
+   */
+  isAllowedToWrite: function(level) {
+    if (! level || ! _.includes(this._levels, level) || ! this.hasWriter()) return false;
+    var index = this._levels.indexOf(level);
+    if (index === - 1) return false;
+    var currentLevelIndex = this._levels.indexOf(this.getLevel());
+    if (index > currentLevelIndex) return false;
+    return true;
+  },
+
   /**
    * Calls raw writer
    * @param {string|function()} method
@@ -451,7 +449,7 @@ Fiber.Log = BaseClass.extend({
     if (_.isString(method)) method = $fn.class.resolveMethod(this._writer, method);
     if (! _.isFunction(method) && _.isFunction(this._fallback)) method = this._fallback;
     if (_.isFunction(method)) return method.apply(this._writer, args);
-  },
+  }
 });
 
 /**
@@ -468,4 +466,4 @@ $each(Fiber.Log.prototype._levels, function(level) {
  * Add system logger
  * @type {Object.<Fiber.Log>}
  */
-Fiber.log = $Log = new Fiber.Log();
+Fiber.log = $log = new Fiber.Log();

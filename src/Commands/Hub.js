@@ -86,6 +86,6 @@ Fiber.Commands.Hub = Fiber.Class.extend({
         return handler.handle(command, this);
       }
     }
-    return $Log.errorReturn('Can\'t execute command. Handler is not valid.', command, this);
+    return $log.errorReturn('Can\'t execute command. Handler is not valid.', command, this);
   }
 });

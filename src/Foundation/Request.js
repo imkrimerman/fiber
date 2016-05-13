@@ -24,7 +24,7 @@ Fiber.Request = Fiber.Class.extend({
    * @param {Object} [options]
    */
   constructor: function(method, model, options) {
-    this.initEventProperties();
+    this.resetEventProperties();
     this._prepared = false;
     this.bag = new Fiber.Bag({
       method: method,
@@ -49,7 +49,7 @@ Fiber.Request = Fiber.Class.extend({
     // prepare params object
       , params = {type: type, dataType: 'json'};
     // Retrieve url
-    if (! options.url) params.url = $fn.result(model, 'url') || $Log.errorThrow('Cannot send request without' +
+    if (! options.url) params.url = $fn.result(model, 'url') || $log.errorThrow('Cannot send request without' +
                                                                                 ' valid `url`.', this);
     // Ensure that we have the appropriate request data.
     if (options.data == null && model && (method === 'create' || method === 'update' || method === 'patch')) {

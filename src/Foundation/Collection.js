@@ -25,7 +25,7 @@ BaseCollection = $fn.class.make(Backbone.Collection, [
      * @param {?Object} [options] - Options to extend from
      */
     constructor: function(models, options) {
-      this.initEventProperties();
+      this.resetEventProperties();
       $fn.class.handleOptions(this, options);
       $fn.extensions.init(this);
       this.$superInit(arguments);

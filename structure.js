@@ -69,7 +69,7 @@ module.exports = [
   './src/Object.js',
   './src/Model.js',
   './src/Collection.js',
-  './src/ViewsManager.js',
+  './src/Views.js',
   './src/View.js',
   './src/CollectionView.js',
   './src/Layout.js',

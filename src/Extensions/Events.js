@@ -14,7 +14,7 @@ var $Events = new Fiber.Extension('Events', Fiber.Events.$mix({
    * Applies events extension.
    */
   applyEvents: function() {
-    this.initEventProperties();
+    this.resetEventProperties();
     $fn.forget(this, '$mix');
   }
 }));

@@ -99,7 +99,7 @@ Fiber.fn.descriptor = {
     var macrosCreator = $fn.macros.get(macros)
       , descriptor = macrosCreator.apply(object, macrosArgs);
     if (_.isFunction(macrosCreator)) return $fn.descriptor.define(object, property, descriptor);
-    $Log.error(macros + ' is not found.');
+    $log.error(macros + ' is not found.');
     return object;
   },
 

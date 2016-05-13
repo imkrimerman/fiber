@@ -13,7 +13,7 @@ BaseModel = $fn.class.make(Backbone.Model, [
      * @param {?Object} [options]
      */
     constructor: function(attributes, options) {
-      this.initEventProperties();
+      this.resetEventProperties();
       $fn.class.handleOptions(this, options);
       $fn.extensions.init(this);
       this.$superInit(arguments);

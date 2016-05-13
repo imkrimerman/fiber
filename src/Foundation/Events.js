@@ -197,7 +197,7 @@ Fiber.Events = _.extend({
    * Initializes events properties
    * @return {Fiber.Events}
    */
-  initEventProperties: function() {
+  resetEventProperties: function() {
     this._responders = {};
     this._channels = {};
     return this;
@@ -208,14 +208,30 @@ Fiber.Events = _.extend({
    * @return {Fiber.Events}
    */
   destroyEvents: function() {
+    this.clearBoundEvents();
+    this.clearChannels();
+    this.resetEventProperties();
+    return this;
+  },
+
+  /**
+   * Stops listening to all events
+   * @returns {Fiber.Events}
+   */
+  clearBoundEvents: function() {
     this.stopListening();
     this.unbind();
+    return this;
+  },
 
+  /**
+   * Destroys and removes all channels
+   * @returns {Fiber.Events}
+   */
+  clearChannels: function() {
     $each(this._channels, function(channel) {
       Fiber.Events.destroyEvents(channel);
     });
-
-    this.initEventProperties();
     return this;
   },
 

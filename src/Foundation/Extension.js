@@ -37,7 +37,7 @@ Fiber.Extension = Fiber.Class.extend({
    */
   constructor: function(name, code) {
     $fn.expect(_.isString(name));
-    this.initEventProperties();
+    this.resetEventProperties();
     this.fromCode(code, name);
     $fn.apply(this, '_init_', arguments);
   },
