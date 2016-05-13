@@ -27,22 +27,22 @@ module.exports = [
   // Core
   './src/Core.js',
   // Base tools
-  './src/Base/Events.js',
-  './src/Base/BaseClass.js',
-  './src/Base/Log.js',
-  './src/Base/Monitor.js',
-  './src/Base/Type.js',
+  './src/Foundation/Events.js',
+  './src/Foundation/BaseClass.js',
+  './src/Foundation/Log.js',
+  './src/Foundation/Monitor.js',
+  './src/Foundation/Type.js',
   // Contracts
   './src/Contracts/Contract.js',
   './src/Contracts/Access.js',
   './src/Contracts/Events.js',
   // Base classes
-  './src/Base/Class.js',
-  './src/Base/Bag.js',
-  './src/Base/ErrorBag.js',
-  './src/Base/Request.js',
-  './src/Base/Extension.js',
-  './src/Base/Storage.js',
+  './src/Foundation/Class.js',
+  './src/Foundation/Bag.js',
+  './src/Foundation/ErrorBag.js',
+  './src/Foundation/Request.js',
+  './src/Foundation/Extension.js',
+  './src/Foundation/Storage.js',
   // Inversion of control Container
   './src/Container.js',
   // Extensions
@@ -55,11 +55,11 @@ module.exports = [
   // Mocks integration
   './src/Mocks/Transmitter.js',
   // Base component classes
-  './src/Base/Model.js',
-  './src/Base/Collection.js',
-  './src/Base/Collections/LinkedViews.js',
-  './src/Base/Collections/Listeners.js',
-  './src/Base/Collections/RouterCollection.js',
+  './src/Foundation/Model.js',
+  './src/Foundation/Collection.js',
+  './src/Foundation/Collections/LinkedViews.js',
+  './src/Foundation/Collections/Listeners.js',
+  './src/Foundation/Collections/RouterCollection.js',
   // Command bus
   './src/Commands/Registry.js',
   './src/Commands/Command.js',
