@@ -10,9 +10,7 @@ Fiber.fn.regexp = {
    */
   map: {
     properties: {
-      isDeepProp: /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/,
-      isPlainProp: /^\w*$/,
-      propName: /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]/g,
+      isFunction: /function\s*([A-z0-9]+)?\s*\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)\s*\{(?:[^}{]+|\{(?:[^}{]+|\{[^}{]*\})*\})*\}/,
     },
     injection: {
       args: /^function\s*[^\(]*\(\s*([^\)]*)\)/m,
@@ -29,7 +27,7 @@ Fiber.fn.regexp = {
    * @returns {boolean}
    */
   test: function(string, regExp) {
-    if (_.isString(regExp)) regExp = new RegExp(regExp);
+    if (_.isString(regExp)) regExp = $fn.regexp.$new(regExp);
     if (! _.isRegExp(regExp)) return true;
     return regExp.test($fn.cast.toString(string));
   },
@@ -44,7 +42,7 @@ Fiber.fn.regexp = {
     var re = regExpOrPath;
     if (_.isString(regExpOrPath)) {
       re = $fn.get($fn.regexp.map, regExpOrPath);
-      if (! re) re = new RegExp(re);
+      if (! re) re = $fn.regexp.$new(re);
     }
     if (! _.isRegExp(re)) return [];
     return regExpOrPath.exec(string) || [];
@@ -60,5 +58,23 @@ Fiber.fn.regexp = {
     var re = $fn.get($fn.regexp.map, path);
     if (re) return $fn.regexp.test(string, re);
     return true;
-  }
+  },
+
+  /**
+   * Returns string with all characters escaped that have special meaning in a regular expression.
+   * @param {string} string
+   * @returns {string}
+   */
+  escape: function(string) {
+    return (_.isRegExp(string) && string) || $fn.cast.toString(string).replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1');
+  },
+
+  /**
+   * Creates new regular expression from string, also escapes it before construction.
+   * @param {string} string
+   * @returns {RegExp}
+   */
+  $new: function(string) {
+    return new RegExp($fn.regexp.escape(string));
+  },
 };

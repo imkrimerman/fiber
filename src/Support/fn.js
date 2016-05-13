@@ -57,11 +57,11 @@ $fn = Fiber.fn = {
    * @returns {boolean}
    */
   has: function(object, property) {
+    if (_.isArray(object)) return $fn.multi(property, function(prop) {
+      return _.contains(object, prop);
+    }, function(result) { return result; }, 'any');
     if (! _.isArray(property)) return _.has(object, property);
-    return _[(arguments.length >
-              2 ?
-              $val(arguments[2], 'every', _.isString) :
-              'every')](property, function(prop) {
+    return _[(arguments.length > 2 ? $val(arguments[2], 'every', _.isString) : 'every')](property, function(prop) {
       return $fn.has(object, prop);
     });
   },
@@ -315,7 +315,7 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   argsConcat: function() {
-    var args = _.map(_.toArray(arguments), $fn.cast.toArray);
+    var args = _.map(_.toArray(arguments), $fn.castArr);
     return $fn.concat.apply([], args);
   },
 
@@ -624,19 +624,33 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Serializes object to string representation
-   * @param {Object} object
+   * Logs object to the console or if `log` is `false` returns object serialized to string.
+   * @param {object} object
+   * @param {boolean} [log=true]
    * @returns {string}
    */
-  serialize: function(object) {
+  debug: function(object, log) {
+    var debug = "[Fiber.Debug] >> `" + $fn.types.what(object) + "`:\n" + $fn.serialize(object, true);
+    return $val(log, true, _.isBoolean) ? $log.debug(debug) && void 0 : debug;
+  },
+
+  /**
+   * Serializes object to string representation
+   * @param {Object} object
+   * @param {boolean} [prettyPrint=false]
+   * @returns {string}
+   */
+  serialize: function(object, prettyPrint) {
     var isArray = _.isArray(object)
-      , prepared = isArray ? [] : {};
-    if (_.isFunction(object)) return Fiber.Types.Function.getSignature() + object.toString();
+      , prepared = isArray ? [] : {}
+      , args = [prepared];
+    if (_.isFunction(object)) return object.toString();
     $each(object, function(value, prop) {
       if (_.isObject(value) || _.isFunction(value)) value = $fn.serialize(value);
       isArray ? prepared.push(value) : (prepared[prop] = value);
     });
-    return JSON.stringify(prepared);
+    if (prettyPrint) args = args.concat([null, "\t"]);
+    return JSON.stringify.apply(JSON, args);
   },
 
   /**
@@ -644,22 +658,58 @@ $fn = Fiber.fn = {
    * @param {string} string
    * @returns {Object}
    */
-  unserialize: function(string) {
+  unserialize: function(string, defaults) {
+    var parsed;
     string = $fn.trim(string);
-    var signature = Fiber.Types.Function.getSignature()
-      , isArray = _.isArray(object)
-      , prepared = isArray ? [] : {};
-    if (_.startsWith(string, signature)) return new Function('return ' + string.replace(signature, ''));
-    if (string[0] === '{' || string[0] === '[') {
-      var parsed = JSON.parse(string);
-      $each(parsed, function(value, prop) {
-        if (! _.isString(value) || ! _.startsWith(string, signature)) return;
-        value = $fn.unserialize(value);
-        isArray ? prepared.push(value) : (prepared[prop] = value);
-      });
-      return prepared;
+    try { parsed = JSON.parse(string); } catch (e) { parsed = $val(defaults, {}); }
+    $each(parsed, function(value, prop) {
+      if (_.isString(value) && $fn.regexp.matches(value, 'properties.isFunction')) {
+        parsed[prop] = new Function('var $TMP = ' + value + '; return $TMP()');
+      }
+    });
+    return parsed;
+  },
+
+  /**
+   * Serializes object to the query parameters string
+   * @param {Object} object
+   * @param {Object} [options]
+   * @returns {string}
+   */
+  toQuery: function(object, options) {
+    options = $valMerge(options, {omitMethods: true, prefixQuestionMark: false,}, 'defaults');
+    if (options.omitMethods) object = _.omit(object, $fn.methods(object));
+    var prefix = options.prefixQuestionMark ? '?' : '';
+    return prefix + _.map(_.toPairs(object), function(pair) {
+      return _.map(pair, function(fragment) {return encodeURIComponent(fragment);}).join('=');
+    }).join('&');
+  },
+
+  /**
+   * Returns browser map with current user agent marked as `true`
+   * @returns {Object}
+   */
+  detectBrowser: function() {
+    var agent = navigator.userAgent
+      , isOpera = Object.prototype.toString.call(window.opera) == '[object Opera]';
+    return {
+      isIE: !! window.attachEvent && ! isOpera,
+      isOpera: isOpera,
+      isWebKit: !! ~agent.indexOf('AppleWebKit/'),
+      isGecko: ~agent.indexOf('Gecko') > - 1 && ! ~agent.indexOf('KHTML'),
+      isMobileSafari: /Apple.*Mobile/.test(agent)
     }
-    return JSON.parse(string);
+  },
+
+  /**
+   * Returns what user agent is currently detected
+   * @returns {string|null}
+   */
+  whatBrowser: function() {
+    var map = $fn.detectBrowser();
+    var pairs = _.toPairs(map);
+    for (var i = 0; i < pairs.length; i ++) if (pairs[i][1]) return pairs[i][0].replace('is', '');
+    return null;
   },
 
   /**
@@ -689,7 +739,12 @@ $fn = Fiber.fn = {
     if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
     if (_.includes(methods, method)) return true;
     return false;
-  }
+  },
+
+  /**
+   * Noop function
+   */
+  noop: function() {},
 };
 
 /**

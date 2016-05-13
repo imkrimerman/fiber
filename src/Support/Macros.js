@@ -15,7 +15,7 @@ Fiber.fn.macros = {
       };
     },
     constant: function(object) {
-      return function() { return object; };
+      return $fn.constant(object);
     },
     'get/set': function(property, checkToSetFn) {
       return {
@@ -87,6 +87,6 @@ Fiber.fn.macros = {
    * @returns {Object}
    */
   all: function() {
-    return $fn.clone($private($fn.macros, $fn.makePrivateKey()));
+    return $fn.clone($fn.macros._storage);
   },
 };

@@ -3,7 +3,7 @@ var Fr, Fiber, previousFiber,
 // define Internal variables
   $doc, $PropNames, $fn, $val, $valMerge, $valIncludes, $isDef, $each, $origEach, $trigger,
   $iteratee, $matches, $Types, BaseClass, $log, $Ioc, $Env, $State, Listeners, RouterCollection,
-  BaseJSTypes, BaseFiberTypes, BaseModel, BaseCollection;
+  BaseJSTypes, BaseFiberTypes, BaseModel, BaseCollection, $DelegatableFn, $ProtoFunction;
 
 /**
  * Property names map

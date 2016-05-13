@@ -58,7 +58,7 @@ Fiber.fn.delegator = {
       var args = arguments;
       if (hasArgCount) args = argCount > 0 ? _.toArray(arguments).splice(0, argCount) : argCount === 0 ? [] : args;
       scope = _.isString(scope) ? this[scope] : $val(scope, null);
-      return method.apply(scope, [this].concat($fn.cast.toArray(args)));
+      return method.apply(scope, $fn.argsConcat(this, $fn.cast.toArray(args)));
     };
   },
 
@@ -90,73 +90,9 @@ Fiber.fn.delegator = {
   },
 
   /**
-   * Creates proxy for the utility mixin
-   * @param {string} method - method to delegate
-   * @param {?string} [attribute=ThisReference] - attribute to find and delegate to
-   * @param {?number} [num=false] - number of arguments to take, if `false` will take all arguments
-   * @returns {function()}
-   */
-  proxyUtilMixin: function(method, attribute, num) {
-    num = $val(num, false, _.isEmpty);
-    return function() {
-      var args = _.drop(arguments)
-        , method = $fn.class.resolveMethod(_, method);
-
-      attribute = _.isString(attribute) ? this[attribute] : this;
-      args = $fn.argsConcatFlat(1, attribute, (num ? _.take(args, num) : args));
-
-      if (_.isFunction(method)) return method.apply(_, args);
-    };
-  },
-
-  /**
-   * Delegates utility mixin to the object
-   * @param {Object} object
-   * @param {string} attribute
-   * @param {Object|function()} owner
-   * @param {Object} methods
-   * @returns {Object}
-   */
-  delegateUtilMixin: function(object, attribute, methods) {
-    if (_.isPlainObject(methods)) return this;
-
-    for (var method in methods) {
-      var len = methods[method]
-        , zip = {name: method, len: len};
-
-      if (_.isArray(len)) zip = _.zipObject(['name', 'len'], len);
-      if (! _[method]) continue;
-      object.prototype[zip.name] = $fn.delegator.proxyUtilMixin(method, attribute, zip.len);
-    }
-
-    return this;
-  },
-
-  /**
-   * Delegate utility mixin to the `owner` object
-   * @param {string} mixinKey
-   * @param {Object} Object
-   * @param {?string} [attribute=ThisReference]
-   * @returns {Object}
-   */
-  utilMixin: function(mixinKey, Object, attribute) {
-    return this.delegateUtilMixin(Object, attribute, this.getUtilMixin(mixinKey));
-  },
-
-  /**
-   * Returns utility mixin or defaults
-   * @param {string} mixin
-   * @param {?*} [defaults=null]
-   * @returns {Object|null|*}
-   */
-  getUtilMixin: function(mixin, defaults) {
-    return this.utils[mixin] || $val(defaults, null);
-  },
-
-  /**
    * Expects that `method` is a valid function, otherwise logs error and throws Exception
-   * @param {?string|function()} [method]
-   * @param {?Object} [object]
+   * @param {string|function()} [method]
+   * @param {Object} [object]
    */
   expectFn: function(method, object) {
     if (_.isFunction(method)) return;
@@ -165,33 +101,7 @@ Fiber.fn.delegator = {
       'Can\'t proxy method ' + (method ? ' ' + method : method) +
       ', method is not available in the given object'
     ];
-
     if (object) args.push(object);
-    if (! _.isFunction(method)) $log.errorThrow.apply($log, args);
-  },
-
-  /**
-   * Utils holder
-   * @type {Object}
-   */
-  utils: {
-    object: {
-      merge: 0, extend: 0, defaults: 0, defaultsDeep: 0, functions: 0,
-      functionsIn: 0, pick: 0, omit: 0, findKey: 1, invert: 1, mapKeys: 2,
-      transform: 3, values: 0, valuesIn: 0, keys: 0, keysIn: 0
-    },
-    array: {
-      chunk: 2, compact: 1, concat: 0, difference: 0, drop: 2, fill: 4, findIndex: 2,
-      findLastIndex: 2, first: 0, last: 0, flatten: 1, flattenDeep: 1, flattenDepth: 2,
-      indexOf: 3, intersection: 0, join: 2, pull: 2, pullAll: 2, remove: 2, reverse: 0,
-      slice: 3, take: 2, union: 0, uniq: ['unique', 0], unzip: 0, without: 2, zip: 0,
-      zipObject: 2, zipObjectDeep: 2, includes: 2, forEach: 2, each: 2, every: 2,
-      map: 2, orderBy: 3, sample: ['random', 1], shuffle: 1, size: 1, some: 2, sortBy: 2,
-    },
-    collection: {
-      countBy: 2, forEach: 2, each: 2, every: 2, filter: 2, find: 2, groupBy: 2, includes: 2,
-      invokeMap: 3, keyBy: 2, map: 2, orderBy: 3, partition: 2, reduce: 3, reject: 2, sample: ['random', 1],
-      shuffle: 1, size: 1, some: 2, sortBy: 2
-    }
+    if (! _.isFunction(method) && $log) $log.errorThrow.apply($log, args);
   }
 };

@@ -36,6 +36,13 @@ Fiber.Container = Fiber.Class.extend({
   bags: ['bindings', 'extensions', 'shared', 'aliases'],
 
   /**
+   * Class type signature
+   * @type {string}
+   * @private
+   */
+  _signature: '[object Fiber.Container]',
+
+  /**
    * Constructs Container
    */
   constructor: function() {
@@ -231,6 +238,15 @@ Fiber.Container = Fiber.Class.extend({
  * Adds conditional methods to the Container
  */
 $fn.class.createConditionMethods(Fiber.Container.prototype, ['bind', 'share', 'extension'], 'bound');
+
+/**
+ * Add Container type to Fiber
+ */
+Fiber.Types.Container = new Fiber.Type({
+  type: 'object',
+  signature: Fiber.Container.prototype._signature,
+  example: function() {return new Fiber.Container;}
+});
 
 /**
  * Create default Fiber Inverse Of Control Container

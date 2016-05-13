@@ -204,24 +204,25 @@ Fiber.Events = _.extend({
   },
 
   /**
-   * Cleans up all events and channels.
-   * @return {Fiber.Events}
+   * Cleans up all events
+   * @returns {Fiber.Events}
    */
-  destroyEvents: function() {
-    this.clearBoundEvents();
-    this.clearChannels();
-    this.resetEventProperties();
+  clearBoundEvents: function() {
+    $fn.applyFn(Backbone.Events.destroyEvents, [], this);
     return this;
   },
 
   /**
-   * Stops listening to all events
-   * @returns {Fiber.Events}
+   * Stops listening to all events and channels.
+   * @param {Backbone.Events|Fiber.Events} [events]
+   * @return {Backbone.Events|Fiber.Events}
    */
-  clearBoundEvents: function() {
-    this.stopListening();
-    this.unbind();
-    return this;
+  destroyEvents: function(events) {
+    events = $val(events, this);
+    events.clearBoundEvents();
+    events.clearChannels();
+    events.resetEventProperties();
+    return events;
   },
 
   /**

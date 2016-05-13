@@ -24,37 +24,6 @@ Fiber.Monitor = BaseClass.extend({
   },
 
   /**
-   * Events monitor
-   * @type {Fiber.Events}
-   * @private
-   */
-  _monitor: null,
-
-  /**
-   * Monitoring state
-   * @type {boolean}
-   */
-  _monitoring: false,
-
-  /**
-   * Cache object
-   * @type {Object}
-   */
-  _cache: {},
-
-  /**
-   * Logger instance
-   * @type {Object.<Fiber.Log>}
-   */
-  _logger: null,
-
-  /**
-   * List of global Events methods
-   * @type {Array}
-   */
-  _globalEventingMethods: ['fireGlobal', 'whenGlobal', 'afterGlobal', 'stopGlobal'],
-
-  /**
    * Properties keys that will be auto extended from the initialization object
    * @type {Array|function()|string|boolean}
    */
@@ -65,6 +34,41 @@ Fiber.Monitor = BaseClass.extend({
    * @type {Array|function()}
    */
   ownProps: ['watches', 'notifies', '_monitor', '_monitoring', '_cache', '_logger', '_globalEventingMethods'],
+
+  /**
+   * Events monitor
+   * @type {Fiber.Events}
+   * @private
+   */
+  _monitor: null,
+
+  /**
+   * Monitoring state
+   * @type {boolean}
+   * @private
+   */
+  _monitoring: false,
+
+  /**
+   * Cache object
+   * @type {Object}
+   * @private
+   */
+  _cache: {},
+
+  /**
+   * Logger instance
+   * @type {Object.<Fiber.Log>}
+   * @private
+   */
+  _logger: null,
+
+  /**
+   * List of global Events methods
+   * @type {Array}
+   * @private
+   */
+  _globalEventingMethods: ['fireGlobal', 'whenGlobal', 'afterGlobal', 'stopGlobal'],
 
   /**
    * Constructs Debug

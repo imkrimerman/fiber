@@ -177,17 +177,5 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
 Fiber.Types.Bag = new Fiber.Type({
   type: 'object',
   signature: Fiber.Bag.prototype._signature,
-  defaults: Fiber.Bag
+  example: function() {return new Fiber.Bag;}
 });
-
-/**
- * Global Environment container
- * @type {Object.<Fiber.Bag>}
- */
-Fiber.env = $Env = new Fiber.Bag();
-
-/**
- * Global state container
- * @type {Object.<Fiber.Bag>}
- */
-Fiber.state = $State = new Fiber.Bag();

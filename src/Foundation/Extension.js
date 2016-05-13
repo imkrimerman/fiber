@@ -206,5 +206,5 @@ Fiber.Extension = Fiber.Class.extend({
 Fiber.Types.Extension = new Fiber.Type({
   type: 'object',
   signature: Fiber.Extension.prototype._signature,
-  defaults: Fiber.Extension
+  example: function() {return new Fiber.Extension;}
 });

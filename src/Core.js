@@ -1,4 +1,10 @@
 /**
+ * Current user agent
+ * @type {string}
+ */
+Fiber.Browser = $fn.whatBrowser();
+
+/**
  * Resolve the given type from the container.
  * @param {string|Array} abstract
  * @param {?Array} [parameters]
@@ -43,7 +49,6 @@ Fiber.retrieve = function(abstract) {
   var result = _.map($fn.castArr(abstract), function(one) {
     return Fiber.retrieve(one);
   });
-
   return ! _.isArray(abstract) ? result : _.first(result);
 };
 

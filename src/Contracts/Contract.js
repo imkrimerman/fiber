@@ -103,5 +103,5 @@ Fiber.Contract = BaseClass.extend({
 Fiber.Types.Contract = new Fiber.Type({
   type: 'object',
   signature: Fiber.Contract.prototype._signature,
-  defaults: Fiber.Contract
+  example: function() {return new Fiber.Contract;}
 });

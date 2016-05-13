@@ -52,8 +52,8 @@ Fiber.fn.injection = {
       })
     };
 
-    fn.getInject = _.bind($fn.injection.get, this, fn);
-    fn.applyInject = _.bind($fn.injection.apply, this, fn);
+    fn.injected = _.bind($fn.injection.get, this, fn);
+    fn.$inject = _.bind($fn.injection.apply, this, fn);
     return fn;
   },
 
@@ -65,8 +65,7 @@ Fiber.fn.injection = {
    */
   apply: function(fn, args) {
     if (! $fn.injection.has(fn)) fn = $fn.injection.inject(fn);
-    args = $fn.injection.get(fn, 'resolved').concat($val(args, [], _.isArray))
-    return fn.apply(fn, args);
+    return fn.apply(fn, $fn.injection.get(fn, 'resolved').concat($val(args, [], _.isArray)));
   },
 
   /**
@@ -76,9 +75,9 @@ Fiber.fn.injection = {
    */
   resolve: function(fn) {
     if ($fn.injection.has(fn)) return [];
-    var parsed = $fn.injection.parseArguments(fn), resolved = [];
+    var resolved = [], parsed = $fn.injection.parseArguments(fn);
     for (var i = 0; i < parsed.length; i ++) {
-      parsed[i].replace($fn.regexp.injection.arg, function(a, b, name) {
+      parsed[i].replace($fn.regexp.map.injection.arg, function(a, b, name) {
         if (_.isString(name) && _.startsWith(name, '$', 0)) name = name.slice(1, name.length);
         resolved.push(name);
       });
@@ -92,12 +91,12 @@ Fiber.fn.injection = {
    * @returns {Array}
    */
   parseArguments: function(fn) {
-    var regex = $fn.regexp.injection;
+    var re = $fn.regexp.map.injection;
     if (! _.isFunction(fn)) return [];
     return fn.toString()
-      .replace(regex.stripComments, '')
-      .match(regex.args)[1]
-      .split(regex.argsSplit);
+      .replace(re.stripComments, '')
+      .match(re.args)[1]
+      .split(re.argsSplit);
   },
 
   /**

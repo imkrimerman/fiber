@@ -6,6 +6,12 @@
 Fiber.Model = BaseModel.extend({
 
   /**
+   * The prefix is used to create the client id which is used to identify models locally.
+   * @type {string}
+   */
+  cidPrefix: 'model',
+
+  /**
    * Hidden fields.
    * toJSON method will omit this fields.
    * @type {Array|function()}
@@ -28,13 +34,20 @@ Fiber.Model = BaseModel.extend({
    * Properties keys that will be auto extended from initialize object
    * @type {Array|function()}
    */
-  willExtend: ['collection', 'url', 'hidden', 'rules', 'eventsConfig'],
+  willExtend: ['url', 'hidden', 'rules', 'eventsConfig'],
 
   /**
    * Properties keys that will be owned by the instance
    * @type {Array|function()}
    */
   ownProps: ['hidden', 'rules', 'eventsConfig'],
+
+  /**
+   * Class type signature
+   * @type {string}
+   * @private
+   */
+  _signature: '[object Fiber.Model]',
 
   /**
    * Constructs Model
@@ -46,15 +59,12 @@ Fiber.Model = BaseModel.extend({
     options = $fn.class.handleOptions(this, options);
 
     this.attributes = {};
-    this.cid = _.uniqueId(this.cidPrefix + '-');
+    this.cid = _.uniqueId(this.cidPrefix + '@');
     this.errorBag = new Fiber.ErrorBag();
     this.resetView();
 
-    $fn.extensions.init(this);
-
     if (options.parse) attributes = this.parse(attributes, options) || {};
     attributes = _.defaultsDeep({}, attributes, $fn.result(this, 'defaults'));
-
     this.set(attributes, options);
     this.changed = {};
 
@@ -62,6 +72,7 @@ Fiber.Model = BaseModel.extend({
       $fn.apply(this, 'whenInvalid', arguments);
     });
 
+    $fn.extensions.init(this);
     $fn.apply(this, 'initialize', arguments);
   },
 
@@ -159,8 +170,8 @@ Fiber.Model = BaseModel.extend({
   toJSON: function(options) {
     options = $valMerge(options, {hide: true}, 'defaults');
     var jsonModel = this.serialize();
-    if (options.hide) return _.omit(jsonModel, $fn.result(this, 'hidden'));
-    return jsonModel;
+    if (! options.hide) return jsonModel;
+    return _.omit(jsonModel, $fn.result(this, 'hidden'));
   },
 
   /**
@@ -274,5 +285,14 @@ Fiber.Model = BaseModel.extend({
     this.resetView();
     this.destroyEvents();
     return this.$super('destroy', arguments);
-  },
+  }
+});
+
+/**
+ * Add Model type to Fiber
+ */
+Fiber.Types.Model = new Fiber.Type({
+  type: 'object',
+  signature: Fiber.Model.prototype._signature,
+  example: function() {return new Fiber.Model;}
 });

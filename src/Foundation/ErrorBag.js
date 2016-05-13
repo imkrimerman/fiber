@@ -49,5 +49,4 @@ Fiber.ErrorBag = Fiber.Bag.extend({
     if (! _.isArray(check)) return null;
     return check.pop();
   }
-
 });

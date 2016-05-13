@@ -69,7 +69,7 @@ Fiber.fn.class = {
     // if we don't have any parent then log error and return
     if (! parent) {
       $log.warn('`Parent` is not provided or not valid, setting to `noop` function', parent);
-      parent = _.noop;
+      parent = $fn.noop;
     }
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
@@ -80,7 +80,7 @@ Fiber.fn.class = {
     _.extend(child, parent, staticProps);
     // Set the prototype chain to inherit from `parent`
     child.prototype = Object.create(parent.prototype, {
-      constructor: _.extend({value: child, enumerable: false}, $fn.descriptor.getLevelDescriptor('public'))
+      constructor: _.extend({value: child}, $fn.descriptor.getDescriptor('property'))
     });
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);

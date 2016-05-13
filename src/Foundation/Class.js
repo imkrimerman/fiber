@@ -21,5 +21,5 @@ Fiber.Class = BaseClass.implement('Events').extend([
 Fiber.Types.Class = new Fiber.Type({
   type: 'object',
   signature: Fiber.Class.prototype._signature,
-  defaults: Fiber.Class
+  example: function() {return new Fiber.Class;}
 });

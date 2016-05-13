@@ -3,6 +3,4 @@
  * @class
  * @extends {Fiber.Bag}
  */
-Fiber.Storage = Fiber.Bag.extend({
-
-});
+Fiber.Storage = Fiber.Bag.extend({});

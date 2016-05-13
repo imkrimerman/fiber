@@ -26,7 +26,8 @@
 })(function(root, exports, Backbone, _) {
   'use strict';
   /*eslint valid-jsdoc: 1*/
-
+  // start profiling loading speed
+  console.time('Fiber.start');
   <!-- inject:js -->
   <!-- endinject -->
   return Fiber;

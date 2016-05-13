@@ -93,6 +93,5 @@ Fiber.Application = Fiber.Object.extend({
    */
   handleOptions: function(options) {
     return $fn.class.handleOptions(this, options, this.result('defaults'), true);
-  },
-
+  }
 });

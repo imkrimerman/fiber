@@ -8,12 +8,22 @@ $trigger = Backbone.Events.trigger;
  * Wraps Backbone Events trigger method to give ability to listen to global events.
  * @param {string} name
  * @param {...args}
- * @returns {Backbone}
+ * @returns {Backbone.Events}
  */
 Backbone.Events.trigger = function(name) {
   var args = $fn.cast.toArray(arguments);
   $trigger.apply(Fiber.internal.events, args);
   $trigger.apply(this, arguments);
+  return this;
+};
+
+/**
+ * Cleans all events.
+ * @return {Backbone.Events}
+ */
+Backbone.Events.destroyEvents = function() {
+  this.stopListening();
+  this.unbind();
   return this;
 };
 
@@ -134,9 +144,8 @@ if (! Function.prototype.bind) {
    * @param {...args}
    * @returns {bound}
    */
-  Function.prototype.bind = function(scope) {
-    if (typeof this !== 'function') throw new TypeError('function().prototype.bind - ' +
-                                                        'what is trying to be bound is not callable');
+  $ProtoFunction.bind = function(scope) {
+    if (typeof this !== 'function') throw new TypeError('[Fiber.TypeError] `Function.bind` >> Caller is not callable.');
     var args = Array.prototype.slice.call(arguments, 1)
       , partials = Array.prototype.slice.call(arguments)
       , fn = this

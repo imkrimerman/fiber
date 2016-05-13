@@ -26,8 +26,9 @@ Fiber.fn.descriptor = {
    */
   descriptors: {
     private: {enumerable: false, configurable: false, writable: false},
-    protected: {enumerable: true, configurable: true, writable: false},
-    public: {enumerable: true, configurable: true, writable: true}
+    protected: {enumerable: false, configurable: true, writable: false},
+    public: {enumerable: true, configurable: true, writable: true},
+    property: {enumerable: false, configurable: true, writable: true},
   },
 
   /**
@@ -73,7 +74,7 @@ Fiber.fn.descriptor = {
   /**
    * Defines property using custom descriptor
    * @param {Object} object
-   * @param {string} property
+   * @param {string|Object} property
    * @param {Object} descriptor
    * @returns {Object}
    */
@@ -84,6 +85,21 @@ Fiber.fn.descriptor = {
     else if (arguments.length === 2 && _.isPlainObject(property)) properties = property;
     else return object;
     return Object.defineProperties(object, properties);
+  },
+
+  /**
+   * Defines property using descriptor retrieved by alias and extender mixin. Will merge descriptor and mixin and then
+   * will define property.
+   * @param {Object} object
+   * @param {string} property
+   * @param {string} alias
+   * @param {Object} extender
+   * @returns {Object}
+   */
+  defineMerge: function(object, property, alias, extender) {
+    var levelDescriptor = $fn.descriptor.getDescriptor(alias);
+    if (! levelDescriptor) return object;
+    return $fn.descriptor.define(object, property, $fn.merge(levelDescriptor, $val(extender, {}, _.isPlainObject)));
   },
 
   /**
@@ -225,12 +241,35 @@ Fiber.fn.descriptor = {
   },
 
   /**
+   * Returns descriptor for the given level
+   * @param {string} level
+   * @param {?Object} [defaults]
+   * @returns {*}
+   */
+  getDescriptor: function(alias, defaults) {
+    var $descriptor = $fn.descriptor
+      , descriptors = $descriptor.descriptors;
+    if ($descriptor.hasDescriptor(alias)) return descriptors[alias];
+    return $val(defaults, descriptors[$descriptor.defaults], $descriptor.canDescribe);
+  },
+
+
+  /**
    * Determines if level is registered
    * @param {string} level
    * @returns {boolean}
    */
   hasLevel: function(level) {
-    return $fn.has(_.keys($fn.descriptor.levels), level)
+    return $fn.has(_.keys($fn.descriptor.levels), level);
+  },
+
+  /**
+   * Determines if descriptor is registered using `alias`
+   * @param {string} alias
+   * @returns {boolean}
+   */
+  hasDescriptor: function(alias) {
+    return $fn.has(_.keys($fn.descriptor.descriptors), alias);
   },
 
   /**
@@ -239,6 +278,6 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   canDescribe: function(object) {
-    return _.isPlainObject(object);
+    return _.isObject(object);
   },
 };

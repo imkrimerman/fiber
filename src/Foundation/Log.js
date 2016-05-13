@@ -9,7 +9,7 @@ Fiber.Log = BaseClass.extend({
    * Available log levels
    * @type {Array}
    */
-  _levels: ['trace', 'debug', 'info', 'warn', 'error'].reverse(),
+  _levels: ['trace', 'debug', 'info', 'warn', 'error'],
 
   /**
    * Current log level
@@ -415,7 +415,7 @@ Fiber.Log = BaseClass.extend({
     var date = new Date();
     return _.extend({
       self: this,
-      level: this._templateLevel ? '- `' + this.getLevel() + '`' : '',
+      level: this._templateLevel ? ', `' + this.getLevel() + '`' : '',
       before: [
         $fn.result(this, '_templatePrefix'),
         this._timestamp ? 'at ' + date.toTimeString().slice(0, 8) + '.' + date.getMilliseconds() : ''

@@ -84,4 +84,14 @@ Fiber.fn.types = {
   matchesOne: function(arg, type) {
     return $fn.types.matchesType(arg, type) && $fn.types.matchesSignature(arg, type);
   },
+
+  /**
+   * Determines type of `arg`
+   * @param {*} arg
+   * @returns {string}
+   */
+  what: function(arg) {
+    for (var name in Fiber.Types) if ($fn.types.matches(arg, Fiber.Types[name], true)) return name;
+    return _.capitalize(typeof arg);
+  },
 };
