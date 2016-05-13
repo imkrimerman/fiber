@@ -25,7 +25,7 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Sort comparator function to pass to collection
-   * @type {Function|string|null}
+   * @type {function()|string|null}
    */
   comparator: null,
 
@@ -37,7 +37,7 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Element to render Collection to
-   * @type {string|Function}
+   * @type {string|function()}
    */
   collectionElement: '.collection-view',
 
@@ -49,7 +49,7 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Instance key to listen to
-   * @type {string|Function}
+   * @type {string|function()}
    */
   listens: 'collection',
 
@@ -63,19 +63,19 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Methods list to bind
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   bindMethods: ['renderOne', 'removeOne'],
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function|string}
+   * @type {Array|function()|string}
    */
   willExtend: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   ownProps: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
@@ -174,7 +174,7 @@ Fiber.CollectionView = Fiber.View.extend({
       return this.$collectionElement;
     }
 
-    var collectionEl = _.result(this, 'collectionElement');
+    var collectionEl = $fn.result(this, 'collectionElement');
     collectionEl = this.replaceCollectionElementUi(collectionEl);
 
     var $element = this.$(collectionEl);

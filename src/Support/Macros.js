@@ -23,7 +23,7 @@ Fiber.fn.macros = {
           return this[property];
         },
         set: function(value) {
-          if (_.isString(checkToSetFn) && _.isFunction(_.get(this, checkToSetFn))) checkToSetFn = this[checkToSetFn];
+          if (_.isString(checkToSetFn) && _.isFunction($fn.get(this, checkToSetFn))) checkToSetFn = this[checkToSetFn];
           if ((_.isFunction(checkToSetFn) && checkToSetFn(value)) || ! $isDef(checkToSetFn)) {
             this[property] = value;
           }
@@ -36,7 +36,7 @@ Fiber.fn.macros = {
    * Returns macros by name or defaults if one is not found.
    * @param {string} name
    * @param {*} [defaults]
-   * @returns {Function|*}
+   * @returns {function()|*}
    */
   get: function(name, defaults) {
     return $fn.macros._storage[name] || defaults;
@@ -45,7 +45,7 @@ Fiber.fn.macros = {
   /**
    * Sets macros by name
    * @param {string} name
-   * @param {Function} macrosCreator
+   * @param {function()} macrosCreator
    * @returns {Object}
    */
   set: function(name, macrosCreator) {
@@ -59,7 +59,7 @@ Fiber.fn.macros = {
    * @returns {boolean}
    */
   has: function(name) {
-    return $fn.macros._storage[name];
+    return !! $fn.macros._storage[name];
   },
 
   /**
@@ -74,7 +74,7 @@ Fiber.fn.macros = {
 
   /**
    * Includes macros mixin
-   * @param {Object|Function} macrosMixin
+   * @param {Object|function()} macrosMixin
    * @param {?boolean} [override=false]
    * @returns {*|Object|Fiber.fn.class}
    */

@@ -29,15 +29,9 @@ Fiber.Events = _.extend({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function|string}
+   * @type {Array|function()|string}
    */
   willExtend: ['eventsConfig'],
-
-  /**
-   * Properties keys that will be owned by the instance
-   * @type {Array|Function}
-   */
-  ownProps: ['eventsConfig', '_responders'],
 
   /**
    * Responders holder
@@ -47,6 +41,48 @@ Fiber.Events = _.extend({
   _responders: {},
 
   /**
+   * Channels holder
+   * @type {Object}
+   * @private
+   */
+  _channels: {},
+
+  /**
+   * Returns event channel, if one is not exists with given `name`, it will be created
+   * @param {string} name
+   * @returns {Fiber.Events}
+   */
+  channel: function(name) {
+    if ($fn.has(this._channels, name)) return $fn.get(this._channels, name);
+    var channel = Fiber.Events.$new();
+    $fn.set(this._channels, name, channel);
+    return channel;
+  },
+
+  /**
+   * Adds response as an action call for the given `event`
+   * @param {string} event
+   * @param {function()} action
+   * @param {?Object} [scope=this]
+   * @returns {Fiber.Events}
+   */
+  respondTo: function(event, action, scope) {
+    return $fn.set(this._responders, event, _.bind(action, $val(scope, this)));
+  },
+
+  /**
+   * Sends event request and returns response
+   * @param {string} event
+   * @param {...args}
+   * @returns {*}
+   */
+  request: function(event) {
+    if (! $fn.has(this._responders, event)) return void 0;
+    var responder = $fn.get(this._responders, event);
+    if (_.isFunction(responder)) return responder.apply(responder, _.drop(_.toArray(arguments)));
+  },
+
+  /**
    * Fires `event` with namespace (if available) and `catalog` alias look up
    * @param {string} event
    * @param {...args}
@@ -54,14 +90,14 @@ Fiber.Events = _.extend({
    */
   fire: function(event) {
     var args = _.drop(_.toArray(arguments));
-    return this.trigger.apply(this, [this.nsEvent(event)].concat(args));
+    return this.trigger.apply(this, [this.event(event)].concat(args));
   },
 
   /**
    * Every time `event` is fired invokes `action`.
    * You can provide listenable to listen to as last argument.
    * @param {string} event
-   * @param {Function} action
+   * @param {function()} action
    * @param {?Object} [listenable=this]
    * @param {?Object} [scope=this]
    */
@@ -75,7 +111,7 @@ Fiber.Events = _.extend({
    * After first `event` is fired invoke `action` and remove it.
    * You can provide listenable to listen to as last argument.
    * @param {string} event
-   * @param {Function} action
+   * @param {function()} action
    * @param {?Object} [listenable=this]
    * @param {?Object} [scope=this]
    */
@@ -94,7 +130,7 @@ Fiber.Events = _.extend({
    * @returns {*}
    */
   fireGlobal: function(event) {
-    return $trigger.apply(Fiber.internal.events, [event].concat($fn.cast.toArray(_.drop(arguments))));
+    return $fn.apply(Fiber.internal.events, 'trigger', arguments);
   },
 
   /**
@@ -102,12 +138,14 @@ Fiber.Events = _.extend({
    * Listens to the Fiber internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
-   * @param {Function} action
+   * @param {function()} action
    * @param {?Object} [scope=this]
    * @returns {*}
    */
   whenGlobal: function(event, action, scope) {
-    return Fiber.internal.events.on(event, _.bind(action, $val(scope, this)));
+    return Fiber.internal.events.listenTo(
+      Fiber.internal.events, event, _.bind(action, $val(scope, this))
+    );
   },
 
   /**
@@ -115,12 +153,14 @@ Fiber.Events = _.extend({
    * Listens to the Fiber internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
-   * @param {Function} action
+   * @param {function()} action
    * @param {?Object} [scope=this]
    * @returns {*}
    */
   afterGlobal: function(event, action, scope) {
-    return Fiber.internal.events.once(event, _.bind(action, $val(scope, this)));
+    return Fiber.internal.events.listenToOnce(
+      Fiber.internal.events, event, _.bind(action, $val(scope, this))
+    );
   },
 
   /**
@@ -128,129 +168,72 @@ Fiber.Events = _.extend({
    * Listens to the Fiber internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
-   * @param {Function} action
+   * @param {function()} action
    * @param {?Object} [scope=this]
    * @returns {*}
    */
   stopGlobal: function(event, action, scope) {
-    return Fiber.internal.events.off(event, _.bind(action, $val(scope, this)));
+    return Fiber.internal.events.stopListening(
+      Fiber.internal.events, event, _.bind(action, $val(scope, this))
+    );
   },
 
   /**
-   * Adds response as an action call for the given `event`
+   * Returns `event` with namespace and `catalog` look up.
    * @param {string} event
-   * @param {Function} action
-   * @param {?Object} [scope=this]
-   * @returns {Fiber.Events}
+   * @returns {string}
    */
-  respondTo: function(event, action, scope) {
-    return this.set($fn.join('_responders', event, '.'), _.bind(action, $val(scope, this)))
+  event: function(event) {
+    var eventName = $fn.get(this, $fn.join(['eventsConfig.catalog', event], '.')) || event;
+    // returns passed event as is if first char is `!`
+    if (event[0] === '!') return event.slice(1);
+    // skip catalog look up by providing `@`
+    else if (event[0] === '@') eventName = event.slice(1);
+    // and lastly join namespace and event string
+    return this._joinEventName([this.eventsConfig.ns, eventName]);
   },
 
   /**
-   * Sends event request and returns response
-   * @param {string} event
-   * @param {...args}
-   * @returns {*}
+   * Initializes events properties
+   * @return {Fiber.Events}
    */
-  request: function(event) {
-    if (! this.has($fn.join('_responders', event, '.'))) return void 0;
-    return this.callResponder(event, _.drop(_.toArray(arguments)));
-  },
-
-  /**
-   * Calls responder action with `args` for the given `event`
-   * @param {string} event
-   * @param {?Array|*} [args=[]]
-   * @returns {*}
-   */
-  callResponder: function(event, args) {
-    var responder = this.get($fn.join('_responders', event, '.'));
-    args = $val(args, []);
-    if (! _.isArray(args) && ! _.isArguments(args)) args = $fn.castArr(args);
-    if (! responder) return responder;
-    return responder.apply(responder, args);
-  },
-
-  /**
-   * Sets events namespace
-   * @param {string} ns
-   * @returns {*}
-   */
-  setNs: function(ns) {
-    this.eventsConfig.ns = ns;
+  initEventProperties: function() {
+    this._responders = {};
+    this._channels = {};
     return this;
   },
 
   /**
-   * Returns events namespace
-   * @returns {string}
+   * Cleans up all events and channels.
+   * @return {Fiber.Events}
    */
-  getNs: function() {
-    return this.eventsConfig.ns;
-  },
+  destroyEvents: function() {
+    this.stopListening();
+    this.unbind();
 
-  /**
-   * Determine if has valid (not empty) events namespace
-   * @returns {boolean}
-   */
-  hasNs: function() {
-    return ! _.isEmpty(this.eventsConfig.ns);
-  },
+    $each(this._channels, function(channel) {
+      Fiber.Events.destroyEvents(channel);
+    });
 
-  /**
-   * Returns namespaced `event` with `catalog` look up.
-   * @param {string} event
-   * @returns {string}
-   */
-  nsEvent: function(event) {
-    var checkCatalog = true
-      , ns = ! _.isEmpty(this.eventsConfig.ns) ? this.eventsConfig.ns + ':' : '';
-    // returns passed event as is if first char is `@`
-    if (event[0] === '@') return event.slice(1);
-    // skip catalog look up by providing `!`
-    else if (event[0] === '!') {
-      event = event.slice(1);
-      checkCatalog = false;
-    }
-    return ns + (checkCatalog ? this.$getEvent(event) : event);
-  },
-
-  /**
-   * Returns event from catalog using alias. If not found will return `event` as is.
-   * @param {string} event
-   * @returns {string|*}
-   */
-  $getEvent: function(event) {
-    return $val(this.eventsConfig.catalog[event], event);
-  },
-
-  /**
-   * Determine if event is catalog
-   * @param {string} event
-   * @returns {boolean}
-   */
-  $hasEvent: function(event) {
-    return $fn.has(this.eventsConfig.catalog, event);
-  },
-
-  /**
-   * Sets `event` to the catalog by `alias`
-   * @param {string} alias
-   * @param {string} event
-   * @returns {*}
-   */
-  $setEvent: function(alias, event) {
-    this.eventsConfig.catalog[alias] = event;
+    this.initEventProperties();
     return this;
   },
 
   /**
-   * Clones Events object instance
+   * Returns new Events object
    * @returns {Fiber.Events}
    */
   $new: function() {
-    return _.extend({}, this);
+    return $fn.clone(Fiber.Events, true);
+  },
+
+  /**
+   * Returns new copy of Events object mixed with the given `mixin`
+   * @param {Object} mixin
+   * @returns {Fiber.Events}
+   */
+  $mix: function(mixin) {
+    return $fn.class.include(this.$new(), mixin, true);
   },
 
   /**
@@ -258,9 +241,23 @@ Fiber.Events = _.extend({
    * @param {string} event
    * @param {Object} listenable
    * @returns {string}
+   * @private
    */
   _prepareEventName: function(event, listenable) {
     listenable = $val(listenable, this);
-    return _.has(listenable, 'nsEvent') ? listenable.nsEvent(event) : event;
-  }
+    return $fn.has(listenable, 'event') ? listenable.event(event) : event;
+  },
+
+  /**
+   * Makes single event string from array of events
+   * @param {Array} events
+   * @param {?string} [delimiter=':']
+   * @returns {string}
+   */
+  _joinEventName: function(events, delimiter) {
+    delimiter = $val(delimiter, ':', _.isString);
+    return $fn.compact(_.map($fn.castArr(events), function(event) {
+      return $fn.trim($fn.cast.toString(event), delimiter);
+    })).join(delimiter);
+  },
 }, Backbone.Events);

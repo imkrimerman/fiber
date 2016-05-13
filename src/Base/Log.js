@@ -1,9 +1,9 @@
 /**
  * Fiber Logger
  * @class
- * @extends {$BaseClass}
+ * @extends {BaseClass}
  */
-Fiber.Log = $BaseClass.extend({
+Fiber.Log = BaseClass.extend({
 
   /**
    * Available log levels
@@ -27,14 +27,14 @@ Fiber.Log = $BaseClass.extend({
 
   /**
    * Method to use from `_writer`
-   * @type {string|Function}
+   * @type {string|function()}
    * @private
    */
   _method: 'log',
 
   /**
    * Fallback log function
-   * @type {Function}
+   * @type {function()}
    */
   _fallback: console.log,
 
@@ -42,13 +42,25 @@ Fiber.Log = $BaseClass.extend({
    * Log timestamp
    * @type {boolean}
    */
-  _timestamp: false,
+  _timestamp: true,
+
+  /**
+   * Log current log level
+   * @type {boolean}
+   */
+  _templateLevel: true,
 
   /**
    * Log template
    * @type {Object}
    */
-  _template: '{{ timestamp }} [Fiber]: `{{ self.getLevel() }}` >> ',
+  _template: '{{= before }}{{= level }} >>',
+
+  /**
+   * Template prefix string
+   * @type {string|function()}
+   */
+  _templatePrefix: '[Fiber.Log]',
 
   /**
    * Console API Methods map
@@ -87,9 +99,16 @@ Fiber.Log = $BaseClass.extend({
     options = $fn.class.handleOptions(this, options, {
       level: this._level,
       writer: this._writer,
-      template: this._template
+      timestamp: this._timestamp,
+      template: this._template,
+      templateLevel: this._templateLevel,
+      templatePrefix: this._templatePrefix
     });
 
+    this._timestamp = options.timestamp;
+    this._template = options.template;
+    this._templateLevel = options.templateLevel;
+    this._templatePrefix = options.templatePrefix;
     this.setLevel(options.level);
     this.setWriter(options.writer);
   },
@@ -124,7 +143,7 @@ Fiber.Log = $BaseClass.extend({
 
   /**
    * Starts performance measurement
-   * @param {Function} testTrigger
+   * @param {function()} testTrigger
    * @param {?Object} [options]
    * @returns {boolean}
    */
@@ -269,7 +288,7 @@ Fiber.Log = $BaseClass.extend({
 
   /**
    * Returns used writer method
-   * @returns {string|Function}
+   * @returns {string|function()}
    */
   getWriterMethod: function() {
     return this._method;
@@ -410,16 +429,20 @@ Fiber.Log = $BaseClass.extend({
    * @returns {Object}
    */
   getTemplateData: function(data) {
+    var date = new Date();
     return _.extend({
-      msg: '',
       self: this,
-      timestamp: (new Date()).toTimeString().slice(0, 8)
+      level: this._templateLevel ? '- `' + this.getLevel() + '`' : '',
+      before: [
+        $fn.result(this, '_templatePrefix'),
+        this._timestamp ? 'at ' + date.toTimeString().slice(0, 8) + '.' + date.getMilliseconds() : ''
+      ].join(' '),
     }, $val(data, {}, _.isPlainObject));
   },
 
   /**
    * Calls raw writer
-   * @param {string|Function} method
+   * @param {string|function()} method
    * @param {?Array} [args]
    * @returns {*}
    * @private
@@ -427,7 +450,7 @@ Fiber.Log = $BaseClass.extend({
   _callWriter: function(method, args) {
     if (_.isString(method)) method = $fn.class.resolveMethod(this._writer, method);
     if (! _.isFunction(method) && _.isFunction(this._fallback)) method = this._fallback;
-    if (_.isFunction(method)) return method.apply(this._writer, method, args);
+    if (_.isFunction(method)) return method.apply(this._writer, args);
   },
 });
 

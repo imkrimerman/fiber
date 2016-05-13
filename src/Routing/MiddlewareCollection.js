@@ -1,4 +1,4 @@
-Fiber.MiddlewareCollection = $RouterCollection.extend({
+Fiber.MiddlewareCollection = RouterCollection.extend({
 
   /**
    * Default collection model

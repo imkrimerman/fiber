@@ -1,13 +1,32 @@
 /**
+ * Cached Backbone Events trigger method
+ * @type {function()}
+ */
+$trigger = Backbone.Events.trigger;
+
+/**
+ * Wraps Backbone Events trigger method to give ability to listen to global events.
+ * @param {string} name
+ * @param {...args}
+ * @returns {Backbone}
+ */
+Backbone.Events.trigger = function(name) {
+  var args = $fn.cast.toArray(arguments);
+  $trigger.apply(Fiber.internal.events, args);
+  $trigger.apply(this, arguments);
+  return this;
+};
+
+/**
  * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
- * @type {_.each|*|(function((Array|Object), Function=): (Array|Object))}
+ * @type {_.each|*|(function((Array|Object), function()=): (Array|Object))}
  */
 $origEach = _.bind(_.each, _);
 
 /**
- * Adds backward compatibility for lodash `each` method
+ * Adds compatibility for `each` method
  * @param {Array|Object} collection
- * @param {Function} iteratee
+ * @param {function()} iteratee
  * @param {?Object} [scope]
  * @returns {*}
  */
@@ -20,7 +39,7 @@ $each = function(collection, iteratee, scope) {
  * Internal function that returns an efficient (for current engines) version
  * of the passed-in callback, to be repeatedly applied in other Underscore
  * functions.
- * @param {Function} func
+ * @param {function()} func
  * @param {?Object} [context]
  * @param {?number} [argCount]
  * @returns {*}
@@ -52,10 +71,10 @@ var $optimizeCb = function(func, context, argCount) {
  * An Internal function to generate callbacks that can be applied to each
  * element in a collection, returning the desired result — either `identity`,
  * an arbitrary callback, a property matcher, or a property accessor.
- * @param {string|Function|Object} value
+ * @param {string|function()|Object} value
  * @param {?Object} [scope]
  * @param {?number} [argCount]
- * @returns {Function}
+ * @returns {function()}
  */
 var $iterateeCb = function(value, scope, argCount) {
   if (_.iteratee !== $iteratee) return _.iteratee(value, scope);
@@ -69,9 +88,9 @@ var $iterateeCb = function(value, scope, argCount) {
  * External wrapper for our callback generator. Users may customize
  * `_.iteratee` if they want additional predicate/iteratee shorthand styles.
  * This abstraction hides the Internal-only argCount argument.
- * @param {string|Function|Object} value
+ * @param {string|function()|Object} value
  * @param {?Object} [scope]
- * @returns {Function}
+ * @returns {function()}
  */
 $iteratee = function(value, scope) {
   return $iterateeCb(value, scope, Infinity);
@@ -81,44 +100,13 @@ $iteratee = function(value, scope) {
  * Returns a predicate for checking whether an object has a given set of
  * `key:value` pairs.
  * @param {Object} attributes
- * @returns {Function}
+ * @returns {function()}
  */
 $matches = function(attributes) {
-  attributes = _.extend({}, attributes);
   return function(object) {
-    return _.isMatch(object, attributes);
+    return _.isMatch(object, _.extend({}, attributes));
   };
 };
-
-/**
- * Adds Function `bind` polyfill if one is not exists, used for PhantomJS compatibility.
- */
-if (! Function.prototype.bind) {
-
-  /**
-   * The bind function is an addition to ECMA-262, 5th edition; as such it may not be present in all browsers.
-   * You can partially work around this by inserting the following code at the beginning of your scripts,
-   * allowing use of much of the functionality of bind() in implementations that do not natively support it.
-   * @param {Object} scope
-   * @param {...args}
-   * @returns {bound}
-   */
-  Function.prototype.bind = function(scope) {
-    if (typeof this !== 'function') throw new TypeError('Function.prototype.bind - ' +
-                                                        'what is trying to be bound is not callable');
-    var args = Array.prototype.slice.call(arguments, 1)
-      , partials = Array.prototype.slice.call(arguments)
-      , fn = this
-      , noop = function() {}
-      , bound = function() {
-      return fn.apply(this instanceof noop && scope ? this : scope, args.concat(partials));
-    };
-
-    noop.prototype = this.prototype;
-    bound.prototype = new noop();
-    return bound;
-  };
-}
 
 /**
  * Add `lodash` mixins
@@ -134,20 +122,31 @@ _.mixin({
 });
 
 /**
- * Cached Backbone Events trigger method
- * @type {Function}
+ * Adds `Function.bind` polyfill if function is not exists. Used to support `bind` in PhantomJS.
  */
-$trigger = Backbone.Events.trigger;
+if (! Function.prototype.bind) {
 
-/**
- * Wraps Backbone Events trigger method to give ability to listen to global events.
- * @param {string} name
- * @param {...args}
- * @returns {Backbone}
- */
-Backbone.Events.trigger = function(name) {
-  var args = $fn.cast.toArray(arguments);
-  $trigger.apply(Fiber.internal.events, args);
-  $trigger.apply(this, arguments);
-  return this;
-};
+  /**
+   * The bind function is an addition to ECMA-262, 5th edition; as such it may not be present in all browsers.
+   * You can partially work around this by inserting the following code at the beginning of your scripts,
+   * allowing use of much of the functionality of bind() in implementations that do not natively support it.
+   * @param {Object} scope
+   * @param {...args}
+   * @returns {bound}
+   */
+  Function.prototype.bind = function(scope) {
+    if (typeof this !== 'function') throw new TypeError('function().prototype.bind - ' +
+                                                        'what is trying to be bound is not callable');
+    var args = Array.prototype.slice.call(arguments, 1)
+      , partials = Array.prototype.slice.call(arguments)
+      , fn = this
+      , noop = function() {}
+      , bound = function() {
+      return fn.apply(this instanceof noop && scope ? this : scope, args.concat(partials));
+    };
+
+    noop.prototype = this.prototype;
+    bound.prototype = new noop();
+    return bound;
+  };
+}

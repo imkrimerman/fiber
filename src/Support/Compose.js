@@ -6,10 +6,10 @@ Fiber.fn.compose = {
 
   /**
    * Composes View with provided options
-   * @param {Function} View
+   * @param {function()} View
    * @param {?Object} [options]
    * @param {...args}
-   * @returns {*|Function|Fiber.View}
+   * @returns {*|function()|Fiber.View}
    */
   view: function(View, options) {
     if (! ($fn.class.isBackboneClass(View)))
@@ -37,7 +37,7 @@ Fiber.fn.compose = {
    * @param {Array|Backbone.Collection} Collection
    * @param {?Array|Backbone.Model} [Model]
    * @param {...args}
-   * @returns {Function}
+   * @returns {function()}
    */
   collection: function(Collection, options) {
     options = $valMerge(options, {Model: false, model: false, extender: {}, args: []});
@@ -58,7 +58,7 @@ Fiber.fn.compose = {
    * @param {Backbone.Model} Model
    * @param {?Object} [extender]
    * @param {?Array} [args]
-   * @returns {*|Function}
+   * @returns {*|function()}
    */
   model: function(Model, options) {
     options = $valMerge(options, {extender: {}, args: []});
@@ -69,9 +69,9 @@ Fiber.fn.compose = {
 
   /**
    * Initializes component
-   * @param {Array|Function} Component
+   * @param {Array|function()} Component
    * @param {...args}
-   * @returns {Function}
+   * @returns {function()}
    */
   initialize: function(Component) {
     var args = _.drop(arguments);

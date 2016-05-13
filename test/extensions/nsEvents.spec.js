@@ -64,16 +64,16 @@ describe('Fiber.Events', function() {
       one: 'catalog:one'
     };
 
-    expect(this.Class.nsEvent('event')).to.eql(this.Class.ns + ':event');
-    expect(this.Class.nsEvent('one')).to.eql(this.Class.ns + ':' + this.Class.catalog.one);
-    expect(this.Class.nsEvent('@one')).to.eql('one');
-    expect(this.Class.nsEvent('!one')).to.eql(this.Class.ns + ':one');
+    expect(this.Class.event('event')).to.eql(this.Class.ns + ':event');
+    expect(this.Class.event('one')).to.eql(this.Class.ns + ':' + this.Class.catalog.one);
+    expect(this.Class.event('@one')).to.eql('one');
+    expect(this.Class.event('!one')).to.eql(this.Class.ns + ':one');
 
     this.Class.ns = '';
-    expect(this.Class.nsEvent('event')).to.eql('event');
-    expect(this.Class.nsEvent('one')).to.eql(this.Class.catalog.one);
-    expect(this.Class.nsEvent('@one')).to.eql('one');
-    expect(this.Class.nsEvent('!one')).to.eql('one');
+    expect(this.Class.event('event')).to.eql('event');
+    expect(this.Class.event('one')).to.eql(this.Class.catalog.one);
+    expect(this.Class.event('@one')).to.eql('one');
+    expect(this.Class.event('!one')).to.eql('one');
   });
 
   it('should return (`get`) event from catalog, otherwise same as input', function() {

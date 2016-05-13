@@ -1,32 +1,32 @@
 /**
  * Fiber Model
  * @class
- * @extends {$Model}
+ * @extends {BaseModel}
  */
-Fiber.Model = $Model.extend({
+Fiber.Model = BaseModel.extend({
 
   /**
    * Hidden fields.
    * toJSON method will omit this fields.
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   hidden: [],
 
   /**
    * Validation rules
-   * @type {Object|Function}
+   * @type {Object|function()}
    */
   rules: {},
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   willExtend: ['collection', 'url', 'hidden', 'rules', 'eventsConfig'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   ownProps: ['hidden', 'rules', 'eventsConfig'],
 
@@ -53,7 +53,7 @@ Fiber.Model = $Model.extend({
     $fn.extensions.init(this);
 
     if (options.parse) attributes = this.parse(attributes, options) || {};
-    attributes = _.defaultsDeep({}, attributes, _.result(this, 'defaults'));
+    attributes = _.defaultsDeep({}, attributes, $fn.result(this, 'defaults'));
 
     this.set(attributes, options);
     this.changed = {};
@@ -76,7 +76,7 @@ Fiber.Model = $Model.extend({
     options = $valMerge(options, {denyCompute: false}, 'defaults');
     if (! options.denyCompute && $fn.computed.has(this, attribute, 'get'))
       return $fn.computed.get(this, attribute);
-    return _.get(this.attributes, attribute);
+    return $fn.get(this.attributes, attribute);
   },
 
   /**
@@ -102,7 +102,7 @@ Fiber.Model = $Model.extend({
    */
   has: function(attribute) {
     if ($fn.computed.has(this, attribute, 'get')) return true;
-    return _.has(this.attributes, attribute);
+    return $fn.has(this.attributes, attribute);
   },
 
   /**
@@ -122,7 +122,7 @@ Fiber.Model = $Model.extend({
    * @returns {Object}
    */
   getRules: function(defaults) {
-    return _.result(this, 'rules', defaults);
+    return $fn.result(this, 'rules', defaults);
   },
 
   /**
@@ -158,7 +158,7 @@ Fiber.Model = $Model.extend({
   toJSON: function(options) {
     options = $valMerge(options, {hide: true}, 'defaults');
     var jsonModel = this.serialize(options);
-    if (options.hide) return _.omit(jsonModel, _.result(this, 'hidden'));
+    if (options.hide) return _.omit(jsonModel, $fn.result(this, 'hidden'));
     return jsonModel;
   },
 
@@ -261,7 +261,7 @@ Fiber.Model = $Model.extend({
    * @returns {boolean}
    */
   isFetchable: function() {
-    try { return _.isString(_.result(this, 'url')); }
+    try { return _.isString($fn.result(this, 'url')); }
     catch (e) { return false; }
   },
 

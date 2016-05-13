@@ -40,7 +40,7 @@ Fiber.Container = Fiber.Class.extend({
    */
   constructor: function() {
     this.flush();
-    Fiber.Class.apply(this, arguments);
+    this.$superInit();
   },
 
   /**
@@ -139,7 +139,7 @@ Fiber.Container = Fiber.Class.extend({
 
   /**
    * Instantiates `concrete` type with resolved `parameters`
-   * @param {Function} concrete
+   * @param {function()} concrete
    * @param {Array} parameters
    * @returns {*|Object}
    */
@@ -150,11 +150,11 @@ Fiber.Container = Fiber.Class.extend({
   /**
    * Resolves and injects dependencies to the given function using arguments parsing
    * NOTE: This is not secure and safe way to use Dependency Injection. Variables can be minified and obfuscated.
-   * @param {Function} fn
-   * @returns {Function}
+   * @param {function()} fn
+   * @returns {function()}
    */
   inject: function(fn) {
-    if (! _.isFunction(fn)) $Log.errorThrow('Cannot inject dependencies, provided `fn` is not a Function');
+    if (! _.isFunction(fn)) $Log.errorThrow('Cannot inject dependencies, provided `fn` is not a function()');
     return $fn.injection.inject(fn);
   },
 

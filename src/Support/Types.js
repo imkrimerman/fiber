@@ -14,10 +14,12 @@ Fiber.fn.types = {
   },
 
   /**
-   * Function to apply same transformation before check
-   * @type {Function}
+   * function() to apply same transformation before check
+   * @type {function()}
    */
-  transformer: String.prototype.toLowerCase,
+  transformer: function(str) {
+    return String.prototype.toLowerCase.apply(str);
+  },
 
   /**
    * Determines if arg matches typeof conversion
@@ -55,8 +57,8 @@ Fiber.fn.types = {
    * @param {?Object} [scope]
    * @returns {string}
    */
-  transform: function(string, scope) {
-    return $fn.types.transformer.apply($val(scope, null), $fn.castArr(string));
+  transform: function(string) {
+    return $fn.types.transformer(string);
   },
 
   /**

@@ -1,21 +1,17 @@
 /**
  * Fiber Command Bus Registry
  * @class
- * @extends {Fiber.Collection}
+ * @extends {BaseCollection}
  */
-Fiber.Commands.Registry = $Collection.extend({
+Fiber.Commands.Registry = BaseCollection.extend({
 
   /**
    * Default Registry model
    * @type {Object.<Fiber.Model>}
    */
-  model: $Model.extend({
+  model: BaseModel.extend({
     idAttributes: 'name',
-    defaults: {
-      name: '',
-      command: null,
-      handler: null
-    }
+    defaults: {name: '', command: null, handler: null}
   }),
 
 });

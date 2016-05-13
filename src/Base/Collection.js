@@ -2,21 +2,22 @@
  * Base Collection
  * @class
  * @extends {Backbone.Collection}
+ * @private
  */
-$Collection = $fn.class.make(Backbone.Collection, [
+BaseCollection = $fn.class.make(Backbone.Collection, [
   $Extend, $OwnProps, $Binder, {
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @type {Array|Function}
+     * @type {Array|function()}
      */
     willExtend: ['model', 'url'],
 
     /**
      * Base model
-     * @type {$Model}
+     * @type {BaseModel}
      */
-    model: $Model,
+    model: BaseModel,
 
     /**
      * Constructor
@@ -26,7 +27,7 @@ $Collection = $fn.class.make(Backbone.Collection, [
     constructor: function(models, options) {
       $fn.class.handleOptions(this, options);
       $fn.extensions.init(this);
-      Backbone.Collection.apply(this, arguments);
-    },
+      this.$superInit(arguments);
+    }
   }
 ]);

@@ -17,7 +17,7 @@ var $Extend = new Fiber.Extension('Extend', {
 
   /**
    * Properties keys that will be auto extended from the initialization object
-   * @type {Array|Function|string|boolean}
+   * @type {Array|function()|string|boolean}
    */
   willExtend: [],
 

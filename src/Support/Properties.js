@@ -1,31 +1,25 @@
 // define base Fiber variables
-var Fr, Fiber, previousFiber, $Fiber = {},
+var Fr, Fiber, previousFiber,
 // define Internal variables
-  $doc, $fn, $val, $valMerge, $isDef, $each, $origEach, $trigger, $msg, $private, $privateHas, $iteratee, $matches,
-  $Types, $Config, $TypeChecker, $BaseClass, $dom, $Log, $Ioc, $Env, $State, $DomElement, $Model, $Collection, $Listeners,
-  $RouterCollection, BaseJSTypes, BaseFiberTypes;
+  $doc, $PropNames, $fn, $val, $valMerge, $valIncludes, $isDef, $each, $origEach, $trigger,
+  $iteratee, $matches, $Types, BaseClass, $Log, $Ioc, $Env, $State, Listeners, RouterCollection,
+  BaseJSTypes, BaseFiberTypes, BaseModel, BaseCollection;
 
 /**
- * Configuration
+ * Property names map
  * @type {Object}
  */
-$Fiber.Config = $Config = {
-  access: {
-    key: '_access',
-    default: 'public',
-    properties: {const: '$$const', private: '$$private'}
-  },
-  private: {key: '__private'},
-  type: {key: '_signature'},
-  contracts: {key: '_implements'},
-  injection: {key: '_injection'}
+$PropNames = {
+  type: '_signature',
+  contract: '_implements',
+  injection: '_injection'
 };
 
 /**
  * Global document reference
  * @type {HTMLElement|void}
  */
-$Fiber.doc = $doc = root.document;
+$doc = root.document;
 
 /**
  * Fiber main object
@@ -51,14 +45,14 @@ Fiber.noConflict = function() {
 };
 
 /**
- * Add `lodash` to the Fiber
- * @type {Function}
+ * Attach `lodash`
+ * @type {function()}
  */
 Fiber._ = _;
 
 /**
- * Attach dom manipulation library if provided
- * @type {Function}
+ * Attach dom manipulation library (optional)
+ * @type {function()}
  */
 Fiber.$ = $;
 
@@ -75,6 +69,12 @@ Fiber.Types = {};
 Fiber.Contracts = {};
 
 /**
+ * Fiber Mocks integration
+ * @type {Object}
+ */
+Fiber.Mocks = {};
+
+/**
  * Fiber Command Bus
  * @var {Object}
  */
@@ -86,4 +86,5 @@ Fiber.Commands = {};
  */
 Fiber.internal = {
   events: _.extend({}, Backbone.Events),
+  properties: $PropNames
 };

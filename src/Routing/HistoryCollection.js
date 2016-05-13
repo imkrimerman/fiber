@@ -1,9 +1,9 @@
 /**
  * Fiber History Collection
  * @class
- * @extends {$RouterCollection}
+ * @extends {RouterCollection}
  */
-Fiber.HistoryCollection = $RouterCollection.extend({
+Fiber.HistoryCollection = RouterCollection.extend({
 
   /**
    * Default Model

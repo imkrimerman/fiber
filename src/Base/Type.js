@@ -1,9 +1,9 @@
 /**
  * Fiber Type
  * @class
- * @extends {$BaseClass}
+ * @extends {BaseClass}
  */
-Fiber.Type = $BaseClass.extend({
+Fiber.Type = BaseClass.extend({
 
   /**
    * Class type signature
@@ -14,7 +14,7 @@ Fiber.Type = $BaseClass.extend({
 
   /**
    * Type options defaults
-   * @type {Object|Function}
+   * @type {Object|function()}
    */
   _defaults: {
     type: null,
@@ -28,9 +28,9 @@ Fiber.Type = $BaseClass.extend({
    * @param {Object} options
    */
   constructor: function(options) {
-    var config = $valMerge(options, $fn.result(this._defaults), 'defaults');
-    if (! this._isValidOptions(config)) $Log.errorThrow('Cannot create new type. `Options` are not valid.');
-    this[$Config.private.key] = $fn.descriptor.immutable(config);
+    options = $valMerge(options, $fn.result(this._defaults), 'defaults');
+    if (! this._isValidOptions(options)) $Log.errorThrow('Can not create new type. `Options` are not valid.');
+    this._options = $fn.descriptor.immutable(options);
   },
 
   /**
@@ -38,7 +38,7 @@ Fiber.Type = $BaseClass.extend({
    * @returns {string}
    */
   getType: function() {
-    return this[$Config.private.key].type;
+    return this._options.type;
   },
 
   /**
@@ -46,7 +46,7 @@ Fiber.Type = $BaseClass.extend({
    * @returns {string}
    */
   getSignature: function() {
-    return this[$Config.private.key].signature;
+    return this._options.signature;
   },
 
   /**
@@ -54,7 +54,7 @@ Fiber.Type = $BaseClass.extend({
    * @returns {*}
    */
   getDefaults: function(options) {
-    var defaults = this[$Config.private.key].defaults;
+    var defaults = this._options.defaults;
     if ($fn.class.isClass(defaults)) return $fn.class.instance(defaults, options);
     if (this.getType() === Fiber.Types.Function.getType()) return defaults;
     return $fn.result(defaults);
@@ -65,7 +65,7 @@ Fiber.Type = $BaseClass.extend({
    * @returns {*}
    */
   getCaster: function() {
-    return this[$Config.private.key].caster;
+    return this._options.caster;
   },
 
   /**
@@ -84,29 +84,37 @@ Fiber.Type = $BaseClass.extend({
  * Base JavaScript Types
  * @type {Object}
  */
-var BaseJSTypes = {
+var BaseES5Types = {
+  Arguments: {type: 'object', signature: '[object Arguments]', defaults: []},
   Array: {type: 'object', signature: '[object Array]', defaults: []},
   Object: {type: 'object', signature: '[object Object]', defaults: {}},
   Boolean: {type: 'boolean', signature: '[object Boolean]', defaults: false},
   Function: {type: 'function', signature: '[object Function]', defaults: _.noop},
   String: {type: 'string', signature: '[object String]', defaults: ''},
   Number: {type: 'number', signature: '[object Number]', defaults: 0},
+  Date: {type: 'object', signature: '[object Date]', defaults: new Date},
+  RegExp: {type: 'object', signature: '[object RegExp]', defaults: new RegExp},
   NaN: {type: 'number', signature: '[object Number]', defaults: NaN},
   Null: {type: 'object', signature: '[object Null]', defaults: null},
-  Undefined: {type: 'undefined', signature: '[object Undefined]', defaults: void 0}
+  Undefined: {type: 'undefined', signature: '[object Undefined]', defaults: void 0},
+  Error: {type: 'object', signature: '[object Error]', defaults: new Error}
 };
 
 /**
- * Base Fiber Types
+ * Base ES6 Types
  * @type {Object}
  */
-var BaseFiberTypes = {
-  Type: {type: 'object', signature: Fiber.Type.prototype._signature, defaults: Fiber.Type}
+var BaseES6Types = {
+  Map: {type: 'object', signature: '[object Function]', defaults: (typeof Map == 'object') ? new Map : {}},
+  Set: {type: 'object', signature: '[object Function]', defaults: (typeof Set == 'object') ? new Set : {}},
+  WeakMap: {type: 'object', signature: '[object Function]', defaults: (typeof WeakMap == 'object') ? new WeakMap : {}},
+  WeakSet: {type: 'object', signature: '[object Function]', defaults: (typeof WeakSet == 'object') ? new WeakSet : {}},
+  Symbol: {type: 'symbol', signature: '[object Symbol]', defaults: (typeof Symbol == 'symbol') ? Symbol() : void 0},
 };
 
 /**
  * Convert and add all types to Fiber.Types
  */
-$each($fn.merge(BaseJSTypes, BaseFiberTypes), function(options, name) {
+$each($fn.merge(BaseES5Types, BaseES6Types), function(options, name) {
   Fiber.Types[name] = new Fiber.Type(options);
 });

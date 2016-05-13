@@ -47,7 +47,7 @@ Fiber.fn.computed = {
    * @returns {boolean}
    */
   has: function(model, prop, action, match) {
-    match = $val(match, 'any', $fn.createIncludes(['any', 'every']));
+    match = $valIncludes(match, 'any');
     return _[match]($fn.castArr(action), function(onePrefix) {
       var computedKey = $fn.computed.createMethodName(prop, onePrefix, model);
       if (_.isFunction(model[computedKey])) return true;
@@ -93,7 +93,7 @@ Fiber.fn.computed = {
    * @returns {string}
    */
   getPostfix: function(model) {
-    var modelPostfix = _.get(model, $fn.computed.lookUp, null);
+    var modelPostfix = $fn.get(model, $fn.computed.lookUp, null);
     if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
     return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
   },

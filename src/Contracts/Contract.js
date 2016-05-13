@@ -1,9 +1,9 @@
 /**
  * Fiber Contract
  * @class
- * @extends {$BaseClass}
+ * @extends {BaseClass}
  */
-Fiber.Contract = $BaseClass.extend({
+Fiber.Contract = BaseClass.extend({
 
   /**
    * Class type signature
@@ -51,15 +51,11 @@ Fiber.Contract = $BaseClass.extend({
   /**
    * Determines if given object matches the Contract
    * @param {Object} object
+   * @param {string} [fn='every']
    * @returns {boolean}
    */
   isImplementedBy: function(object, fn) {
-    fn = $val(fn, 'every', $fn.createIncludes(['every', 'some', 'any']));
-    var source = object.prototype || object;
-    return _[fn](this.get(), function(type, property) {
-      var value = _.get(source, property, $val.notDefined);
-      return $TypeChecker.matches(value, type);
-    });
+    return $fn.class.isImplementing(object, this, fn);
   },
 
   /**
@@ -95,7 +91,9 @@ Fiber.Contract = $BaseClass.extend({
    * @private
    */
   _isValid: function(contract) {
-    return _.isPlainObject(contract) && _.every(_.values(contract), _.isString);
+    return _.isPlainObject(contract) && _.every(_.values(contract), function(value) {
+      return value instanceof Fiber.Type || _.isPlainObject(value);
+    });
   },
 });
 

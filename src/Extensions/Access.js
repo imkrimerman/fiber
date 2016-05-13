@@ -6,25 +6,18 @@
 var $Access = new Fiber.Extension('Access', {
 
   /**
-   * Default access level.
+   * Access level.
    * @type {string}
    * @private
    */
-  _access: 'public',
+  _accessLevel: 'public',
 
   /**
-   * Methods list.
-   * @type {Array.<string>}
-   * @private
-   */
-  _methods: ['get', 'set', 'has', 'result', 'forget'],
-
-  /**
-   * Methods level map.
+   * Access rules map
    * @type {Object}
    * @private
    */
-  _allow: {
+  _accessRules: {
     private: false,
     protected: ['get', 'result', 'has'],
     public: true
@@ -39,7 +32,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   get: function(property, defaults) {
-    if (! this.isAllowedToAccess('get')) return void 0;
+    if (! this.isAllowedToCall('get')) return void 0;
     return $fn.get(this, property, defaults);
   },
 
@@ -50,7 +43,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   set: function(property, value) {
-    if (this.isAllowedToAccess('set')) $fn.set(this, property, value);
+    if (this.isAllowedToCall('set')) $fn.set(this, property, value);
     return this;
   },
 
@@ -60,7 +53,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {boolean}
    */
   has: function(property) {
-    if (! this.isAllowedToAccess('has')) return void 0;
+    if (! this.isAllowedToCall('has')) return void 0;
     return $fn.has(this, property);
   },
 
@@ -73,7 +66,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   result: function(property, defaults) {
-    if (! this.isAllowedToAccess('result')) return void 0;
+    if (! this.isAllowedToCall('result')) return void 0;
     return $fn.result(this, property, defaults);
   },
 
@@ -83,8 +76,19 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   forget: function(property) {
-    if (this.isAllowedToAccess('unset')) $fn.forget(this, property);
+    if (this.isAllowedToCall('unset')) $fn.forget(this, property);
     return this;
+  },
+
+  /**
+   * Determines if it is not restricted to call given method with current access level.
+   * @param {string} method
+   * @returns {boolean}
+   */
+  isAllowedToCall: function(method) {
+    var methods = $fn.get(this._accessRules, this._accessLevel);
+    if (! _.isArray(methods)) return !! methods;
+    return _.includes(methods, method);
   },
 
   /**
@@ -93,7 +97,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {Object}
    */
   setAccess: function(access) {
-    this._access = $val(access, this._access, $fn.createIncludes(this._methods));
+    this._accessLevel = $valIncludes(access, this._accessLevel, _.keys(this._accessRules));
     return this;
   },
 
@@ -102,16 +106,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {string}
    */
   getAccess: function() {
-    return this._access;
-  },
-
-  /**
-   * Determines if given method is not restricted to call for the current access level.
-   * @param {string} method
-   * @returns {boolean}
-   */
-  isAllowedToAccess: function(method) {
-    return $fn.isAllowedToCall(this, method);
+    return this._accessLevel;
   }
 });
 

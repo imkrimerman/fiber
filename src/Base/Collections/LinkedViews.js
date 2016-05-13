@@ -1,9 +1,9 @@
 /**
  * Linked Views Collection, used internally
  * @class
- * @extends {$Collection}
+ * @extends {BaseCollection}
  */
-Fiber.LinkedViews = $Collection.extend({
+Fiber.LinkedViews = BaseCollection.extend({
 
   /**
    * Parent View
@@ -13,13 +13,13 @@ Fiber.LinkedViews = $Collection.extend({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   willExtend: ['parentView'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   ownProps: ['parentView'],
 

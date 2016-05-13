@@ -1,19 +1,19 @@
 /**
  * Base Router Collection
  * @class
- * @extends {$Collection}
+ * @extends {BaseCollection}
  */
-$RouterCollection = $Collection.extend({
+RouterCollection = BaseCollection.extend({
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   ownProps: ['router'],
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|Function|string}
+   * @type {Array|function()|string}
    */
   willExtend: ['router'],
 
@@ -26,7 +26,7 @@ $RouterCollection = $Collection.extend({
   /**
    * Sets current router
    * @param {Object.<Fiber.Router>} router
-   * @returns {$RouterCollection}
+   * @returns {RouterCollection}
    */
   setRouter: function(router) {
     this.router = router;
@@ -51,7 +51,7 @@ $RouterCollection = $Collection.extend({
 
   /**
    * Removes `router` reference
-   * @returns {$RouterCollection}
+   * @returns {RouterCollection}
    */
   unsetRouter: function() {
     this.router = null;

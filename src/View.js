@@ -64,7 +64,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @type {Array|Function|string}
+     * @type {Array|function()|string}
      */
     willExtend: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events',
@@ -73,7 +73,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Properties keys that will be owned by the instance
-     * @type {Array|Function}
+     * @type {Array|function()}
      */
     ownProps: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'linked', '_rendered',
@@ -144,7 +144,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Renders template
-     * @param {string|Function} template
+     * @param {string|function()} template
      * @param {?Object} [data={}]
      * @returns {string}
      */
@@ -242,7 +242,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {Object.<Listeners>}
      */
     prepareListeners: function(listeners) {
-      return this.listeners = new $Listeners(this.splitEvents(listeners));
+      return this.listeners = new Listeners(this.splitEvents(listeners));
     },
 
     /**
@@ -275,8 +275,8 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * using `selector`). This only works for delegate-able events: not `focus`,
      * `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
      * @param {string} event
-     * @param {string|Function} selector
-     * @param {?Function} [cb]
+     * @param {string|function()} selector
+     * @param {?function()} [cb]
      * @example
      *
      * view.delegate('click', function() {});
@@ -333,7 +333,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Real render function
-     * @param {Function} render
+     * @param {function()} render
      * @return {*}
      */
     callRender: function(render) {

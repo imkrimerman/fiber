@@ -21,7 +21,7 @@ Fiber.Router = Fiber.Object.extend([
 
     /**
      * Collections list
-     * @type {Object|Function}
+     * @type {Object|function()}
      */
     collections: {
       routes: Fiber.RouteCollection,
@@ -74,7 +74,7 @@ Fiber.Router = Fiber.Object.extend([
     /**
      * Executes route with the provided parameters. This is an
      * excellent place to do pre-route setup or post-route cleanup.
-     * @param {Function} route
+     * @param {function()} route
      * @param {Array} args
      * @returns {boolean}
      */
@@ -88,7 +88,7 @@ Fiber.Router = Fiber.Object.extend([
 
     /**
      * Executes route
-     * @param {Function} route
+     * @param {function()} route
      * @param {Array} args
      * @param {string} alias
      * @returns {boolean}
@@ -158,7 +158,7 @@ Fiber.Router = Fiber.Object.extend([
       if (_.isPlainObject(data)) {
         for (var alias in data) {
           var route = data[alias];
-          if (_.has(route, 'alias')) continue;
+          if ($fn.has(route, 'alias')) continue;
           route.alias = alias;
         }
         data = _.values(data);

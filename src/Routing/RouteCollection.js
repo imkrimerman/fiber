@@ -3,7 +3,7 @@
  * @class
  * @extends {RouterCollection}
  */
-Fiber.RouteCollection = $RouterCollection.extend({
+Fiber.RouteCollection = RouterCollection.extend({
 
   /**
    * Default collection model
@@ -13,7 +13,7 @@ Fiber.RouteCollection = $RouterCollection.extend({
 
   /**
    * Methods list to bind
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   bindMethods: ['wrap', 'bind', 'bindOne'],
 
@@ -87,7 +87,7 @@ Fiber.RouteCollection = $RouterCollection.extend({
   /**
    * Creates function wrapper that will return route model when invoked
    * @param {Object.<Fiber.Route>} route
-   * @returns {Function}
+   * @returns {function()}
    */
   wrap: function(route) {
     return $fn.constant(route);

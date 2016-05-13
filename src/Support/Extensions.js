@@ -5,55 +5,31 @@
 Fiber.fn.extensions = {
 
   /**
-   * Private configuration
-   * @type {Object}
+   * Private property name
+   * @type {string}
    */
-  _private: {
-
-    /**
-     * Private property name
-     * @type {string}
-     */
-    key: '_extensions',
-
-    /**
-     * Migration property name
-     * @type {string}
-     */
-    migrate: '_needsPropMigration',
-  },
+  key: '_extensions',
 
   /**
-   * Reference to the extensions bag in ioc container
-   * @param {?string} [method]
-   * @param {...args}
-   * @return {*}
-   * @private
+   * Migration property name
+   * @type {string}
    */
-  _access: function(method) {
-    if (! Fiber.hasOwnProperty('container')) return [];
-    var container = Fiber.container.extensions;
-    if (! arguments.length) return container;
-    if (! _.isFunction(container[method])) return container[method];
-    return container[method].apply(container, _.drop(arguments));
-  },
+  migrate: '_needsPropMigration',
 
   /**
    * Returns extension if one is found or empty object otherwise.
    * @param {Array|string} alias
    * @param {?boolean} [retrieveCode=true]
-   * @returns {null|Object.<Fiber.Extension>|Array.<Fiber.Extension>|Object|Function|string}
+   * @returns {null|Object.<Fiber.Extension>|Array.<Fiber.Extension>|Object|function()|string}
    */
   get: function(alias, retrieveCode) {
     if (_.isArray(alias)) return _.map($fn.castArr(alias), function(one) {
       return $fn.extensions.get(one, retrieveCode);
     });
 
-    var method = $val(retrieveCode, true, _.isBoolean) ? 'getCodeCapsule' : null;
-
+    var method = $val(retrieveCode, true, _.isBoolean) ? 'getCode' : null;
     if (! _.isString(alias)) return alias;
     var retrieved = this._access('get', alias, null);
-
     if (! retrieved) return null;
     return _.isString(alias) ? $fn.extensions.mapCall(retrieved, method, true) : alias;
   },
@@ -61,7 +37,7 @@ Fiber.fn.extensions = {
   /**
    * Adds extension
    * @param {Object|string} alias
-   * @param {Object|Function} [extension]
+   * @param {Object|function()} [extension]
    * @param {?boolean} [override=false]
    * @returns {Fiber}
    */
@@ -73,7 +49,7 @@ Fiber.fn.extensions = {
     });
     else {
       if ($fn.extensions.has(alias) && ! $val(override, false)) return this;
-      if ($fn.extensions.isNotExtension(extension)) extension = new Fiber.Extension(extension);
+      if (! $fn.extensions.isExtension(extension)) extension = new Fiber.Extension(extension);
       extension.setName(alias);
       this._access('set', alias, extension);
     }
@@ -184,7 +160,7 @@ Fiber.fn.extensions = {
    * @return {Fiber.fn.extensions}
    */
   init: function(object, list, args) {
-    args = $val(args, {}, [_.isArray, _.isPlainObject], 'some');
+    args = $val(args, {}, [_.isArray, _.isPlainObject]);
     var extensions = _.values($fn.extensions.all());
     if (_.isArray(list) || _.isString(list)) extensions = $fn.extensions.get(list, false);
     for (var i = 0; i < extensions.length; i ++) {
@@ -221,8 +197,8 @@ Fiber.fn.extensions = {
    */
   mapCall: function(extension, method, first, args, scope) {
     if (_.isPlainObject(extension)) extension = _.values(extension);
-    var casted = $fn.castArr(extension)
-      , boundCall = function(ext) {return $fn.extensions.call(ext, method, args, scope);};
+    var boundCall = function(ext) {return $fn.extensions.call(ext, method, args, scope);}
+      , casted = $fn.castArr(extension);
     first = $val(first, false);
     if (method) casted = casted.map(boundCall);
     return first ? _.first(casted) : casted;
@@ -233,10 +209,10 @@ Fiber.fn.extensions = {
    * @param {Object.<Fiber.Extension>|Array|*} extension
    * @returns {Object|Array}
    */
-  ensureCodeCapsule: function(extension) {
+  ensureCode: function(extension) {
     return $fn.multi(extension, function(one) {
       if (! Fiber.Extension || ! (one instanceof Fiber.Extension)) return one;
-      return one.getCodeCapsule();
+      return one.getCode();
     });
   },
 
@@ -254,8 +230,8 @@ Fiber.fn.extensions = {
    * @param {string|Array} alias
    * @returns {Object|Array.<Object>}
    */
-  getCodeCapsule: function(alias) {
-    return $fn.extensions.makeCall(alias, 'getCodeCapsule');
+  getCode: function(alias) {
+    return $fn.extensions.makeCall(alias, 'getCode');
   },
 
   /**
@@ -283,7 +259,7 @@ Fiber.fn.extensions = {
    * @returns {Array|void}
    */
   getIncluded: function(object) {
-    return object[$private($fn.extensions, 'key')];
+    return object[$fn.extensions.key];
   },
 
   /**
@@ -294,10 +270,10 @@ Fiber.fn.extensions = {
    * @returns {*}
    */
   setIncluded: function(object, list, reset) {
-    var hoistingKey = $private($fn.extensions, 'migrate')
-      , extensionKey = $private($fn.extensions, 'key');
+    var hoistingKey = $fn.extensions.migrate
+      , extensionKey = $fn.extensions.key;
     if ($fn.class.isClass(object)) object[hoistingKey] = $fn.concat(extensionKey, object[hoistingKey] || []);
-    if (reset || ! _.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
+    if (reset || ! $fn.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
     return object[extensionKey] = $fn.concat(object[extensionKey], list);
   },
 
@@ -309,9 +285,9 @@ Fiber.fn.extensions = {
    * @returns {boolean}
    */
   hasIncluded: function(object, list, match) {
-    var key = $private($fn.extensions, 'key')
-      , method = $val(match, 'every', $fn.createIncludes(['every', 'some']));
-    if (! _.has(object, key) || ! _.isArray(object[key])) return false;
+    var key = $fn.extensions.key
+      , method = $valIncludes(match, 'every');
+    if (! $fn.has(object, key) || ! _.isArray(object[key])) return false;
     return _[method](function(one) { return ~ list.indexOf(one); });
   },
 
@@ -338,30 +314,9 @@ Fiber.fn.extensions = {
   },
 
   /**
-   * Detects extensions at the given object.
-   * Returns list of extension names, if 2nd argument is provided then it'll return extensions them selves
-   * @param {Object} object
-   * @param {?boolean} [resolve=false]
-   * @returns {Array}
-   */
-  detect: function(object, resolve) {
-    if (! _.isObject(object)) return [];
-    var detected = [];
-    resolve = $val(resolve, false, _.isBoolean);
-    _.each($fn.extensions.all(), function(extension, key) {
-      var extensionProps = extension.getCodeCapsuleKeysList();
-      if ($fn.hasAllProps(object, extensionProps)) {
-        if (! resolve) detected.push(key);
-        else detected.push($fn.extensions.get(key));
-      }
-    });
-    return detected;
-  },
-
-  /**
    * Creates new Fiber extension
    * @param {string} name
-   * @param {Object|Function} code
+   * @param {Object|function()} code
    * @returns {Object.<Fiber.Extension>}
    */
   create: function(name, code) {
@@ -375,7 +330,7 @@ Fiber.fn.extensions = {
    */
   isExtension: function(extension) {
     if (! $fn.class.isClass(Fiber.Extension)) return false;
-    return extension instanceof Fiber.Extension;
+    return $fn.class.isInstance(extension) && extension instanceof Fiber.Extension;
   },
 
   /**
@@ -388,20 +343,17 @@ Fiber.fn.extensions = {
   },
 
   /**
-   * Determines if given extension is NOT instance of Fiber.Extension Class
-   * @param {*} extension
-   * @returns {boolean}
+   * Reference to the extensions bag in ioc container
+   * @param {?string} [method]
+   * @param {...args}
+   * @return {*}
+   * @private
    */
-  isNotExtension: function(extension) {
-    return ! $fn.extensions.isExtension(extension);
-  },
-
-  /**
-   * Determines if given extension is NOT Fiber.Extension Class
-   * @param {*} extension
-   * @returns {boolean}
-   */
-  isNotExtensionClass: function(extension) {
-    return ! $fn.extensions.isExtensionClass(extension);
+  _access: function(method) {
+    if (! Fiber.hasOwnProperty('container')) return [];
+    var bag = Fiber.container.extensions;
+    if (! arguments.length) return bag;
+    if (! _.isFunction(bag[method])) return bag[method];
+    return bag[method].apply(bag, _.drop(arguments));
   }
 };

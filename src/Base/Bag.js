@@ -3,13 +3,26 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Bag = Fiber.Class.implement('Storage').extend({
+Fiber.Bag = Fiber.Class.implement('Access').extend({
 
   /**
-   * Flag to set if Bag is firing building events
-   * @type {boolean}
+   * Events configuration
+   * @type {Object}
    */
-  firing: true,
+  eventsConfig: {
+
+    /**
+     * Events catalog to hold the events
+     * @type {Object}
+     */
+    catalog: {
+      set: 'set',
+      forget: 'forget',
+      reset: 'reset',
+      flush: 'flush',
+      copy: 'copy'
+    }
+  },
 
   /**
    * Class type signature
@@ -19,24 +32,13 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
   _signature: '[object Fiber.Bag]',
 
   /**
-   * Key to use to dynamically created storage for the bag items.
-   * @type {string|Function}
-   * @private
-   */
-  _holder: '_items',
-
-  /**
    * Constructs Bag.
    * @param {Object} [items] - Items to set to the Bag
    * @param {?Object} [options] - Bag initialize options
    */
-  constructor: function(items, options) {
-    $fn.class.handleOptions(this, options, {firing: this.firing, holder: $fn.result(this._holder)});
-    this.firing = this.options.firing;
-    this._holder = this.options.holder;
-    this.handleHolder(items);
-    $fn.extensions.init(this);
-    $fn.apply(this, 'initialize', [items, this.options]);
+  constructor: function(items) {
+    this._initHolder(items);
+    this.$superInit({items: items});
   },
 
   /**
@@ -46,8 +48,9 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @returns {Fiber.Bag}
    */
   set: function(key, value) {
-    _.set(this.getHolder(), key, value);
-    this.fireBagEvent('set', key, [key, value]);
+    if (_.isPlainObject(key)) return this.reset(key);
+    $fn.set(this._items, key, value);
+    this._fireEvent('set', key, [key, value, this]);
     return this;
   },
 
@@ -58,7 +61,7 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @returns {*}
    */
   get: function(key, defaults) {
-    return _.get(this.getHolder(), key, defaults);
+    return $fn.get(this._items, key, defaults);
   },
 
   /**
@@ -70,7 +73,7 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @return {*}
    */
   result: function(key) {
-    return _.result(this.getHolder(), key);
+    return $fn.result(this._items, key);
   },
 
   /**
@@ -79,7 +82,7 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @returns {boolean}
    */
   has: function(key) {
-    return _.has(this.getHolder(), key);
+    return $fn.has(this._items, key);
   },
 
   /**
@@ -88,9 +91,10 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @return {Fiber.Bag}
    */
   forget: function(key) {
-    _.unset(this.getHolder(), key);
-    this.fireBagEvent('remove', key);
-    return this;
+    var value = this.get(key);
+    $fn.forget(this._items, key);
+    this._fireEvent('forget', [value, key, this]);
+    return value;
   },
 
   /**
@@ -98,16 +102,18 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @returns {Object}
    */
   all: function() {
-    return this.getHolder();
+    return this._items;
   },
 
   /**
-   * Returns copy of the current used Bag holder
-   * @param {?boolean} [deep]
-   * @returns {Object}
+   * Resets bag holder with the given `items`
+   * @param {Object} items
+   * @returns {Fiber.Bag}
    */
-  copy: function(deep) {
-    return this.copyHolder(this.getHolderKey(), deep);
+  reset: function(items) {
+    if (_.isPlainObject(items)) this._items = items;
+    this._fireEvent('reset', null, [key, value, this]);
+    return this;
   },
 
   /**
@@ -115,7 +121,21 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @return {Fiber.Bag}
    */
   flush: function() {
-    return this.resetHolder(this.getHolderKey());
+    this._items = {};
+    this._fireEvent('flush', null, this);
+    return this;
+  },
+
+  /**
+   * Returns copy of the current used Bag holder
+   * @param {?boolean} [deep=true]
+   * @returns {Object}
+   */
+  copy: function(deep) {
+    deep = $val(deep, true, _.isBoolean);
+    var clone = $fn.clone(this._items, deep);
+    this._fireEvent('copy', null, [clone, deep, this]);
+    return clone;
   },
 
   /**
@@ -123,108 +143,19 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @returns {number}
    */
   size: function() {
-    return this.sizeHolder(this.getHolder());
+    return _.size(this._items);
   },
 
   /**
-   * Returns current used holder
-   * @param {?string} [holderKey]
-   * @returns {Object}
-   */
-  getHolder: function(holderKey) {
-    return this[holderKey || this.getHolderKey()];
-  },
-
-  /**
-   * Sets new holder with the `holderKey` and storable value
-   * @param {string} holderKey
-   * @param {?Object} [storable={}]
+   * Initializes bag holder
+   * @param {?Object} [items]
    * @returns {Fiber.Bag}
+   * @private
    */
-  setHolder: function(holderKey, storable) {
-    this[holderKey || this.getHolderKey()] = $val(storable, {}, _.isPlainObject);
-    this.fireBagEvent('holder:set', holderKey, [storable]);
+  _initHolder: function(items) {
+    if (! this._items || ! _.isPlainObject(this._items)) this.flush();
+    if (_.isPlainObject(items)) this._items = items;
     return this;
-  },
-
-  /**
-   * Determines if Bag has current used holder
-   * @param {?string} [holderKey]
-   * @returns {boolean}
-   */
-  hasHolder: function(holderKey) {
-    return _.isPlainObject(this.getHolder(holderKey));
-  },
-
-  /**
-   * Returns copy of the Bag holder at the `holderKey`
-   * @param {?string} [holderKey]
-   * @param {?boolean} [deep=false]
-   * @returns {Object}
-   */
-  copyHolder: function(holderKey, deep) {
-    var clone = $fn.clone(this[holderKey || this.getHolderKey()], deep);
-    this.fireBagEvent('holder:copy', holderKey);
-    return clone;
-  },
-
-  /**
-   * Resets holder at the `holderKey`
-   * @param {string|Function} holderKey
-   * @returns {Fiber.Bag}
-   */
-  resetHolder: function(holderKey) {
-    this.setHolder(holderKey, {});
-    this.fireBagEvent('holder:reset', holderKey);
-    return this;
-  },
-
-  /**
-   * Returns holder size at the `holderKey`
-   * @param holderKey
-   * @returns {number}
-   */
-  sizeHolder: function(holderKey) {
-    return _.size(this[holderKey || this.getHolderKey()]);
-  },
-
-  /**
-   * Handles holder key and sets items
-   * @param {Object} [items] - Items to set to the Bag
-   * @param {?boolean} [delegate=true]
-   */
-  handleHolder: function(items, delegate) {
-    var holderKey = this.getHolderKey();
-    if (! this.hasHolderKey()) this.setHolderKey(this._holder);
-    this.setHolder(holderKey, items);
-    $val(delegate, true) && $fn.delegator.utilMixin('object', this, holderKey);
-  },
-
-  /**
-   * Returns holder key
-   * @returns {string}
-   */
-  getHolderKey: function() {
-    return _.result(this, '_holder');
-  },
-
-  /**
-   * Sets holder key
-   * @param {string|Function} holderKey
-   * @return {Fiber.Bag}
-   */
-  setHolderKey: function(holderKey) {
-    this._holder = holderKey;
-    return this;
-  },
-
-  /**
-   * Determines if Bag has holder key and it is valid string
-   * @returns {boolean}
-   */
-  hasHolderKey: function() {
-    var key = _.result(this, '_holder');
-    return _.isString(key) && ! _.isEmpty(key);
   },
 
   /**
@@ -234,16 +165,8 @@ Fiber.Bag = Fiber.Class.implement('Storage').extend({
    * @param {?Array|*} [args]
    * @returns {Fiber.Bag}
    */
-  fireBagEvent: function(event, key, args) {
-    if (! this.firing) return this;
-    args = $fn.merge($fn.castArr(args || []), [this]);
-    $fn.fireAttribute(this, event, key, args);
-    var triggerKeyEvent = _.isString(key) && ! _.isEmpty(key);
-    this.fire.apply(this, [event].concat(args));
-    if (triggerKeyEvent) {
-      var keyEvent = _.trim(event, ':') + ':' + _.trim(key, ':');
-      this.fire.apply(this, [keyEvent].concat(args));
-    }
+  _fireEvent: function(event, key, args) {
+    $fn.fireAttribute(this, event, key, $fn.merge($fn.castArr(args), [this]));
     return this;
   }
 });

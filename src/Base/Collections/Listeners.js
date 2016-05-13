@@ -1,9 +1,9 @@
 /**
  * Listeners Collection, used internally
  * @class
- * @extends {$Collection}
+ * @extends {BaseCollection}
  */
-$Listeners = $Collection.extend({
+Listeners = BaseCollection.extend({
 
   /**
    * Determine if event has listeners
@@ -39,7 +39,7 @@ $Listeners = $Collection.extend({
   /**
    * Returns listeners event handler
    * @param {string} event
-   * @returns {Function|null}
+   * @returns {function()|null}
    */
   getHandler: function(event) {
     var listener = this.getByEvent(event);
@@ -65,7 +65,7 @@ $Listeners = $Collection.extend({
   /**
    * Calls handler
    * @param {Object} scope
-   * @param {string|Function} handler
+   * @param {string|function()} handler
    * @param {?Array} [args]
    * @returns {*}
    */

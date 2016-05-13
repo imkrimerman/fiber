@@ -1,9 +1,9 @@
 /**
  * Monitor module
  * @class
- * @extends {$BaseClass}
+ * @extends {BaseClass}
  */
-Fiber.Monitor = $BaseClass.extend({
+Fiber.Monitor = BaseClass.extend({
 
   /**
    * Monitoring options
@@ -22,18 +22,6 @@ Fiber.Monitor = $BaseClass.extend({
     log: true,
     callback: null
   },
-
-  /**
-   * Properties keys that will be owned by the instance
-   * @type {Array|Function}
-   */
-  ownProps: ['watches', 'notifies', '_monitor', '_monitoring', '_cache', '_logger'],
-
-  /**
-   * Properties keys that will be auto extended from the initialization object
-   * @type {Array|Function|string|boolean}
-   */
-  willExtend: ['watches', 'notifies'],
 
   /**
    * Events monitor
@@ -61,6 +49,24 @@ Fiber.Monitor = $BaseClass.extend({
   _logger: null,
 
   /**
+   * List of global Events methods
+   * @type {Array}
+   */
+  _globalEventingMethods: ['fireGlobal', 'whenGlobal', 'afterGlobal', 'stopGlobal'],
+
+  /**
+   * Properties keys that will be auto extended from the initialization object
+   * @type {Array|function()|string|boolean}
+   */
+  willExtend: ['watches', 'notifies'],
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @type {Array|function()}
+   */
+  ownProps: ['watches', 'notifies', '_monitor', '_monitoring', '_cache', '_logger', '_globalEventingMethods'],
+
+  /**
    * Constructs Debug
    * @param {?Object} [options]
    */
@@ -68,7 +74,7 @@ Fiber.Monitor = $BaseClass.extend({
     $fn.class.handleOptions(this, options);
     $fn.class.ensureOwn(this, this.ownProps);
     $fn.class.extendFromOptions(this, options, this.willExtend);
-    this._logger = new Fiber.Log({level: 'debug', template: false});
+    this._logger = new Fiber.Log({level: 'debug', templatePrefix: '[Fiber.Monitor]', templateLevel: false});
     this._monitor = Fiber.Events.$new();
   },
 
@@ -78,7 +84,8 @@ Fiber.Monitor = $BaseClass.extend({
    * @returns {Fiber.Monitor}
    */
   monitor: function(object) {
-    this._monitor.listenTo(object, 'all', this._whenEvent.bind(this));
+    this._monitor.listenTo(object, 'all', this.notifyEvent.bind(this));
+    if ($fn.class.isImplementing(object, 'Events')) this.watch(object, this._globalEventingMethods, true);
     return this;
   },
 
@@ -89,7 +96,7 @@ Fiber.Monitor = $BaseClass.extend({
   start: function() {
     if (this.isMonitoring()) return false;
     if (this.watches.sync) this.watch(Backbone, 'sync');
-    if (this.watches.events) this.watch(Backbone.Events, this.watches.events);
+    this._monitor.listenTo(Fiber.internal.events, 'all', this.notifyEvent.bind(this));
     return this._monitoring = true;
   },
 
@@ -112,29 +119,50 @@ Fiber.Monitor = $BaseClass.extend({
    * Creates watcher for the given method(s) of the source.
    * @param {Object} source
    * @param {string|Array.<string>} method
+   * @param {?boolean} [isEvent=false]
    */
-  watch: function(source, method) {
+  watch: function(source, method, isEvent) {
     var self = this;
     $fn.multi(method, function(one) {
       var orig = self._cache[one] = {source: source, fn: source[one]};
       source[one] = function() {
-        self.notify('Method [' + one + '] was called with arguments: ', arguments);
+        if (isEvent) self.notifyEvent.apply(self, arguments);
+        else self.notifyMethod.apply(self, [one].concat(_.toArray(arguments)));
         $fn.applyFn(orig.fn, arguments, source);
       };
     });
   },
 
   /**
-   * Notifies about intercepted case
-   * @param {string} msg
-   * @param {*} [args]
-   * @returns {Fiber.Monitor}
+   * Notifies about event
+   * @param {string} event
+   * @param {...args}
+   * @return {Fiber.Monitor}
    */
-  notify: function(msg, args) {
-    this.trigger.apply(this, ['notify'].concat($fn.cast.toArray(arguments)));
-    if (this.notifies.log) this._logger.callWriter('debug', $fn.cast.toArray(args));
-    else if (_.isFunction(this.notifies.callback)) $fn.applyFn(this.notifies.callback, arguments);
-    return this;
+  notifyEvent: function(event) {
+    return this.notify('event', event, arguments);
+  },
+
+  /**
+   * Notifies about method call
+   * @param {string} method
+   * @param {...args}
+   * @return {Fiber.Monitor}
+   */
+  notifyMethod: function(method) {
+    return this.notify('method', method, arguments);
+  },
+
+  /**
+   * Notifies about intercepted type action
+   * @param {string} type
+   * @param {string} parameter
+   * @param {...args}
+   * @returns {Fiber.Monitor}
+   * @private
+   */
+  notify: function(type, parameter, args) {
+    return this._notify(_.capitalize(type) + ' `' + parameter + '` was called with arguments: ', _.drop(args));
   },
 
   /**
@@ -146,12 +174,17 @@ Fiber.Monitor = $BaseClass.extend({
   },
 
   /**
-   * Listens to event each triggered event
-   * @param {string} event
-   * @param {...args}
+   * Notifies about intercepted case
+   * @param {string} msg
+   * @param {*} [args]
+   * @returns {Fiber.Monitor}
    * @private
    */
-  _whenEvent: function(event) {
-    this.notify('Event [' + event + '] was triggered with arguments: ', arguments);
-  }
+  _notify: function(msg, args) {
+    var notifyArgs = $fn.cast.toArray(arguments);
+    this.trigger.apply(this, ['notify'].concat(notifyArgs));
+    if (this.notifies.log) this._logger.callWriter('debug', notifyArgs);
+    else if (_.isFunction(this.notifies.callback)) $fn.applyFn(this.notifies.callback, notifyArgs);
+    return this;
+  },
 });

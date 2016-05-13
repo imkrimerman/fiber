@@ -6,13 +6,6 @@
 Fiber.Extension = Fiber.Class.extend({
 
   /**
-   * Class type signature
-   * @type {string}
-   * @private
-   */
-  _signature: '[object Fiber.Extension]',
-
-  /**
    * Method name to call when extension is initiating
    * @type {string|boolean}
    */
@@ -31,28 +24,39 @@ Fiber.Extension = Fiber.Class.extend({
   _code: null,
 
   /**
+   * Class type signature
+   * @type {string}
+   * @private
+   */
+  _signature: '[object Fiber.Extension]',
+
+  /**
    * Constructs extension
    * @param {string} name
    * @param {Object} code
    */
   constructor: function(name, code) {
+    $fn.expect(_.isString(name));
+    this.initEventProperties();
     this.fromCode(code, name);
     $fn.apply(this, '_init_', arguments);
   },
 
   /**
-   * Sets extension to the capsule
+   * Sets extension code capsule with the given `code`
    * @param {Object} code
+   * @return {Fiber.Extension}
    */
-  setCodeCapsule: function(code) {
+  setCode: function(code) {
     this._code = code;
+    return this;
   },
 
   /**
-   * Returns code of the extension
+   * Returns code capsule of the extension
    * @returns {Object}
    */
-  getCodeCapsule: function() {
+  getCode: function() {
     return this._code;
   },
 
@@ -60,7 +64,7 @@ Fiber.Extension = Fiber.Class.extend({
    * Determines if extension has valid code capsule
    * @returns {boolean}
    */
-  hasCodeCapsule: function() {
+  hasCode: function() {
     return _.isPlainObject(this._code);
   },
 
@@ -124,17 +128,35 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {*}
    */
   call: function(method, args, scope) {
-    return $fn.apply(this.getCodeCapsule(), method, args, scope);
+    return $fn.apply(this.getCode(), method, args, scope);
   },
 
   /**
    * Includes current extension to the given `object`
    * @param {Object} object
    * @param {?boolean} [override=false]
-   * @returns {*|Object|Function}
+   * @returns {*|Object|function()}
    */
   includeTo: function(object, override) {
     return $fn.class.mix(object, this.copy(), override);
+  },
+
+  /**
+   * Sets code capsule, extension name and initialize method
+   * @param {Object} code
+   * @param {?string} [name]
+   * @param {?string|function()} [initWith]
+   * @returns {Fiber.Extension}
+   */
+  fromCode: function(code, name, initWith) {
+    code = $valMerge(code, {initWith: false}, 'defaults');
+    initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
+    if (_.isString(name)) this.setName(name);
+    if (_.isFunction($fn.get(code, '_init_'))) this._init_ = code._init_;
+    this.setCode(code);
+    this.setInitMethod(initWith || code.initWith || this._initWith);
+    $fn.forget(code, ['initWith', '_init_']);
+    return this;
   },
 
   /**
@@ -146,54 +168,35 @@ Fiber.Extension = Fiber.Class.extend({
   },
 
   /**
-   * Sets code capsule, extension name and initialize method
-   * @param {Object} code
-   * @param {?string} [name]
-   * @param {?string|Function} [initWith]
-   * @returns {Fiber.Extension}
-   */
-  fromCode: function(code, name, initWith) {
-    code = $valMerge(code, {initWith: false}, 'defaults');
-    initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
-    if (_.isString(name)) this.setName(name);
-    if (_.isFunction(_.get(code, '_init_'))) this._init_ = code._init_;
-    this.setCodeCapsule(code);
-    this.setInitMethod(initWith || code.initWith || code._initWith || this._initWith);
-    delete code.initWith;
-    delete code._initWith;
-    return this;
-  },
-
-  /**
    * Returns copy of the extension code capsule
    * @returns {Object}
    */
   copy: function() {
-    return _.clone(this.getCodeCapsule());
+    return $fn.clone(this.getCode());
   },
 
   /**
    * Returns property list of the extension code
    * @returns {Array}
    */
-  getCodeCapsulePropertyList: function() {
-    return $fn.properties(this.getCodeCapsule());
+  getCodeProperties: function() {
+    return $fn.properties(this.getCode());
   },
 
   /**
    * Returns method list of the extension code
    * @returns {Array}
    */
-  getCodeCapsuleMethodList: function() {
-    return $fn.methods(this.getCodeCapsule());
+  getCodeMethods: function() {
+    return $fn.methods(this.getCode());
   },
 
   /**
    * Returns all code capsule keys list
    * @returns {Array}
    */
-  getCodeCapsuleKeysList: function() {
-    return _.keys(this.getCodeCapsule());
+  getCodeKeys: function() {
+    return _.keys(this.getCode());
   }
 });
 

@@ -5,74 +5,50 @@
 Fiber.fn.injection = {
 
   /**
-   * Private configuration
-   * @type {Object}
+   * Allowed list of types that can be used for injection
+   * @type {Array}
    */
-  _private: {
-
-    /**
-     * Private key name
-     * @type {string}
-     */
-    key: '_injection',
-
-    /**
-     * Allowed list of types that can be used for injection
-     * @type {Array}
-     */
-    allowedTypes: ['Function'],
-
-    /**
-     * Regular expressions used for arguments injection
-     * @type {Object}
-     */
-    regex: {
-      ARGS: /^function\s*[^\(]*\(\s*([^\)]*)\)/m,
-      ARG_SPLIT: /,/,
-      ARG: /^\s*(_?)(\S+?)\1\s*$/,
-      STRIP_COMMENTS: /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg
-    }
-  },
+  allowedTypes: ['Function'],
 
   /**
    * Retrieves injection container or part of it by the `key`
-   * @param {Function} fn
+   * @param {function()} fn
    * @param {?string} [key]
    * @returns {Object|Array}
    */
   get: function(fn, key) {
-    var injectKey = $fn.injection[$Config.injection.key];
     if (! $fn.injection.has(fn)) return [];
-    if (! key) return fn[injectKey];
-    if (_.has(fn[injectKey], key)) return fn[injectKey][key];
+    if (! key) return fn[$PropNames.injection];
+    var joinedKey = $fn.join([$PropNames.injection, key], '.');
+    if ($fn.has(fn, joinedKey)) return $fn.get(fn, joinedKey);
     return [];
   },
 
   /**
    * Determines if given function has injection
-   * @param {Function} fn
+   * @param {function()} fn
    * @returns {}
    */
   has: function(fn) {
     if (! $fn.injection.isOneOfAllowed(fn)) return false;
-    return _.has(fn, $Config.injection.key);
+    return $fn.has(fn, $PropNames.injection);
   },
 
   /**
    * Injects dependencies into the function
-   * @param {Function} fn
+   * @param {function()} fn
    * @param {?Array|Arguments} [args]
-   * @returns {Function}
+   * @returns {function()}
    */
   inject: function(fn) {
     var resolved = [];
     if (! $fn.injection.isOneOfAllowed(fn)) return fn;
     if (! $fn.injection.has(fn)) resolved = $fn.injection.resolve(fn);
 
-    fn[$Config.injection.key] = {
+    fn[$PropNames.injection] = {
       dependencies: resolved,
       resolved: Fiber.make(resolved).map(function(one) {
-        return one instanceof Fiber.Extension ? one.getCodeCapsule() : one;
+        return one instanceof Fiber.Extension ? one.getCode() : one;
       })
     };
 
@@ -83,7 +59,7 @@ Fiber.fn.injection = {
 
   /**
    * Applies injection to the function
-   * @param {Function} fn
+   * @param {function()} fn
    * @param {Array} args
    * @returns {*}
    */
@@ -95,19 +71,18 @@ Fiber.fn.injection = {
 
   /**
    * Prepares injection for the function
-   * @param {Function} fn
+   * @param {function()} fn
    * @returns {Array}
    */
   resolve: function(fn) {
     if ($fn.injection.has(fn)) return [];
     var parsed = $fn.injection.parseArguments(fn), resolved = [];
     for (var i = 0; i < parsed.length; i ++) {
-      parsed[i].replace($fn.injection.regex.ARG, function(a, b, name) {
+      parsed[i].replace($fn.regexp.injection.arg, function(a, b, name) {
         if (_.isString(name) && _.startsWith(name, '$', 0)) name = name.slice(1, name.length);
         resolved.push(name);
       });
     }
-
     return resolved;
   },
 
@@ -117,12 +92,12 @@ Fiber.fn.injection = {
    * @returns {Array}
    */
   parseArguments: function(fn) {
-    var regex = $fn.injection.regex;
+    var regex = $fn.regexp.injection;
     if (! _.isFunction(fn)) return [];
     return fn.toString()
-      .replace(regex.STRIP_COMMENTS, '')
-      .match(regex.ARGS)[1]
-      .split(regex.ARG_SPLIT);
+      .replace(regex.stripComments, '')
+      .match(regex.args)[1]
+      .split(regex.argsSplit);
   },
 
   /**
@@ -134,6 +109,5 @@ Fiber.fn.injection = {
     return _.any($fn.injection.allowedTypes, function(type) {
       return _['is' + _.capitalize(type)](value);
     });
-  },
-
+  }
 };

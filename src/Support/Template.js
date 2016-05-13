@@ -32,19 +32,19 @@ Fiber.fn.template = {
 
     /**
      * Main template engine
-     * @type {Function}
+     * @type {function()}
      */
     engine: _.template,
 
     /**
      * System template engine
-     * @type {Function}
+     * @type {function()}
      */
     system: _.template,
 
     /**
      * Fallback template engine
-     * @type {Function}
+     * @type {function()}
      */
     fallback: $fn.constant,
   },
@@ -83,19 +83,17 @@ Fiber.fn.template = {
    * Prepares template to compile
    * @param {string} template - Template to prepare
    * @param {?string} [type='engine']
-   * @returns {Function}
+   * @returns {function()}
    */
   prepare: function(template, engineName) {
-    engineName = $val(engineName, 'engine', $fn.createIncludes($fn.template.getAliases()));
+    engineName = $valIncludes(engineName, 'engine', $fn.template.getAliases());
     var engine = $fn.template.getEngine(engineName);
     // if engine is not found then lets wrap to return the same
     if (! _.isFunction(engine)) $Log.errorThrow('Template engine is not a function');
     // otherwise lets use all arguments and path them into the engine
-    var prepared = engine.apply(engine, arguments);
-    // adds static render function to the prepared template
-    prepared.$render = function() {
-      return prepared.apply(prepared, _.drop(arguments, 2));
-    };
+    var prepared = engine(template);
+    // adds static compile function to the template
+    prepared.$compile = function() { return prepared.apply(prepared, arguments); };
     // and finally return wrapped template
     return prepared;
   },
@@ -117,7 +115,7 @@ Fiber.fn.template = {
   /**
    * Returns template engine
    * @param {?string} [type='engine']
-   * @returns {Function}
+   * @returns {function()}
    */
   getEngine: function(alias) {
     var engine = $fn.get($fn.template._engines, alias || 'engine');
@@ -128,7 +126,7 @@ Fiber.fn.template = {
   /**
    * Sets template engine
    * @param {string} alias
-   * @param {Function} engine
+   * @param {function()} engine
    * @return {Fiber.fn.template}
    */
   setEngine: function(alias, engine) {
@@ -148,7 +146,7 @@ Fiber.fn.template = {
   /**
    * Removes engine by alias and returns it
    * @param {string} alias
-   * @returns {Function}
+   * @returns {function()}
    */
   forgetEngine: function(alias) {
     var engine = $fn.template.getEngine(alias);
@@ -158,7 +156,7 @@ Fiber.fn.template = {
 
   /**
    * Returns fallback template engine.
-   * @returns {Function}
+   * @returns {function()}
    */
   getFallback: function() {
     return $fn.template._fallback;
@@ -166,7 +164,7 @@ Fiber.fn.template = {
 
   /**
    * Sets fallback template engine
-   * @param {Function} engine
+   * @param {function()} engine
    * @returns {Fiber.fn.template}
    */
   setFallback: function(engine) {

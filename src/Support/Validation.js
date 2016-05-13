@@ -12,7 +12,7 @@ Fiber.fn.validation = {
 
     /**
      * Rule required flag
-     * @type {boolean|Function}
+     * @type {boolean|function()}
      */
     required: false,
 
@@ -25,19 +25,19 @@ Fiber.fn.validation = {
 
     /**
      * Rule validators
-     * @type {Array|Object|Function|string}
+     * @type {Array|Object|function()|string}
      */
     validators: [],
 
     /**
      * Logical middleware before validation
-     * @type {Function|null}
+     * @type {function()|null}
      */
     when: null,
 
     /**
      * Flag to enable/disable events triggering on model during validation
-     * @type {boolean|Function}
+     * @type {boolean|function()}
      */
     silent: false,
 
@@ -55,14 +55,14 @@ Fiber.fn.validation = {
 
       /**
        * `Attribute required` message.
-       * @type {string|Function}
+       * @type {string|function()}
        */
       required: 'Required attribute [{{= attribute }}] is missing.',
 
       /**
        * Single validation message for all validators.
        * Will be used if validators type is not plain object.
-       * @type {string|Function}
+       * @type {string|function()}
        */
       single: 'Attribute [{{= attribute }}] is not valid.',
 
@@ -71,7 +71,7 @@ Fiber.fn.validation = {
        * To use messages hash you need to set validators property as plain object and
        * give each validator function an alias (object key), then you can use same alias
        * to add specific error message for each validator.
-       * @type {Object|Function}
+       * @type {Object|function()}
        */
       hash: {}
     },
@@ -110,7 +110,7 @@ Fiber.fn.validation = {
     for (var attribute in rules) {
       var attributeValue = attributes[attribute]
         , rule = rules[attribute]
-        , isPreserved = _.result(rule, 'messages.preserve', false)
+        , isPreserved = $fn.result(rule, 'messages.preserve', false)
         , applyRule = true;
       // no rule for current attribute, then we are okey to return true
       if (! rule) return true;
@@ -133,7 +133,7 @@ Fiber.fn.validation = {
         // If is array, then concatenate
         else if (_.isArray(rule.validators)) validators = rule.validators;
         // And If is string, then try to resolve validation method from model
-        else if (_.isString(rule.validators) && _.has(model, rule.validators))
+        else if (_.isString(rule.validators) && $fn.has(model, rule.validators))
           validators.push($fn.class.resolveMethod(model, rule.validators));
         // validation runner to support recursive validators grouping
         var runValidation = function(validators) {
@@ -210,10 +210,10 @@ Fiber.fn.validation = {
     defaults = $val(defaults, $fn.template.compile(this.rule.messages.single, {attribute: attribute}));
     var isHash = $fn.validation.isHashMessageNeeded(rule)
       , key = $fn.validation.getPathByRule(rule)
-      , message = _.result(rule, (customPath ? attribute : key), defaults);
+      , message = $fn.result(rule, (customPath ? attribute : key), defaults);
     if (customPath) return message;
     if (_.isEmpty(message)) return defaults;
-    return isHash && $isDef(attribute) ? _.result(message, attribute, defaults) : message;
+    return isHash && $isDef(attribute) ? $fn.result(message, attribute, defaults) : message;
   },
 
   /**
@@ -292,6 +292,6 @@ Fiber.fn.validation = {
    * @returns {boolean}
    */
   isHashMessageNeeded: function(rule) {
-    return _.isPlainObject(_.result(rule, 'validators'));
+    return _.isPlainObject($fn.result(rule, 'validators'));
   },
 };

@@ -11,9 +11,9 @@ Fiber.ViewsManager = Fiber.Bag.extend({
    * @param {Object} [viewMap]
    */
   constructor: function($el, viewMap) {
-    this.handleElement($el);
-    this.setHolder(this.getHolder(), $val(viewMap, {}, _.isPlainObject));
     this._shown = {};
+    this.handleElement($el);
+    if (_.isPlainObject(viewMap)) this.set(viewMap);
   },
 
   /**

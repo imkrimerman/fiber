@@ -12,7 +12,7 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|Function}
+   * @type {Array|function()}
    */
   ownProps: [],
 
@@ -22,11 +22,10 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
    * @param {?boolean} [merge=true]
    * @returns {Object}
    */
-  applyOwnProps: function(properties, merge) {
-    merge = $val(merge, true, _.isBoolean);
+  applyOwnProps: function(properties) {
     var own = $fn.result(this, 'ownProps', []);
-    if (_.isString(own) && own === 'all' || own) own = $fn.properties(this);
-    if (merge && _.isArray(own)) properties = $fn.concat(own, $fn.castArr(properties));
+    if (own === 'all' || own) own = $fn.properties(this);
+    if (_.isArray(own)) properties = $fn.concat(own, $fn.compact($fn.castArr(properties)));
     return $fn.class.ensureOwn(this, properties);
   }
 });

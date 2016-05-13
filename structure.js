@@ -1,12 +1,13 @@
 'use strict';
 
 /**
- * Fiber structure
+ * Fiber build structure
  * @type {Array.<string>}
  */
 module.exports = [
-  './src/Support/Version.js',
+  // Properties and functions
   './src/Support/Properties.js',
+  './src/Support/Version.js',
   './src/Support/Compatibility.js',
   './src/Support/fn.js',
   './src/Support/Macros.js',
@@ -21,40 +22,41 @@ module.exports = [
   './src/Support/Computed.js',
   './src/Support/Compose.js',
   './src/Support/Injection.js',
-//   './src/Support/Dom.js',
+  './src/Support/RegExp.js',
   './src/Support/Types.js',
   // Core
   './src/Core.js',
+  // Base tools
   './src/Base/Events.js',
+  './src/Base/BaseClass.js',
   './src/Base/Log.js',
   './src/Base/Monitor.js',
   './src/Base/Type.js',
   // Contracts
   './src/Contracts/Contract.js',
-  './src/Contracts/Eventable.js',
-  './src/Contracts/Storage.js',
-  // Base
+  './src/Contracts/Access.js',
+  './src/Contracts/Events.js',
+  // Base classes
   './src/Base/Class.js',
   './src/Base/Bag.js',
   './src/Base/ErrorBag.js',
-  './src/Base/Transmitter.js',
+  './src/Base/Request.js',
   './src/Base/Extension.js',
-  './src/Base/Dom/Element.js',
+  './src/Base/Storage.js',
   // Inversion of control Container
   './src/Container.js',
   // Extensions
+  './src/Extensions/Events.js',
   './src/Extensions/Access.js',
   './src/Extensions/Binder.js',
   './src/Extensions/Extend.js',
   './src/Extensions/Extensions.js',
   './src/Extensions/OwnProps.js',
-  './src/Extensions/Events.js',
-  // Storage
-  './src/Storage.js',
-  // Base
-  './src/Base/Object.js',
-  './src/Base/Models/Model.js',
-  './src/Base/Collections/Collection.js',
+  // Mocks integration
+  './src/Mocks/Transmitter.js',
+  // Base component classes
+  './src/Base/Model.js',
+  './src/Base/Collection.js',
   './src/Base/Collections/LinkedViews.js',
   './src/Base/Collections/Listeners.js',
   './src/Base/Collections/RouterCollection.js',
@@ -64,12 +66,13 @@ module.exports = [
   './src/Commands/Handler.js',
   './src/Commands/Hub.js',
   // Fiber components
+  './src/Object.js',
   './src/Model.js',
   './src/Collection.js',
   './src/ViewsManager.js',
   './src/View.js',
-  './src/Layout.js',
   './src/CollectionView.js',
+  './src/Layout.js',
   // Routing
   './src/Routing/HistoryItem.js',
   './src/Routing/HistoryCollection.js',

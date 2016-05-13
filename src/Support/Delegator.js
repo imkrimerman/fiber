@@ -45,11 +45,11 @@ Fiber.fn.delegator = {
   /**
    * Proxies function to the `scope`. If `scope` is string then
    * it will be dynamically resolve from the bound object
-   * @param {Function} method
+   * @param {function()} method
    * @param {?Object|string} [scope=method]
    * @param {?number} [argCount]
    * @param {?boolean} [check=true]
-   * @returns {Function}
+   * @returns {function()}
    */
   proxy: function(method, scope, argCount, check) {
     $val(check, true) && $fn.delegator.expectFn(method);
@@ -82,7 +82,7 @@ Fiber.fn.delegator = {
    * @param {Object} object
    * @param {string} method
    * @param {string} attribute
-   * @returns {Function}
+   * @returns {function()}
    */
   delegate: function(object, method, attribute) {
     var method = $fn.class.resolveMethod(object, method);
@@ -94,7 +94,7 @@ Fiber.fn.delegator = {
    * @param {string} method - method to delegate
    * @param {?string} [attribute=ThisReference] - attribute to find and delegate to
    * @param {?number} [num=false] - number of arguments to take, if `false` will take all arguments
-   * @returns {Function}
+   * @returns {function()}
    */
   proxyUtilMixin: function(method, attribute, num) {
     num = $val(num, false, _.isEmpty);
@@ -113,7 +113,7 @@ Fiber.fn.delegator = {
    * Delegates utility mixin to the object
    * @param {Object} object
    * @param {string} attribute
-   * @param {Object|Function} owner
+   * @param {Object|function()} owner
    * @param {Object} methods
    * @returns {Object}
    */
@@ -155,7 +155,7 @@ Fiber.fn.delegator = {
 
   /**
    * Expects that `method` is a valid function, otherwise logs error and throws Exception
-   * @param {?string|Function} [method]
+   * @param {?string|function()} [method]
    * @param {?Object} [object]
    */
   expectFn: function(method, object) {

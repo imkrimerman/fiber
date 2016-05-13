@@ -3,7 +3,7 @@
  * @class
  * @extends {Collection}
  */
-Fiber.Collection = $Collection.extend([
+Fiber.Collection = BaseCollection.extend([
   'Extensions', 'Binder', {
 
     /**
@@ -14,13 +14,13 @@ Fiber.Collection = $Collection.extend([
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @type {Array|Function}
+     * @type {Array|function()}
      */
     willExtend: ['model', 'url', 'ns', 'catalog'],
 
     /**
      * Properties keys that will be owned by the instance
-     * @type {Array|Function}
+     * @type {Array|function()}
      */
     ownProps: ['ns', 'catalog'],
 

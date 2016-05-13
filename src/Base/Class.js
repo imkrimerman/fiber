@@ -1,9 +1,9 @@
 /**
  * Fiber Base Class
  * @class
- * @extends {$BaseClass}
+ * @extends {BaseClass}
  */
-Fiber.Class = $BaseClass.implement('Eventable').extend([
+Fiber.Class = BaseClass.implement('Events').extend([
   Fiber.Events, {
 
     /**
@@ -11,7 +11,25 @@ Fiber.Class = $BaseClass.implement('Eventable').extend([
      * @type {string}
      * @private
      */
-    _signature: '[object Fiber.Class]'
+    _signature: '[object Fiber.Class]',
+
+    /**
+     * Constructs Class
+     * @param {Object} [options]
+     */
+    constructor: function(options) {
+      this.initEventProperties();
+      this.$superInit(arguments);
+    },
+
+    /**
+     * Destroys Class
+     * @returns {Fiber.Class}
+     */
+    destroy: function() {
+      this.destroyEvents();
+      return this;
+    }
   }
 ]);
 

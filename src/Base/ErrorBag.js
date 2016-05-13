@@ -10,7 +10,7 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * @returns {Object|undefined}
    */
   getErrors: function() {
-    return _.isEmpty(this.items) ? void 0 : this.items;
+    return _.isEmpty(this._items) ? void 0 : this._items;
   },
 
   /**
@@ -28,13 +28,12 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    * @returns {Fiber.ErrorBag}
    */
   push: function(key, error) {
-    var check = this.get(key)
-      , isArray = _.isArray(check)
-      , array = [];
+    var array = []
+      , check = this.get(key)
+      , isArray = _.isArray(check);
 
-    if (! isArray && check != null) array.push(check);
+    if (! isArray && check) array.push(check);
     else if (isArray) array = check;
-
     array.push(error);
     this.set(key, array);
     return this;
