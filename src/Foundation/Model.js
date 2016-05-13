@@ -5,7 +5,7 @@
  * @private
  */
 BaseModel = $fn.class.make(Backbone.Model, [
-  $Extend, $Events, $OwnProps, {
+  $Events, $Extend, $OwnProps, $Binder, {
 
     /**
      * Model constructor
@@ -13,6 +13,7 @@ BaseModel = $fn.class.make(Backbone.Model, [
      * @param {?Object} [options]
      */
     constructor: function(attributes, options) {
+      this.initEventProperties();
       $fn.class.handleOptions(this, options);
       $fn.extensions.init(this);
       this.$superInit(arguments);

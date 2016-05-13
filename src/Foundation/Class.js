@@ -11,25 +11,7 @@ Fiber.Class = BaseClass.implement('Events').extend([
      * @type {string}
      * @private
      */
-    _signature: '[object Fiber.Class]',
-
-    /**
-     * Constructs Class
-     * @param {Object} [options]
-     */
-    constructor: function(options) {
-      this.initEventProperties();
-      this.$superInit(arguments);
-    },
-
-    /**
-     * Destroys Class
-     * @returns {Fiber.Class}
-     */
-    destroy: function() {
-      this.destroyEvents();
-      return this;
-    }
+    _signature: '[object Fiber.Class]'
   }
 ]);
 

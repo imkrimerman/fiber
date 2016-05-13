@@ -93,8 +93,8 @@ describe('Fiber.Model', function() {
   });
 
   it('should check if it is `fetchable`', function() {
-    expect(this.baseModel.isFetchable()).to.be.false;
-    expect(this.urlModel.isFetchable()).to.be.true;
+    expect(this.baseModel.isSyncable()).to.be.false;
+    expect(this.urlModel.isSyncable()).to.be.true;
   });
 
   it('should get/set/has `rules`', function() {

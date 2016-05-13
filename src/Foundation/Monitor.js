@@ -162,7 +162,8 @@ Fiber.Monitor = BaseClass.extend({
    * @private
    */
   notify: function(type, parameter, args) {
-    return this._notify(_.capitalize(type) + ' `' + parameter + '` was called with arguments: ', _.drop(args));
+    var action = type.toLowerCase() === 'event' ? 'triggered' : 'called'
+    return this._notify(_.capitalize(type) + ' `' + parameter + '` was ' + action + ': ', _.drop(args));
   },
 
   /**

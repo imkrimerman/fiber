@@ -49,6 +49,7 @@ Fiber.fn.class = {
    */
   createConstructor: function(defaults) {
     return function(options) {
+      $fn.apply(this, 'initEventProperties');
       $fn.class.handleOptions(this, options, $val(defaults, {}), true);
       $fn.extensions.init(this);
       $fn.apply(this, 'initialize', arguments);

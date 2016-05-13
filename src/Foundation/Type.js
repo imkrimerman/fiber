@@ -30,7 +30,7 @@ Fiber.Type = BaseClass.extend({
   constructor: function(options) {
     options = $valMerge(options, $fn.result(this._defaults), 'defaults');
     if (! this._isValidOptions(options)) $Log.errorThrow('Can not create new type. `Options` are not valid.');
-    this._options = $fn.descriptor.immutable(options);
+    this._type = $fn.descriptor.immutable(options);
   },
 
   /**
@@ -38,7 +38,7 @@ Fiber.Type = BaseClass.extend({
    * @returns {string}
    */
   getType: function() {
-    return this._options.type;
+    return this._type.type;
   },
 
   /**
@@ -46,7 +46,7 @@ Fiber.Type = BaseClass.extend({
    * @returns {string}
    */
   getSignature: function() {
-    return this._options.signature;
+    return this._type.signature;
   },
 
   /**
@@ -54,7 +54,7 @@ Fiber.Type = BaseClass.extend({
    * @returns {*}
    */
   getDefaults: function(options) {
-    var defaults = this._options.defaults;
+    var defaults = this._type.defaults;
     if ($fn.class.isClass(defaults)) return $fn.class.instance(defaults, options);
     if (this.getType() === Fiber.Types.Function.getType()) return defaults;
     return $fn.result(defaults);
@@ -65,7 +65,7 @@ Fiber.Type = BaseClass.extend({
    * @returns {*}
    */
   getCaster: function() {
-    return this._options.caster;
+    return this._type.caster;
   },
 
   /**

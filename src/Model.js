@@ -19,6 +19,12 @@ Fiber.Model = BaseModel.extend({
   rules: {},
 
   /**
+   * Error bag
+   * @type {Object.<Fiber.ErrorBag>}
+   */
+  errorBag: null,
+
+  /**
    * Properties keys that will be auto extended from initialize object
    * @type {Array|function()}
    */
@@ -29,12 +35,6 @@ Fiber.Model = BaseModel.extend({
    * @type {Array|function()}
    */
   ownProps: ['hidden', 'rules', 'eventsConfig'],
-
-  /**
-   * Error bag
-   * @type {Object.<Fiber.ErrorBag>}
-   */
-  errorBag: null,
 
   /**
    * Constructs Model
@@ -100,8 +100,9 @@ Fiber.Model = BaseModel.extend({
    * @param {string} attribute
    * @returns {boolean}
    */
-  has: function(attribute) {
-    if ($fn.computed.has(this, attribute, 'get')) return true;
+  has: function(attribute, options) {
+    options = $valMerge(options, {denyCompute: false}, 'defaults');
+    if (! options.denyCompute && $fn.computed.has(this, attribute, 'get')) return true;
     return $fn.has(this.attributes, attribute);
   },
 
@@ -148,7 +149,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Object}
    */
   serialize: function() {
-    return this.$super('toJSON', arguments);
+    return $fn.serialize(this.attributes);
   },
 
   /**
@@ -157,7 +158,7 @@ Fiber.Model = BaseModel.extend({
    */
   toJSON: function(options) {
     options = $valMerge(options, {hide: true}, 'defaults');
-    var jsonModel = this.serialize(options);
+    var jsonModel = this.serialize();
     if (options.hide) return _.omit(jsonModel, $fn.result(this, 'hidden'));
     return jsonModel;
   },
@@ -257,10 +258,10 @@ Fiber.Model = BaseModel.extend({
   },
 
   /**
-   * Checks if Model is fetchable
+   * Checks if Model is can be synced with the server
    * @returns {boolean}
    */
-  isFetchable: function() {
+  isSyncable: function() {
     try { return _.isString($fn.result(this, 'url')); }
     catch (e) { return false; }
   },
@@ -271,6 +272,7 @@ Fiber.Model = BaseModel.extend({
    */
   destroy: function() {
     this.resetView();
+    this.destroyEvents();
     return this.$super('destroy', arguments);
   },
 });

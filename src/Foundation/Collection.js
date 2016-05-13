@@ -5,7 +5,7 @@
  * @private
  */
 BaseCollection = $fn.class.make(Backbone.Collection, [
-  $Extend, $OwnProps, $Binder, {
+  $Events, $Extend, $OwnProps, $Binder, {
 
     /**
      * Properties keys that will be auto extended from initialize object
@@ -25,6 +25,7 @@ BaseCollection = $fn.class.make(Backbone.Collection, [
      * @param {?Object} [options] - Options to extend from
      */
     constructor: function(models, options) {
+      this.initEventProperties();
       $fn.class.handleOptions(this, options);
       $fn.extensions.init(this);
       this.$superInit(arguments);
