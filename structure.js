@@ -43,6 +43,8 @@ module.exports = [
   './src/Foundation/Bag.js',
   './src/Foundation/ErrorBag.js',
   './src/Foundation/Extension.js',
+  './src/Foundation/Stack.js',
+  './src/Foundation/Promise.js',
   // Inversion of control Container
   './src/Container.js',
   // Extensions

@@ -543,44 +543,41 @@ $fn = Fiber.fn = {
 
   /**
    * Invokes method (camel case transformed event) if exists and fires event
-   * @param {function()|Object} Class - Class to call
+   * @param {function()|Object} object - object to call
    * @param {string} event - event to fire and transform to callback name
-   * @param {?Object} [args]
+   * @param ?Object} [args]
    * @param {?Object} [options]
    * @return {*}
    */
-  fireCall: function(Class, event, args, options) {
-    var result = Class;
+  fireCall: function(object, event, args, options) {
+    var result = object;
     options = _.defaults({}, options || {}, { prepare: true, call: true });
     if (options.prepare) args = $fn.prepareFireCallArgs(args, { fire: [], call: [] });
-    if (options.call) result = $fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
-    $fn.apply(Class, 'fire', [event].concat(args.fire));
+    if (options.callEventMethod) result = $fn.apply(object, _.camelCase(event.split(':').join(' ')), args.call);
+    $fn.apply(object, 'fire', [event].concat(args.fire));
     return result;
   },
 
   /**
-   * Invokes method (camel case transformed event) if exists and fires event
-   * @param {function()|Object} Class - Class to call
+   * Fires lifecycle events, invokes callback and if event method (camel case transformed event) exists will invoke it.
+   * @param {function()|Object} object - object to call
    * @param {string} event - event to fire and transform to callback name
    * @param {function()} callback
    * @param {Object} [args]
    * @param {Array} [lifeCycle]
    * @return {*}
    */
-  fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
-    args = $fn.prepareFireCallArgs(args, { fire: [], call: [], callback: [] })
-    lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
-
-    var result;
+  fireCallCyclic: function(object, event, callback, args, lifeCycle) {
+    args = $fn.prepareFireCallArgs(args, { fire: [], call: [], callback: [], callEventMethod: true });
+    lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], _.isArray);
     for (var i = 0; i < lifeCycle.length; i ++) {
-      var now = lifeCycle[i], nowEvent = Fiber.Events._joinEventName([now, event]);
+      var now = lifeCycle[i], nowEvent = Fiber.Events.joinEventName([now, event]), result;
       if (now === '@callback') {
-        if (_.isFunction(callback)) result = callback.apply(Class, args.callback);
+        if (_.isFunction(callback)) result = callback.apply(object, args.callback);
         nowEvent = event;
       }
-      $fn.fireCall(Class, nowEvent, args, { prepare: false });
+      $fn.fireCall(object, nowEvent, args, { prepare: false, callEventMethod: args.callEventMethod });
     }
-
     return result;
   },
 
@@ -601,7 +598,7 @@ $fn = Fiber.fn = {
   /**
    * Prepares arguments for fire call methods
    * @param {Object} args
-   * @param {?Object} [defaults={}]
+   * @param {Object} [defaults={}]
    * @returns {Object}
    */
   prepareFireCallArgs: function(args, defaults) {

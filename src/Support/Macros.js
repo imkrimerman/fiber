@@ -17,16 +17,16 @@ Fiber.fn.macros = {
     constant: function(object) {
       return $fn.constant(object);
     },
-    'get/set': function(property, checkToSetFn) {
+    getSet: function(property, checkToSetFn) {
       return {
         get: function() {
-          return this[property];
+          return $fn.get(this, property);
         },
         set: function(value) {
-          if (_.isString(checkToSetFn) && _.isFunction($fn.get(this, checkToSetFn))) checkToSetFn = this[checkToSetFn];
-          if ((_.isFunction(checkToSetFn) && checkToSetFn(value)) || ! $isDef(checkToSetFn)) {
-            this[property] = value;
-          }
+          if (_.isString(checkToSetFn)) checkToSetFn = $fn.get(this, checkToSetFn);
+          if (! $isDef(checkToSetFn) || _.isFunction(checkToSetFn) && checkToSetFn(value))
+            $fn.set(this, property, value);
+          return this;
         }
       };
     }
@@ -39,6 +39,7 @@ Fiber.fn.macros = {
    * @returns {function()|*}
    */
   get: function(name, defaults) {
+    if (! _.isString(name)) return name;
     return $fn.macros._storage[name] || defaults;
   },
 
@@ -49,6 +50,7 @@ Fiber.fn.macros = {
    * @returns {Object}
    */
   set: function(name, macrosCreator) {
+    if (! _.isString(name)) return macrosCreator;
     $fn.macros._storage[name] = macrosCreator;
     return $fn.macros;
   },
@@ -59,6 +61,7 @@ Fiber.fn.macros = {
    * @returns {boolean}
    */
   has: function(name) {
+    if (! _.isString(name)) return false;
     return ! ! $fn.macros._storage[name];
   },
 

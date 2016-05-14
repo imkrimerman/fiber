@@ -46,77 +46,39 @@ Fiber.fn.descriptor = {
    */
   get: function(object, property) {
     if (! $fn.descriptor.canDescribe(object)) return {};
-    return object.getOwnPropertyDescriptor(object, property);
-  },
-
-  /**
-   * Defines property using level descriptor
-   * @param {Object} object
-   * @param {string} property
-   * @param {string} level
-   * @returns {Object}
-   */
-  level: function(object, property, level) {
-    if (! $fn.descriptor.canDescribe(object)) return object;
-    var properties = {}
-      , args = [object, property]
-      , isObject = _.isPlainObject(property)
-      , getLevel = $fn.descriptor.getLevelDescriptor;
-
-    if (arguments.length === 3) args.push(getLevel(level));
-    else if (arguments.length === 2 && isObject) {
-      for (var propName in property) properties[propName] = getLevel(property[name]);
-      args.push(properties);
-    }
-    return $fn.descriptor.define.apply(null, args);
+    return _.isFunction(object.getOwnPropertyDescriptor) && object.getOwnPropertyDescriptor(object, property) || {};
   },
 
   /**
    * Defines property using custom descriptor
    * @param {Object} object
    * @param {string|Object} property
-   * @param {Object} descriptor
-   * @returns {Object}
-   */
-  define: function(object, property, descriptor) {
-    if (! $fn.descriptor.canDescribe(object)) return object;
-    var properties = null;
-    if (arguments.length === 3) properties = $fn.createPlain(property, descriptor);
-    else if (arguments.length === 2 && _.isPlainObject(property)) properties = property;
-    else return object;
-    return Object.defineProperties(object, properties);
-  },
-
-  /**
-   * Defines property using descriptor retrieved by alias and extender mixin. Will merge descriptor and mixin and then
-   * will define property.
-   * @param {Object} object
-   * @param {string} property
-   * @param {string} alias
+   * @param {string|Object} descriptor
    * @param {Object} extender
    * @returns {Object}
    */
-  defineMerge: function(object, property, alias, extender) {
-    var levelDescriptor = $fn.descriptor.getDescriptor(alias);
-    if (! levelDescriptor) return object;
-    return $fn.descriptor.define(object, property, $fn.merge(levelDescriptor, $val(extender, {}, _.isPlainObject)));
+  define: function(object, property, descriptor, extender) {
+    if (! $fn.descriptor.canDescribe(object)) return object;
+    if (_.isPlainObject(property)) return $fn.multi(property, function(oneDescriptor, key) {
+      return $fn.descriptor.define(object, key, oneDescriptor, descriptor);
+    }, function() {return object;});
+    descriptor = _.isString(descriptor) ? $fn.macros.get(descriptor) : $val(descriptor, {}, _.isPlainObject);
+    return Object.defineProperty(object, property, $fn.merge(descriptor, extender));
   },
 
   /**
    * Defines property using registered macros
    * @param {Object} object
    * @param {string} property
-   * @param {Object} macros
+   * @param {string|Array} macros
+   * @param {Object} [extender]
    * @returns {Object}
    */
-  defineMacros: function(object, property, macros, macrosArgs) {
-    if (! $fn.macros.has(macros)) return object;
-    macrosArgs = $fn.castArr($val(macrosArgs, []));
-    var macrosCreator = $fn.macros.get(macros)
+  defineMacros: function(object, property, macros, extender) {
+    var macrosArgs = _.isArray(macros) && _.drop(macros) || []
+      , macrosCreator = $fn.macros.get(macros)
       , descriptor = macrosCreator.apply(object, macrosArgs);
-    if (_.isFunction(macrosCreator)) return $fn.descriptor.define(object, property, descriptor);
-    $log.error(macros + ' is not found.');
-    return object;
+    return $fn.descriptor.define(object, property, descriptor, extender);
   },
 
   /**

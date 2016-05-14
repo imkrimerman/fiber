@@ -190,7 +190,7 @@ Fiber.Events = _.extend({
     // skip catalog look up by providing `@`
     else if (event[0] === '@') eventName = event.slice(1);
     // and lastly join namespace and event string
-    return this._joinEventName([this.eventsConfig.ns, eventName]);
+    return this.joinEventName([this.eventsConfig.ns, eventName]);
   },
 
   /**
@@ -271,7 +271,7 @@ Fiber.Events = _.extend({
    * @param {?string} [delimiter=':']
    * @returns {string}
    */
-  _joinEventName: function(events, delimiter) {
+  joinEventName: function(events, delimiter) {
     delimiter = $val(delimiter, ':', _.isString);
     return $fn.compact(_.map($fn.castArr(events), function(event) {
       return $fn.trim($fn.cast.toString(event), delimiter);
