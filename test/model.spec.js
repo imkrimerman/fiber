@@ -161,7 +161,7 @@ describe('Fiber.Model', function() {
     this.baseModel.setView(view);
     expect(this.baseModel.getView()).to.eql(view);
     expect(this.baseModel.hasView()).to.be.true;
-    this.baseModel.resetView();
+    this.baseModel.flushView();
     expect(this.baseModel.getView()).to.be.null;
   });
 

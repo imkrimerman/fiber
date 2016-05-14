@@ -8,6 +8,13 @@ BaseClass = $fn.class.create([
   Backbone.Events, {
 
     /**
+     * Class type signature
+     * @type {string}
+     * @private
+     */
+    _signature: '[object Fiber.BaseClass]',
+
+    /**
      * Constructs base class
      * @param {Object} [options]
      */

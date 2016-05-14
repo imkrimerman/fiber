@@ -17,7 +17,7 @@ Fiber.fn.class = {
     // ensures that contracts will be extended from `parentClass`
     $fn.class.ensureContractsInSync(constructor, parentClass);
     // Return Class constructor wrapper
-    return function FiberClass() {
+    return function FiberClass () {
       // Attach Parent Class constructor and Parent prototype to the direct scope of child
       $fn.class.attachSuper(this, parentClass);
       // If we have properties that needs to be migrated to the direct scope (this) of child, then we'll copy
@@ -80,7 +80,7 @@ Fiber.fn.class = {
     _.extend(child, parent, staticProps);
     // Set the prototype chain to inherit from `parent`
     child.prototype = Object.create(parent.prototype, {
-      constructor: _.extend({value: child}, $fn.descriptor.getDescriptor('property'))
+      constructor: _.extend({ value: child }, $fn.descriptor.getDescriptor('property'))
     });
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);
@@ -150,7 +150,7 @@ Fiber.fn.class = {
     if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
     if (! $fn.class.isClass(Parent)) $log.errorThrow('Cannot instantiate from `Parent` Class - is not a Class or' +
                                                      ' valid instance to retrieve Constructor.');
-    function InstanceCreator() {return Parent.apply(this, $fn.castArr(args))};
+    function InstanceCreator () {return Parent.apply(this, $fn.castArr(args))};
     InstanceCreator.prototype = Parent.prototype;
     return new InstanceCreator();
   },
@@ -246,7 +246,7 @@ Fiber.fn.class = {
           return $fn.class.include(this.$super('prototype'), $fn.merge(Fiber.resolve(proto)), override);
         },
         $implement: function(contract) {
-          $fn.class.implement(this.constructor, contract);
+          $fn.class.implement(this.constructor, contract, true);
           return this;
         },
         $new: function() {
@@ -282,9 +282,11 @@ Fiber.fn.class = {
    * Adds `contract` to the `Class` to check on instantiation
    * @param {Object} Class
    * @param {Object.<Fiber.Contract>} contract
+   * @param {boolean} [own=false] - if true then implement Contract for the given Class,
+   *                                otherwise return Contracted copy of the Class.
    * @returns {Object}
    */
-  implement: function(Class, contract) {
+  implement: function(Class, contract, own) {
     if (! Fiber.Contract) return Class;
 
     if (arguments.length > 2) {
@@ -302,10 +304,10 @@ Fiber.fn.class = {
     for (var i = 0; i < contract.length; i ++) {
       var oneContract = contract[i];
       if (_.isString(oneContract) && (oneContract = _.capitalize(oneContract)) && $fn.has(Fiber.Contracts, oneContract))
-        oneContract= Fiber.Contracts[oneContract];
+        oneContract = Fiber.Contracts[oneContract];
       if (oneContract instanceof Fiber.Contract) {
         var follows = $val(Class[$PropNames.contract], {}, _.isPlainObject)
-          , ContractClass = $fn.class.nativeExtend(Class);
+          , ContractClass = own ? Class : $fn.class.nativeExtend(Class);
         ContractClass[$PropNames.contract] = _.extend({}, follows, $fn.createPlain(oneContract.getName(), oneContract));
         return ContractClass;
       }
@@ -475,11 +477,15 @@ Fiber.fn.class = {
    * Merges options to object
    * @param {Object} object
    * @param {Object} options
-   * @param {?Array} [willExtend]
-   * @returns {object}
+   * @param {Array|string|boolean|function()} [willExtend]
+   * @param {boolean} [retrieve=true]
+   * @returns {Object}
    */
   extendFromOptions: function(object, options, willExtend) {
-    if (willExtend && _.isArray(willExtend)) options = _.pick(options, $fn.compact(willExtend));
+    willExtend = $fn.result($val(willExtend, []));
+    var isArray = _.isArray(willExtend);
+    if (isArray) options = _.pick(options, $fn.compact(willExtend));
+    if (! (_.isBoolean(willExtend) && willExtend || willExtend === 'all')) options = {};
     return _.extend(object, options);
   },
 

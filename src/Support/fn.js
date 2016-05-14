@@ -40,6 +40,7 @@ $fn = Fiber.fn = {
    * @returns {*}
    */
   set: function(object, property, value) {
+    if (_.isPlainObject(property)) $fn.class.mix(object, property);
     if (! _.isArray(property)) _.set(object, property, value);
     else {
       var isValueArray = _.isArray(value);
@@ -455,10 +456,10 @@ $fn = Fiber.fn = {
    */
   clone: function(object, deep, cloneIterator) {
     return $fn[deep ? 'cloneDeepWith' : 'cloneWith'](object, $val(cloneIterator, function(value) {
-       if (_.isFunction(value)) return value;
-       if (_.isArray(value)) return value.slice();
-       return _.clone(value);
-     }, _.isFunction));
+      if (_.isFunction(value)) return value;
+      if (_.isArray(value)) return value.slice();
+      return _.clone(value);
+    }, _.isFunction));
   },
 
   /**
@@ -491,12 +492,21 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Creates function that returns `value`
+   * Creates function that returns `value`.
    * @param {*} value
    * @returns {function()}
    */
   constant: function(value) {
     return function() {return value;};
+  },
+
+  /**
+   * Passes `value` through.
+   * @param {*} value
+   * @returns {*}
+   */
+  through: function(value) {
+    return value;
   },
 
   /**
@@ -521,10 +531,10 @@ $fn = Fiber.fn = {
    * @param {?function()} [cb]
    */
   fireAttribute: function(object, event, attribute, args, cb) {
-    var options = {prepare: false, call: false};
+    var options = { prepare: false, call: false };
     event = _.trim(event, ':');
     attribute = _.trim(attribute, ':');
-    args = $fn.prepareFireCallArgs({fire: args}, {fire: []});
+    args = $fn.prepareFireCallArgs({ fire: args }, { fire: [] });
     $fn.fireCall(object, event, args, options);
     var result = _.isFunction(cb) ? $fn.applyFn(cb, args) : void 0;
     $fn.fireCall(object, event + ':' + attribute, args, options);
@@ -541,8 +551,8 @@ $fn = Fiber.fn = {
    */
   fireCall: function(Class, event, args, options) {
     var result = Class;
-    options = _.defaults({}, options || {}, {prepare: true, call: true});
-    if (options.prepare) args = $fn.prepareFireCallArgs(args, {fire: [], call: []});
+    options = _.defaults({}, options || {}, { prepare: true, call: true });
+    if (options.prepare) args = $fn.prepareFireCallArgs(args, { fire: [], call: [] });
     if (options.call) result = $fn.apply(Class, _.camelCase(event.split(':').join(' ')), args.call);
     $fn.apply(Class, 'fire', [event].concat(args.fire));
     return result;
@@ -558,7 +568,7 @@ $fn = Fiber.fn = {
    * @return {*}
    */
   fireCallCyclic: function(Class, event, callback, args, lifeCycle) {
-    args = $fn.prepareFireCallArgs(args, {fire: [], call: [], callback: []})
+    args = $fn.prepareFireCallArgs(args, { fire: [], call: [], callback: [] })
     lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], [_.isArray, _.negate(_.isEmpty)]);
 
     var result;
@@ -568,7 +578,7 @@ $fn = Fiber.fn = {
         if (_.isFunction(callback)) result = callback.apply(Class, args.callback);
         nowEvent = event;
       }
-      $fn.fireCall(Class, nowEvent, args, {prepare: false});
+      $fn.fireCall(Class, nowEvent, args, { prepare: false });
     }
 
     return result;
@@ -644,13 +654,25 @@ $fn = Fiber.fn = {
     var isArray = _.isArray(object)
       , prepared = isArray ? [] : {}
       , args = [prepared];
-    if (_.isFunction(object)) return object.toString();
+
+    if (_.isFunction(object)) return $fn.serializeFunction(object);
+
     $each(object, function(value, prop) {
       if (_.isObject(value) || _.isFunction(value)) value = $fn.serialize(value);
       isArray ? prepared.push(value) : (prepared[prop] = value);
     });
+
     if (prettyPrint) args = args.concat([null, "\t"]);
     return JSON.stringify.apply(JSON, args);
+  },
+
+  /**
+   * Serializes function
+   * @param {Function|function()|Object} fn
+   * @returns {string}
+   */
+  serializeFunction: function(fn) {
+    return fn.toString().replace($fn.regexp.map.injection.stripComments, '');
   },
 
   /**
@@ -661,13 +683,29 @@ $fn = Fiber.fn = {
   unserialize: function(string, defaults) {
     var parsed;
     string = $fn.trim(string);
-    try { parsed = JSON.parse(string); } catch (e) { parsed = $val(defaults, {}); }
+    try { parsed = JSON.parse(string); }
+    catch (e) { parsed = $val(defaults, {}); }
     $each(parsed, function(value, prop) {
-      if (_.isString(value) && $fn.regexp.matches(value, 'properties.isFunction')) {
-        parsed[prop] = new Function('var $TMP = ' + value + '; return $TMP()');
-      }
+      if (_.isString(value)) parsed[prop] = $fn.unserializeFunction(value);
     });
     return parsed;
+  },
+
+  /**
+   * Unserializes function
+   * @param {string} string
+   * @returns {Function|function()|*}
+   */
+  unserializeFunction: function(string) {
+    if (! _.isString(string)) return string;
+    string = $fn.trim(string);
+    if (string[0] === '[' || string[0] === '{') return string;
+    string = string.replace($fn.regexp.map.injection.stripComments, '');
+    if (! $fn.regexp.matches(string, 'isFunction')) return string;
+    if ($fn.regexp.matches(string, 'isFunctionEmpty')) return function() {};
+    var args = $fn.injection.parseArguments(string);
+    args.push($fn.trim(string.substring(string.indexOf('{') + 1, string.lastIndexOf('}'))));
+    return $fn.class.instance(Function, args);
   },
 
   /**
@@ -677,12 +715,49 @@ $fn = Fiber.fn = {
    * @returns {string}
    */
   toQuery: function(object, options) {
-    options = $valMerge(options, {omitMethods: true, prefixQuestionMark: false,}, 'defaults');
+    options = $valMerge(options, { omitMethods: true, prefixQuestionMark: false, }, 'defaults');
     if (options.omitMethods) object = _.omit(object, $fn.methods(object));
     var prefix = options.prefixQuestionMark ? '?' : '';
     return prefix + _.map(_.toPairs(object), function(pair) {
-      return _.map(pair, function(fragment) {return encodeURIComponent(fragment);}).join('=');
-    }).join('&');
+        return _.map(pair, function(fragment) {return encodeURIComponent(fragment);}).join('=');
+      }).join('&');
+  },
+
+  /**
+   * Returns Sibling of the given Model if in collection or same Model.
+   * @param {Object.<Backbone.Model>|Object.<Fiber.Model>} model
+   * @param {?Object} [options={}] direction: next, - direction to search, can be 'next' or 'prev'
+   *                               where: null, - options object to find model by, will be passed to
+   *                                      the `collection.where`
+   *                               defaultCid: null - if no model cid found will be used as default Model cid
+   * @returns {Object.<Backbone.Model>|Object.<Fiber.Model>}
+   */
+  modelSibling: function(model, options) {
+    if (! model.collection) return model;
+    options = _.defaults(options || {}, { direction: 'next', where: null, defaultCid: null });
+    var dirCid, cid = model.cid, models = options.where ?
+                                          model.collection.where(options.where) :
+                                          model.collection.models;
+
+    if (models.length) dirCid = _.first(models).cid;
+    else dirCid = options.defaultCid;
+
+    for (var key = 0; key < models.length; key ++) {
+      var model = models[key];
+      if (model.cid !== cid) continue;
+      if (options.direction === 'next') {
+        if (key + 1 >= models.length) dirCid = _.first(models).cid;
+        else dirCid = models[key + 1].cid;
+        break;
+      }
+      else if (options.direction === 'prev') {
+        if (key - 1 < 0) dirCid = _.last(models).cid;
+        else dirCid = models[key - 1].cid;
+        break;
+      }
+    }
+
+    return dirCid != null ? model.collection.get(dirCid) : model;
   },
 
   /**
@@ -693,10 +768,10 @@ $fn = Fiber.fn = {
     var agent = navigator.userAgent
       , isOpera = Object.prototype.toString.call(window.opera) == '[object Opera]';
     return {
-      isIE: !! window.attachEvent && ! isOpera,
+      isIE: ! ! window.attachEvent && ! isOpera,
       isOpera: isOpera,
-      isWebKit: !! ~agent.indexOf('AppleWebKit/'),
-      isGecko: ~agent.indexOf('Gecko') > - 1 && ! ~agent.indexOf('KHTML'),
+      isWebKit: ! ! ~ agent.indexOf('AppleWebKit/'),
+      isGecko: ~ agent.indexOf('Gecko') > - 1 && ! ~ agent.indexOf('KHTML'),
       isMobileSafari: /Apple.*Mobile/.test(agent)
     }
   },

@@ -7,9 +7,16 @@ Fiber.Model = BaseModel.extend({
 
   /**
    * The prefix is used to create the client id which is used to identify models locally.
-   * @type {string}
+   * @type {string|function()|null}
    */
   cidPrefix: 'model',
+
+  /**
+   * Model unique client identifier.
+   * @type {string|number|function()}
+   * @private
+   */
+  cidId: function() {return _.uniqueId();},
 
   /**
    * Hidden fields.
@@ -19,61 +26,65 @@ Fiber.Model = BaseModel.extend({
   hidden: [],
 
   /**
-   * Validation rules
+   * Validation rules.
    * @type {Object|function()}
    */
   rules: {},
 
   /**
-   * Error bag
+   * Error bag.
    * @type {Object.<Fiber.ErrorBag>}
    */
   errorBag: null,
 
   /**
-   * Properties keys that will be auto extended from initialize object
+   * Properties keys that will be auto extended from initialize object.
    * @type {Array|function()}
    */
   willExtend: ['url', 'hidden', 'rules', 'eventsConfig'],
 
   /**
-   * Properties keys that will be owned by the instance
+   * Properties keys that will be owned by the instance.
    * @type {Array|function()}
    */
   ownProps: ['hidden', 'rules', 'eventsConfig'],
 
   /**
-   * Class type signature
+   * Class type signature.
    * @type {string}
    * @private
    */
   _signature: '[object Fiber.Model]',
 
   /**
-   * Constructs Model
+   * Constructs Model.
    * @param {?Object} [attributes={}]
    * @param {?Object} [options={}]
    */
   constructor: function(attributes, options) {
-    attributes = $val(attributes, {});
-    options = $fn.class.handleOptions(this, options);
-
     this.attributes = {};
-    this.cid = _.uniqueId(this.cidPrefix + '@');
     this.errorBag = new Fiber.ErrorBag();
-    this.resetView();
-
-    if (options.parse) attributes = this.parse(attributes, options) || {};
+    this.adapter = new Fiber.Storage.Repository();
+    attributes = $val(attributes, {}, _.isPlainObject);
+    options = $fn.class.handleOptions(this, options);
+    this.createClientId();
+    this.flushView();
+    if (options.adapter) this.adapter = options.adapter;
+    if (options.parse) attributes = $val(this.parse(attributes, options), {}, _.isPlainObject);
     attributes = _.defaultsDeep({}, attributes, $fn.result(this, 'defaults'));
     this.set(attributes, options);
     this.changed = {};
-
-    this.when('invalid', function() {
-      $fn.apply(this, 'whenInvalid', arguments);
-    });
-
+    this.when('invalid', function() {$fn.apply(this, 'whenInvalid', arguments);});
     $fn.extensions.init(this);
     $fn.apply(this, 'initialize', arguments);
+  },
+
+  /**
+   * Returns created client identifier of the Model.
+   * @returns {string|number}
+   */
+  createClientId: function() {
+    return this.cid = $fn.result(this, 'cidPrefix') + $fn.result(this, 'cidId');
   },
 
   /**
@@ -84,8 +95,8 @@ Fiber.Model = BaseModel.extend({
    * @returns {*}
    */
   get: function(attribute, options) {
-    options = $valMerge(options, {denyCompute: false}, 'defaults');
-    if (! options.denyCompute && $fn.computed.has(this, attribute, 'get'))
+    options = $valMerge(options, { compute: true }, 'defaults');
+    if (options.compute && $fn.computed.has(this, attribute, 'get'))
       return $fn.computed.get(this, attribute);
     return $fn.get(this.attributes, attribute);
   },
@@ -94,51 +105,59 @@ Fiber.Model = BaseModel.extend({
    * Set a hash of model attributes on the object.
    * If computed property is available then it will be called with new value.
    * @param {Object|string} attribute
-   * @param {*} value
+   * @param {*} [value]
    * @param {?Object} [options]
    * @returns {*}
    */
   set: function(attribute, value, options) {
-    options = $valMerge(options, {denyCompute: false}, 'defaults');
-    if (! options.denyCompute && $fn.computed.has(this, attribute, 'set'))
+    options = $valMerge(options, { compute: true }, 'defaults');
+    if (options.compute && $fn.computed.has(this, attribute, 'set'))
       return $fn.computed.set(this, attribute, value);
     return this.$super('set', arguments);
   },
 
   /**
    * Returns `true` if the attribute contains a value that is not null or undefined.
-   * First it will check if computed property is available then it will check if
+   * Checks if is computed property then will resolve computed method and will use it.
    * @param {string} attribute
+   * @param {Object} [options]
    * @returns {boolean}
    */
   has: function(attribute, options) {
-    options = $valMerge(options, {denyCompute: false}, 'defaults');
-    if (! options.denyCompute && $fn.computed.has(this, attribute, 'get')) return true;
+    options = $valMerge(options, { compute: true }, 'defaults');
+    if (options.compute) return $fn.computed.has(this, attribute, 'get');
     return $fn.has(this.attributes, attribute);
   },
 
   /**
-   * Validates `attributes` of Model against `rules`
-   * @param {?Object} [attributes=this.attributes]
-   * @param {?Object} [options={}]
+   * Return direct reference to the Model attributes.
+   * @param {boolean} [deep=false]
+   * @returns {Object}
+   */
+  all: function(deep) {
+    return $fn.clone(this.attributes, deep);
+  },
+
+  /**
+   * Validates `attributes` of Model against `rules`.
+   * @param {Object} [attributes=this.attributes]
+   * @param {Object} [options]
    * @returns {Object|undefined}
    */
   validate: function(attributes, options) {
-    $fn.validation.validate(this, $val(attributes, this.attributes), options);
-    return this.errorBag.getErrors();
+    return $fn.validation.validate(this, attributes, options);
   },
 
   /**
-   * Returns validation `rules`
-   * @param {Object} defaults
+   * Returns validation `rules`.
    * @returns {Object}
    */
-  getRules: function(defaults) {
-    return $fn.result(this, 'rules', defaults);
+  getRules: function() {
+    return $fn.result(this, 'rules');
   },
 
   /**
-   * Sets validation `rules`
+   * Sets validation `rules`.
    * @param {Object} rules
    * @returns {Fiber.Model}
    */
@@ -148,30 +167,11 @@ Fiber.Model = BaseModel.extend({
   },
 
   /**
-   * Determine if `rules` is not empty
+   * Determine if `rules` is not empty.
    * @returns {boolean}
    */
   hasRules: function() {
-    return ! _.isEmpty(this.rules);
-  },
-
-  /**
-   * Serializes model
-   * @returns {Object}
-   */
-  serialize: function() {
-    return $fn.serialize(this.attributes);
-  },
-
-  /**
-   * Converts Model to JSON
-   * @returns {Object}
-   */
-  toJSON: function(options) {
-    options = $valMerge(options, {hide: true}, 'defaults');
-    var jsonModel = this.serialize();
-    if (! options.hide) return jsonModel;
-    return _.omit(jsonModel, $fn.result(this, 'hidden'));
+    return ! _.isEmpty(this.getRules());
   },
 
   /**
@@ -180,7 +180,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model|null}
    */
   next: function(options) {
-    return this.sibling(_.extend({direction: 'next'}, options || {}));
+    return this.sibling($fn.merge({ direction: 'next' }, options || {}));
   },
 
   /**
@@ -189,7 +189,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model|null}
    */
   prev: function(options) {
-    return this.sibling(_.extend({direction: 'prev'}, options || {}));
+    return this.sibling($fn.merge({ direction: 'prev' }, options || {}));
   },
 
   /**
@@ -201,38 +201,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model}
    */
   sibling: function(options) {
-    if (! this.collection) return this;
-
-    options = _.defaults(options || {}, {
-      direction: 'next',
-      where: null,
-      defaultCid: null
-    });
-
-    var cid = this.cid,
-      models = options.where ? this.collection.where(options.where) : this.collection.models,
-      dirCid;
-
-    if (models.length) dirCid = _.first(models).cid;
-    else dirCid = options.defaultCid;
-
-    for (var key = 0; key < models.length; key ++) {
-      var model = models[key];
-      if (model.cid !== cid) continue;
-
-      if (options.direction === 'next') {
-        if (key + 1 >= models.length) dirCid = _.first(models).cid;
-        else dirCid = models[key + 1].cid;
-        break;
-      }
-      else if (options.direction === 'prev') {
-        if (key - 1 < 0) dirCid = _.last(models).cid;
-        else dirCid = models[key - 1].cid;
-        break;
-      }
-    }
-
-    return dirCid != null ? this.collection.get(dirCid) : this;
+    return $fn.modelSibling(this, options);
   },
 
   /**
@@ -260,12 +229,63 @@ Fiber.Model = BaseModel.extend({
   },
 
   /**
-   * Resets view reference
+   * Resets view reference to `null`
    * @returns {Fiber.Model}
    */
-  resetView: function() {
+  flushView: function() {
     this._view = null;
     return this;
+  },
+
+  /**
+   * Serializes model attributes to string.
+   * @returns {string}
+   */
+  serialize: function() {
+    return $fn.serialize(this.attributes);
+  },
+
+  /**
+   * Sets Model attributes from serialized string.
+   * @param {string} serialized
+   * @returns {Fiber.Model}
+   */
+  fromSerialized: function(serialized) {
+    if (_.isString(serialized)) serialized = $fn.unserialize(serialized);
+    if (_.isPlainObject(serialized)) this.set(serialized);
+    return this;
+  },
+
+  /**
+   * Converts Model to JSON hash that can be stringified later.
+   * @returns {Object}
+   */
+  toJSON: function(options) {
+    options = $valMerge(options, { hidden: true }, 'defaults');
+    var jsonModel = this.all();
+    if (! options.hidden) return jsonModel;
+    return _.omit(jsonModel, $fn.result(this, 'hidden'));
+  },
+
+  /**
+   * Sets Model attributes from JSON hash or string.
+   * @param {string|Object} json
+   * @returns {Fiber.Model}
+   */
+  fromJSON: function(json) {
+    if (_.isString(json)) json = JSON.parse(json);
+    if (_.isPlainObject(json)) this.set(json);
+    return this;
+  },
+
+  /**
+   * Destroys model and also reset view reference
+   * @returns {*}
+   */
+  destroy: function() {
+    this.flushView();
+    this.destroyEvents();
+    return this.$super('destroy', arguments);
   },
 
   /**
@@ -275,16 +295,6 @@ Fiber.Model = BaseModel.extend({
   isSyncable: function() {
     try { return _.isString($fn.result(this, 'url')); }
     catch (e) { return false; }
-  },
-
-  /**
-   * Destroys model and also reset view reference
-   * @returns {*}
-   */
-  destroy: function() {
-    this.resetView();
-    this.destroyEvents();
-    return this.$super('destroy', arguments);
   }
 });
 

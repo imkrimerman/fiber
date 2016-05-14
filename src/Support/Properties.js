@@ -75,6 +75,12 @@ Fiber.Contracts = {};
 Fiber.Mocks = {};
 
 /**
+ * Fiber Sync
+ * @var {Object}
+ */
+Fiber.Sync = {};
+
+/**
  * Fiber Command Bus
  * @var {Object}
  */

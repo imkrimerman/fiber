@@ -53,7 +53,7 @@ Fiber.RouteCollection = RouterCollection.extend({
    * @returns {Object.<Fiber.Route>|null}
    */
   getByAlias: function(alias) {
-    return this.findWhere({alias: alias});
+    return this.findWhere({ alias: alias });
   },
 
   /**

@@ -3,29 +3,23 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Request = Fiber.Class.extend({
+Fiber.Sync.Request = Fiber.Class.extend({
 
   /**
-   * HTTP Verbs map
-   * @type {Object}
+   * Request transport
+   * @type {function(): JQueryXHR|Function: JQueryXHR}
    */
-  verbs: {
-    read: 'GET',
-    create: 'POST',
-    update: 'PUT',
-    patch: 'PATCH',
-    delete: 'DELETE',
-  },
+  transport: Backbone.ajax,
 
   /**
-   * Class type signature
+   * Class type signature.
    * @type {string}
    * @private
    */
   _signature: '[object Fiber.Request]',
 
   /**
-   * Constructs request
+   * Constructs request.
    * @param {string} method
    * @param {Object.<Fiber.Model>} model
    * @param {Object} [options]
@@ -35,38 +29,46 @@ Fiber.Request = Fiber.Class.extend({
     this._prepared = false;
     this.bag = new Fiber.Bag({
       method: method,
-      type: this.verbs[method],
+      type: Fiber.Sync.Verbs[method],
       model: model,
       options: $valMerge(options, {
         emulateHTTP: Backbone.emulateHTTP,
-        emulateJSON: Backbone.emulateJSON
+        emulateJSON: Backbone.emulateJSON,
+        $callback: $fn.through,
+        prepare: true
       }, 'defaults'),
     });
   },
 
   /**
-   * Prepares request and it's options
-   * @return {Fiber.Request}
+   * Prepares request before send.
+   * @return {Fiber.Sync.Request}
    */
   prepare: function() {
+    if (! this.bag.get('options.prepare')) {
+      this._prepared = true;
+      return this;
+    }
+
     var options = this.bag.get('options')
       , model = this.bag.get('model')
       , method = this.bag.get('method')
       , type = this.bag.get('type')
       , error = options.error
-      , params = {type: type, dataType: 'json'};
-    // Retrieve url
-    if (! options.url) params.url = $fn.result(model, 'url') || $log.errorThrow('Cannot send request without' +
-                                                                                ' valid `url`.');
+      , params = { type: type, dataType: 'json' };
+    // Retrieve url from Model
+    if (! options.url) params.url = $fn.result(model, 'url') || $log.errorThrow('`Url` is found. Aborting request.');
+    // if `model` is instance of Model then lets convert it to JSON hash
+    if (model instanceof Backbone.Model) model = model.toJSON(options);
     // Ensure that we have the appropriate request data.
     if (options.data == null && model && (method === 'create' || method === 'update' || method === 'patch')) {
       params.contentType = 'application/json';
-      params.data = JSON.stringify(options.attrs || model.toJSON(options));
+      params.data = JSON.stringify(options.attrs || model);
     }
     // For older servers, emulate JSON by encoding the request into an HTML-form.
     if (options.emulateJSON) {
       params.contentType = 'application/x-www-form-urlencoded';
-      params.data = params.data ? {model: params.data} : {};
+      params.data = params.data ? { model: params.data } : {};
     }
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
     // And an `X-HTTP-Method-Override` header.
@@ -100,14 +102,15 @@ Fiber.Request = Fiber.Class.extend({
     if (! this._prepared) this.prepare();
     var options = this.get('options')
       , model = this.get('model')
-      , xhr = options.xhr = Backbone.ajax(options);
-    model.trigger('request', model, xhr, options);
-    return xhr;
+      , promise = options.promise = this.transport(options);
+    $fn.apply(model, 'trigger', ['request', model, promise, options]);
+
+    return promise;
   },
 
   /**
    * Destroys request Class
-   * @returns {Fiber.Request}
+   * @returns {Fiber.Sync.Request}
    */
   destroy: function() {
     this.bag.flush();
@@ -121,6 +124,6 @@ Fiber.Request = Fiber.Class.extend({
  */
 Fiber.Types.Request = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Request.prototype._signature,
-  example: function() {return new Fiber.Request;}
+  signature: Fiber.Http.Request.prototype._signature,
+  example: function() {return new Fiber.Http.Request;}
 });

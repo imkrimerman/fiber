@@ -141,7 +141,7 @@ Fiber.fn.extensions = {
    * @returns {Fiber}
    */
   apply: function(alias, object, options) {
-    options = $valMerge(options, {override: false, init: true, list: [], args: {}});
+    options = $valMerge(options, { override: false, init: true, list: [], args: {} });
     var extension = $fn.extensions.get(alias);
     if (! extension) return this;
     $fn.class.include(object, extension, options.override);

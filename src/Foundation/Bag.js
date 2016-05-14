@@ -36,9 +36,19 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @param {Object} [items] - Items to set to the Bag
    * @param {?Object} [options] - Bag initialize options
    */
-  constructor: function(items) {
+  constructor: function(items, options) {
     this._initHolder(items);
-    this.$superInit({items: items});
+    this.$superInit(options);
+  },
+
+  /**
+   * Returns value by given `key` from the current Bag holder
+   * @param {string} key - Key to look up value
+   * @param {?*} [defaults] - Default value will be returned if `key` is not found
+   * @returns {*}
+   */
+  get: function(key, defaults) {
+    return $fn.get(this._items, key, defaults);
   },
 
   /**
@@ -52,16 +62,6 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
     $fn.set(this._items, key, value);
     this._fireEvent('set', key, [key, value, this]);
     return this;
-  },
-
-  /**
-   * Returns value by given `key` from the current Bag holder
-   * @param {string} key - Key to look up value
-   * @param {?*} [defaults] - Default value will be returned if `key` is not found
-   * @returns {*}
-   */
-  get: function(key, defaults) {
-    return $fn.get(this._items, key, defaults);
   },
 
   /**
@@ -88,7 +88,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
   /**
    * Removes key/value from current Bag holder at given `key`
    * @param {string} key - Key to remove value by
-   * @return {Fiber.Bag}
+   * @return {*} - value that is removed
    */
   forget: function(key) {
     var value = this.get(key);

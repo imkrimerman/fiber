@@ -89,7 +89,7 @@ Fiber.Route = Fiber.Model.extend({
     };
 
     if ($val(setAsHandler, true, _.isBoolean)) {
-      this.set('handler', handler, {silent: true});
+      this.set('handler', handler, { silent: true });
       this.setComposedState(true);
     }
     else return handler();

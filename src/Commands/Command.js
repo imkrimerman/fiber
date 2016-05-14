@@ -42,7 +42,7 @@ Fiber.Commands.Command = Fiber.Bag.extend([
     constructor: function(items, isSelfExecutable) {
       this.$superInit(items);
       this.selfExecutable = $val(isSelfExecutable, ! this.has('handler'), _.isBoolean);
-      this.execute = $fn.wrapFireCallCyclic(this.execute, 'execute', {fire: [this], call: [this]});
+      this.execute = $fn.wrapFireCallCyclic(this.execute, 'execute', { fire: [this], call: [this] });
     },
 
     /**

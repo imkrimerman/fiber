@@ -27,8 +27,8 @@ Fiber.fn.compose = {
       , compose = $fn.compose
       , extender = {};
 
-    if (hasCollection) extender = {collection: compose.collection(CollectionClass, options)};
-    else if (hasModel) extender = {model: compose.model(ModelClass, options)};
+    if (hasCollection) extender = { collection: compose.collection(CollectionClass, options) };
+    else if (hasModel) extender = { model: compose.model(ModelClass, options) };
     return compose.initialize.apply(null, [View, extender].concat(args));
   },
 
@@ -40,13 +40,13 @@ Fiber.fn.compose = {
    * @returns {function()}
    */
   collection: function(Collection, options) {
-    options = $valMerge(options, {Model: false, model: false, extender: {}, args: []});
+    options = $valMerge(options, { Model: false, model: false, extender: {}, args: [] });
     var args = [Collection]
       , partials = $val(_.drop(arguments, 2), [], _.isEmpty)
       , compose = $fn.compose
       , Model = options.Model
       , model = options.model
-      , modelArg = {model: model};
+      , modelArg = { model: model };
 
     if ($fn.class.isBackboneClass(Model)) modelArg.model = compose.model(Model, options);
     else if ($fn.class.isBackboneInstance(model)) args.push(modelArg);
@@ -61,7 +61,7 @@ Fiber.fn.compose = {
    * @returns {*|function()}
    */
   model: function(Model, options) {
-    options = $valMerge(options, {extender: {}, args: []});
+    options = $valMerge(options, { extender: {}, args: [] });
     if (! _.isEmpty(options.extender) && fn.class.isBackboneClass(Model))
       Model = $fn.class.make(Model, options.extender);
     return $fn.compose.initialize(Model, options.args);

@@ -78,7 +78,7 @@ Fiber.Monitor = BaseClass.extend({
     $fn.class.handleOptions(this, options);
     $fn.class.ensureOwn(this, this.ownProps);
     $fn.class.extendFromOptions(this, options, this.willExtend);
-    this._logger = new Fiber.Log({level: 'debug', templatePrefix: '[Fiber.Monitor]', templateLevel: false});
+    this._logger = new Fiber.Log({ level: 'debug', templatePrefix: '[Fiber.Monitor]', templateLevel: false });
     this._monitor = Fiber.Events.$new();
   },
 
@@ -128,7 +128,7 @@ Fiber.Monitor = BaseClass.extend({
   watch: function(source, method, isEvent) {
     var self = this;
     $fn.multi(method, function(one) {
-      var orig = self._cache[one] = {source: source, fn: source[one]};
+      var orig = self._cache[one] = { source: source, fn: source[one] };
       source[one] = function() {
         if (isEvent) self.notifyEvent.apply(self, arguments);
         else self.notifyMethod.apply(self, [one].concat(_.toArray(arguments)));

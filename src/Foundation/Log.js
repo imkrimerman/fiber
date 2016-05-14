@@ -149,7 +149,7 @@ Fiber.Log = BaseClass.extend({
    */
   time: function(name, testTrigger, options) {
     if (! _.isFunction(testTrigger)) return false;
-    options = _.defaults(options || {}, {scope: null, args: []});
+    options = _.defaults(options || {}, { scope: null, args: [] });
     this.startTimer(name);
     var result = testTrigger.apply(options.scope, options.args);
     this.stopTimer(name);
@@ -422,7 +422,6 @@ Fiber.Log = BaseClass.extend({
       ].join(' '),
     }, $val(data, {}, _.isPlainObject));
   },
-
 
   /**
    * Determines if we allow to write log

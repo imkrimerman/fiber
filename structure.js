@@ -36,13 +36,13 @@ module.exports = [
   './src/Contracts/Contract.js',
   './src/Contracts/Access.js',
   './src/Contracts/Events.js',
+  './src/Contracts/Serialize.js',
+  './src/Contracts/StorageAdapter.js',
   // Base classes
   './src/Foundation/Class.js',
   './src/Foundation/Bag.js',
   './src/Foundation/ErrorBag.js',
-  './src/Foundation/Request.js',
   './src/Foundation/Extension.js',
-  './src/Foundation/Storage.js',
   // Inversion of control Container
   './src/Container.js',
   // Extensions
@@ -52,8 +52,18 @@ module.exports = [
   './src/Extensions/Extend.js',
   './src/Extensions/Extensions.js',
   './src/Extensions/OwnProps.js',
+  './src/Extensions/Serialize.js',
+  // Sync
+  './src/Sync/Request.js',
+  './src/Sync/Response.js',
+  './src/Sync/Sync.js',
   // Mocks integration
   './src/Mocks/Transmitter.js',
+  // Storage
+  './src/Storage/Storage.js',
+  './src/Storage/Adapter.js',
+  './src/Storage/Server.js',
+  './src/Storage/Local.js',
   // Base component classes
   './src/Foundation/Model.js',
   './src/Foundation/Collection.js',

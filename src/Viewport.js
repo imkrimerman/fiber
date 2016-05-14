@@ -30,7 +30,7 @@ Fiber.Viewport = Fiber.View.extend({
   },
 
   close: function(options) {
-    options = _.defaults({}, $val(options, {}, _.isPlainObject), {view: true, layout: false});
+    options = _.defaults({}, $val(options, {}, _.isPlainObject), { view: true, layout: false });
     if (options.view) this.removeView();
     if (options.layout) this.removeLayout();
     return this;

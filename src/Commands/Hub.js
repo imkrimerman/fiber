@@ -37,7 +37,7 @@ Fiber.Commands.Hub = Fiber.Class.extend({
    * @returns {Fiber.Commands.Hub}
    */
   set: function(name, command, handler) {
-    this._registry.add({name: name, command: command, handler: $val(handler, null)});
+    this._registry.add({ name: name, command: command, handler: $val(handler, null) });
     return this;
   },
 

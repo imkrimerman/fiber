@@ -25,10 +25,10 @@ Fiber.fn.descriptor = {
    * @type {Object}
    */
   descriptors: {
-    private: {enumerable: false, configurable: false, writable: false},
-    protected: {enumerable: false, configurable: true, writable: false},
-    public: {enumerable: true, configurable: true, writable: true},
-    property: {enumerable: false, configurable: true, writable: true},
+    private: { enumerable: false, configurable: false, writable: false },
+    protected: { enumerable: false, configurable: true, writable: false },
+    public: { enumerable: true, configurable: true, writable: true },
+    property: { enumerable: false, configurable: true, writable: true },
   },
 
   /**
@@ -224,7 +224,7 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   isLocked: function(secret) {
-    return !! this._locked[secret];
+    return ! ! this._locked[secret];
   },
 
   /**
@@ -252,7 +252,6 @@ Fiber.fn.descriptor = {
     if ($descriptor.hasDescriptor(alias)) return descriptors[alias];
     return $val(defaults, descriptors[$descriptor.defaults], $descriptor.canDescribe);
   },
-
 
   /**
    * Determines if level is registered

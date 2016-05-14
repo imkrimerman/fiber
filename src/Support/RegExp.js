@@ -9,9 +9,8 @@ Fiber.fn.regexp = {
    * @type {Object}
    */
   map: {
-    properties: {
-      isFunction: /function\s*([A-z0-9]+)?\s*\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)\s*\{(?:[^}{]+|\{(?:[^}{]+|\{[^}{]*\})*\})*\}/,
-    },
+    isFunction: /function\s*([A-z0-9]+)?\s*\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)\s*\{(?:[^}{]+|\{(?:[^}{]+|\{[^}{]*\})*\})*\}/,
+    isFunctionEmpty: /function\s*\w*\s*\(.*?\)\s*{\s*}\s*;?\s*/,
     injection: {
       args: /^function\s*[^\(]*\(\s*([^\)]*)\)/m,
       argsSplit: /,/,

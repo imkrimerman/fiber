@@ -3,16 +3,18 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Object = Fiber.Class.extend($fn.extensions.listNames().concat([{
+Fiber.Object = Fiber.Class.extend($fn.extensions.listNames().concat([
+  {
 
-  /**
-   * Class type signature
-   * @type {string}
-   * @private
-   */
-  _signature: '[object Fiber.Object]'
+    /**
+     * Class type signature
+     * @type {string}
+     * @private
+     */
+    _signature: '[object Fiber.Object]'
 
-}]));
+  }
+]));
 
 /**
  * Add Object type to Fiber

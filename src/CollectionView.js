@@ -113,7 +113,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   renderOne: function(model) {
     var View = this.getModelViewClass(model)
-      , view = this.createModelView(View, {model: model});
+      , view = this.createModelView(View, { model: model });
     this.$collectionElement.append(view.el);
     view.render();
     return view;
@@ -230,7 +230,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   _resetModelsView: function() {
     this.collection.each(function(model) {
-      model.resetView();
+      model.flushView();
     });
   },
 

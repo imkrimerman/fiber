@@ -59,7 +59,7 @@ Fiber.fn.macros = {
    * @returns {boolean}
    */
   has: function(name) {
-    return !! $fn.macros._storage[name];
+    return ! ! $fn.macros._storage[name];
   },
 
   /**
