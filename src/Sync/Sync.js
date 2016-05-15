@@ -23,29 +23,28 @@ Fiber.Sync = Fiber.Class.extend({
   send: function(verb, model, options) {
     return this.request(verb, model, options).send();
   },
-}, {
+});
 
-  /**
-   * Http methods map.
-   * @type {Object}
-   */
-  Verbs: {
-    read: 'GET',
-    create: 'POST',
-    update: 'PUT',
-    patch: 'PATCH',
-    delete: 'DELETE',
-  },
+/**
+ * Http methods map.
+ * @type {Object}
+ */
+Fiber.Constants.set('Sync.http', {
+  read: 'GET',
+  create: 'POST',
+  update: 'PUT',
+  patch: 'PATCH',
+  delete: 'DELETE',
+});
 
-  /**
-   * Http methods to Storage methods map
-   * @type {Object}
-   */
-  Methods: {
-    read: 'get',
-    create: 'set',
-    update: 'update',
-    patch: 'update',
-    delete: 'forget'
-  },
+/**
+ * Http methods to Storage methods map
+ * @type {Object}
+ */
+Fiber.Constants.set('Sync.methods', {
+  read: 'get',
+  create: 'set',
+  update: 'update',
+  patch: 'update',
+  delete: 'forget'
 });

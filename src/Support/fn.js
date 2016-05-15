@@ -59,7 +59,7 @@ $fn = Fiber.fn = {
    */
   has: function(object, property) {
     if (_.isArray(object)) return $fn.multi(property, function(prop) {
-      return _.contains(object, prop);
+      return _.includes(object, prop);
     }, function(result) { return result; }, 'any');
     if (! _.isArray(property)) return _.has(object, property);
     return _[(arguments.length > 2 ? $val(arguments[2], 'every', _.isString) : 'every')](property, function(prop) {
@@ -245,16 +245,46 @@ $fn = Fiber.fn = {
   },
 
   /**
+   * Returns function that will be called with the given `scope`.
+   * If `argCount` provided then will slice arguments to the count that needs to be passed to the function.
+   * @param {function()|Function} fn
+   * @param {Object|null} [scope]
+   * @param {Array|*} [partials]
+   * @param {number} [argCount]
+   * @returns {Function}
+   */
+  proxy: function(fn, scope, partials, argCount) {
+    return function() {
+      var args = $fn.cast.toArray(partials).concat($fn.castArr(arguments))
+        , pass = args.slice(0, $val(argCount, Infinity, _.isNumber));
+      return fn.apply($val(scope, this), pass);
+    };
+  },
+
+  /**
+   * Returns function that will be called with given `scope` and appended `partials`, passing `this` as first argument.
+   * @param {function()|Function} fn
+   * @param {Object|null} [scope]
+   * @param {Array|*} [partials]
+   * @returns {Function}
+   */
+  delegate: function(fn, scope, partials) {
+    return function() {
+      var args = [this].concat($fn.cast.toArray(partials)).concat($fn.castArr(arguments));
+      return fn.apply($val(scope, this), args);
+    };
+  },
+
+  /**
    * Expect that object has all given properties
    * @param {Object} obj
    * @param {Array|Object} props
    * @param {boolean} [isObject=true]
    */
   hasAllProps: function(obj, props) {
-    var isObject = _.isArray(props) ? false : true;
-    return _.every(props, function(prop, key) {
-      var prop = isObject ? key : props[key];
-      return isObject ? $fn.has(obj, prop) : _.includes(obj, prop);
+    props = $fn.castArr(_.isPlainObject(props) ? _.keys(props) : props);
+    return _.every(props, function(prop) {
+      return $fn.has(obj, prop);
     });
   },
 
@@ -274,29 +304,42 @@ $fn = Fiber.fn = {
   /**
    * Checks if all values in array are the same
    * @param {Array} array
+   * @param {function()|Function} [sameCheckFn]
    * @returns {boolean}
    */
-  inArrayAllSame: function(array) {
-    return ! ! array.reduce(function(a, b) { return a === b ? a : NaN; });
+  inArrayAllSame: function(array, sameCheckFn) {
+    return $fn.cast.toBoolean(array.reduce(function(a, b) {
+      var condition = _.isFunction(sameCheckFn) && sameCheckFn(a, b) || a === b;
+      return condition ? a : NaN;
+    }));
   },
 
   /**
    * Casts `traversable` to array and run through it calling `cb` on each iteration.
    * You can provide `final` argument to return any result
    * @param {*} traversable
-   * @param {function()} cb
+   * @param {function()} iterator
    * @param {?function()|*} [final]
    * @param {?string} [method]
    * @param {?Object} [scope]
    * @returns {*}
    */
-  multi: function(traversable, cb, final, method, scope) {
-    final = $val(final, 'arrayFirstOrAll');
-    var fn = _[$val(method, 'map')]
-      , isMacros = _.isString(final) && $fn.macros.has(final)
-      , finalFn = isMacros ? $fn.macros.create(final, traversable) : $fn.cast.toFunction(final)
-      , result = $fn.applyFn(fn, [$fn.castArr($val(traversable, [])), cb], scope);
-    return _.isFunction(finalFn) ? $fn.applyFn(finalFn, [result, traversable]) : result;
+  multi: function(traversable, iterator, final, method, scope) {
+    traversable = $fn.castArr($val(traversable, []));
+
+    final = $val(final, function(object) {
+      return function(result) {
+        return _.isArray(object) ? result : _.first(result);
+      };
+    }, [_.isString, _.isFunction]);
+
+    if (_.isString(final)) {
+      if ($fn.macros.has(final)) final = $fn.macros.create(final, traversable);
+      if ($fn.has(Fiber, final)) final = $fn.get(Fiber, final);
+    }
+
+    var result = $fn.applyFn(_[$val(method, 'map')], [traversable, iterator], scope);
+    return _.isFunction(final) ? $fn.applyFn(final, [result, traversable, method, scope]) : result;
   },
 
   /**
@@ -340,16 +383,16 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   fill: function(array, value, times) {
+    var i = 0, hasValue = $isDef(value);
     if (! _.isArray(array)) {
       times = $fn.cast.toNumber(array);
       array = [];
     }
 
     if (! _.isNumber(times)) times = array.length;
-    var n = 0, hasValue = $isDef(value);
-    while (n < times) {
-      array.push(hasValue ? value : n);
-      ++ n;
+    while (i < times) {
+      debugger
+      array.push(hasValue ? value : i ++);
     }
     return array;
   },
@@ -637,7 +680,7 @@ $fn = Fiber.fn = {
    * @returns {string}
    */
   debug: function(object, log) {
-    var debug = "[Fiber.Debug] >> `" + $fn.types.what(object) + "`:\n" + $fn.serialize(object, true);
+    var debug = "[Fiber.Debug] >> `" + $fn.types.what(object).getType() + "`:\n" + $fn.serialize(object, true);
     return $val(log, true, _.isBoolean) ? $log.debug(debug) && void 0 : debug;
   },
 

@@ -25,11 +25,10 @@ Fiber.Sync.Request = Fiber.Class.extend({
    * @param {Object} [options]
    */
   constructor: function(method, model, options) {
-    this.resetEventProperties();
     this._prepared = false;
     this.bag = new Fiber.Bag({
       method: method,
-      type: Fiber.Sync.Verbs[method],
+      type: Fiber.Sync.Http[method],
       model: model,
       options: $valMerge(options, {
         emulateHTTP: Backbone.emulateHTTP,
@@ -38,6 +37,7 @@ Fiber.Sync.Request = Fiber.Class.extend({
         prepare: true
       }, 'defaults'),
     });
+    this.$superInit({ method: method, model: model, options: options });
   },
 
   /**
@@ -104,7 +104,6 @@ Fiber.Sync.Request = Fiber.Class.extend({
       , model = this.get('model')
       , promise = options.promise = this.transport(options);
     $fn.apply(model, 'trigger', ['request', model, promise, options]);
-
     return promise;
   },
 
@@ -124,6 +123,6 @@ Fiber.Sync.Request = Fiber.Class.extend({
  */
 Fiber.Types.Request = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Http.Request.prototype._signature,
-  example: function() {return new Fiber.Http.Request;}
+  signature: Fiber.Sync.Request.prototype._signature,
+  example: function() {return new Fiber.Sync.Request;}
 });

@@ -37,6 +37,6 @@ Fiber.Sync.Response = Fiber.Bag.extend({
  */
 Fiber.Types.Response = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Http.Response.prototype._signature,
-  example: function() {return new Fiber.Http.Response;}
+  signature: Fiber.Sync.Response.prototype._signature,
+  example: function() {return new Fiber.Sync.Response;}
 });

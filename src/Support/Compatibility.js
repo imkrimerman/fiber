@@ -1,18 +1,16 @@
 /**
- * Cached Backbone Events trigger method
+ * Original Backbone Events trigger method
  * @type {function()}
  */
 $trigger = Backbone.Events.trigger;
 
 /**
  * Wraps Backbone Events trigger method to give ability to listen to global events.
- * @param {string} name
  * @param {...args}
  * @returns {Backbone.Events}
  */
-Backbone.Events.trigger = function(name) {
-  var args = $fn.cast.toArray(arguments);
-  $trigger.apply(Fiber.internal.events, args);
+Backbone.Events.trigger = function() {
+  $trigger.apply(Fiber.internal.events, arguments);
   $trigger.apply(this, arguments);
   return this;
 };
@@ -132,6 +130,18 @@ _.mixin({
 });
 
 /**
+ * Returns Xhr
+ * @return {XMLHttpRequest|ActiveXObject}
+ */
+$getXhr = function() {
+  try { return new (root.XMLHttpRequest || ActiveXObject); }
+  catch (e) {
+    $log.errorThrow('Xhr is unavailable in current browser.');
+  }
+  ;
+};
+
+/**
  * Adds `Function.bind` polyfill if function is not exists. Used to support `bind` in PhantomJS.
  */
 if (! Function.prototype.bind) {
@@ -147,11 +157,10 @@ if (! Function.prototype.bind) {
   $ProtoFunction.bind = function(scope) {
     if (typeof this !== 'function') throw new TypeError('[Fiber.TypeError] `Function.bind` >> Caller is not callable.');
     var args = Array.prototype.slice.call(arguments, 1)
-      , partials = Array.prototype.slice.call(arguments)
       , fn = this
       , noop = function() {}
       , bound = function() {
-      return fn.apply(this instanceof noop && scope ? this : scope, args.concat(partials));
+      return fn.apply(this instanceof noop && scope ? this : scope, args);
     };
 
     noop.prototype = this.prototype;

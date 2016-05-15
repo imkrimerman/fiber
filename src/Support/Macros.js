@@ -7,16 +7,9 @@ Fiber.fn.macros = {
   /**
    * Macros storage
    * @type {Object}
+   * @private
    */
   _storage: {
-    arrayFirstOrAll: function(object) {
-      return function(result) {
-        return _.isArray(object) ? result : _.first(result);
-      };
-    },
-    constant: function(object) {
-      return $fn.constant(object);
-    },
     getSet: function(property, checkToSetFn) {
       return {
         get: function() {
@@ -62,7 +55,7 @@ Fiber.fn.macros = {
    */
   has: function(name) {
     if (! _.isString(name)) return false;
-    return ! ! $fn.macros._storage[name];
+    return $fn.cast.toBoolean($fn.macros._storage[name]);
   },
 
   /**

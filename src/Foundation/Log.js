@@ -1,4 +1,18 @@
 /**
+ * Add Log levels constants
+ */
+Fiber.Constants.set('Log', {
+  level: 'error',
+  levels: {
+    trace: 'trace',
+    debug: 'debug',
+    info: 'info',
+    warn: 'warn',
+    error: 'error'
+  }
+});
+
+/**
  * Fiber Logger
  * @class
  * @extends {BaseClass}
@@ -6,65 +20,65 @@
 Fiber.Log = BaseClass.extend({
 
   /**
-   * Available log levels
-   * @type {Array}
-   */
-  _levels: ['trace', 'debug', 'info', 'warn', 'error'],
-
-  /**
    * Current log level
    * @type {string}
    * @private
    */
-  _level: 'error',
+  level: Fiber.Constants.get('Log.level'),
+
+  /**
+   * Available log levels
+   * @type {Array}
+   */
+  levels: Fiber.Constants.get('Log.levels'),
 
   /**
    * Writer object
-   * @type {Object}
+   * @type {function()}
    * @private
    */
-  _writer: console,
-
-  /**
-   * Method to use from `_writer`
-   * @type {string|function()}
-   * @private
-   */
-  _method: 'log',
+  writer: console.log,
 
   /**
    * Fallback log function
    * @type {function()}
    */
-  _fallback: console.log,
+  fallback: console.log,
 
   /**
-   * Log timestamp
-   * @type {boolean}
+   * String representing who is logging the messages
+   * @type {string|function()|Function}
    */
-  _timestamp: true,
+  logs: '[Fiber.Log]',
 
   /**
-   * Log current log level
-   * @type {boolean}
-   */
-  _templateLevel: true,
-
-  /**
-   * Log template
+   * Templates storage
    * @type {Object}
    */
-  _template: '{{= before }}{{= level }} >>',
+  templates: {
+    timestamp: '{{ timestamp }}',
+    logs: '{{ logs }}',
+    level: '{{ level }}',
+    delimiter: '>>',
+    msg: '{{ msg }}'
+  },
 
   /**
-   * Template prefix string
-   * @type {string|function()}
+   * Properties keys that will be auto extended from the initialization object
+   * @type {Array|function()|string|boolean}
    */
-  _templatePrefix: '[Fiber.Log]',
+  willExtend: ['level', 'levels', 'writer', 'fallback', 'templates'],
 
   /**
-   * Console API Methods map
+   * Properties keys that will be owned by the instance
+   * @type {Array|function()}
+   */
+  ownProps: ['level', 'levels', 'writer', 'fallback', 'templates'],
+
+  /**
+   * Supported Console API Methods
    * @type {Object}
+   * @private
    */
   _methods: {
     log: 'log',
@@ -76,11 +90,11 @@ Fiber.Log = BaseClass.extend({
     table: 'table',
     clear: 'clear',
     count: 'count',
-    assert: 'assert'
+    assert: 'assert',
   },
 
   /**
-   * Console API Profiling map
+   * Supported Console API Profiling Methods
    * @type {Object}
    * @private
    */
@@ -96,21 +110,8 @@ Fiber.Log = BaseClass.extend({
    * @param {?Object} [options]
    */
   constructor: function(options) {
-    options = $fn.class.handleOptions(this, options, {
-      level: this._level,
-      writer: this._writer,
-      timestamp: this._timestamp,
-      template: this._template,
-      templateLevel: this._templateLevel,
-      templatePrefix: this._templatePrefix
-    });
-
-    this._timestamp = options.timestamp;
-    this._template = options.template;
-    this._templateLevel = options.templateLevel;
-    this._templatePrefix = options.templatePrefix;
-    this.setLevel(options.level);
-    this.setWriter(options.writer);
+    $fn.class.extendFromOptions(this, options);
+    this.$superInit(arguments);
   },
 
   /**
@@ -120,9 +121,123 @@ Fiber.Log = BaseClass.extend({
    * @return {Fiber.Log}
    */
   write: function(level) {
-    var args = _.drop(_.toArray(arguments));
-    if (this.isAllowedToWrite(level)) this.callWriter(level, args);
+    return this._callWriter(level, _.drop(arguments));
+  },
+
+  /**
+   * Calls writer function with the given level and arguments.
+   * @param {string} level
+   * @param {Array} arguments - will be passed to writer function
+   * @return {Fiber.Log}
+   */
+  _callWriter: function(level, args) {
+    if (! this.isAllowedToWrite(level)) return this;
+    var details = this.renderDetails()
+      , method = _.includes(this._methods, level) ? this._methods[level] : this._method;
+    args = [details].concat($val(args, [], _.isArray));
+    if (! _.isFunction(method) && _.isFunction(this.fallback)) method = this.fallback;
+    $fn.applyFn(method, args);
     return this;
+  },
+
+  /**
+   * Calls profiler functions
+   * @param {string} key
+   * @param {number|null} index
+   * @param {?Array|Arguments} args
+   * @returns {Fiber.Log}
+   */
+  _callProfile: function(key, index, args) {
+    if (! _.isNumber(index) && arguments.length === 2) {
+      args = index;
+      index = null;
+    }
+
+    var method = this._profiling[key];
+    if (_.isString(method)) this._callWriter(method, args);
+    else if (_.isArray(method) && _.isNumber(index) && index < method.length) this._callWriter(method[index], args);
+    return this;
+  },
+
+  /**
+   * Logs message with a given level and args and returns given value
+   * @param {string} level
+   * @param {string} msg
+   * @param {Array|Arguments|*} args
+   * @param {*} returnVal
+   * @param {boolean} [tryToCall=true]
+   * @returns {*}
+   */
+  logReturn: function(level, msg, args, returnVal, tryToCall) {
+    this._callWriter(level, [msg, args]);
+    return $val(tryToCall, true) ? $fn.result(returnVal) : returnVal;
+  },
+
+  /**
+   * Writes arguments using `writer` function and
+   * immediately throws Error with the same arguments
+   * @param {...args}
+   */
+  errorThrow: function(msg) {
+    return this.logReturn('error', msg, _.drop(arguments), function() {
+      throw new Error(msg);
+    });
+  },
+
+  /**
+   * Writes arguments using `writer` function and returns false
+   * @param {...args}
+   * @return {boolean}
+   */
+  errorReturn: function(msg) {
+    return this.logReturn('error', msg, _.drop(arguments), false);
+  },
+
+  /**
+   * Renders details info
+   * @param {Object} [data={}]
+   * @returns {string}
+   */
+  renderDetails: function(data) {
+    return $fn.template.system(this.getTemplate(), this.getTemplateData(data));
+  },
+
+  /**
+   * Returns joined template
+   * @param {string} [glue]
+   * @returns {string}
+   */
+  getTemplate: function(glue) {
+    return $fn.compact(_.map($fn.result(this.templates), function(part) {
+      if (_.isString(part) || _.isFunction(part)) return part;
+    })).join(glue || ' ');
+  },
+
+  /**
+   * Returns template data to render details
+   * @param {?Object} [data={}]
+   * @returns {Object}
+   */
+  getTemplateData: function(data) {
+    var date = new Date();
+    return _.extend({
+      self: this,
+      timestamp: date.toTimeString().slice(0, 8) + '.' + date.getMilliseconds()
+    }, $val(data, {}, _.isPlainObject));
+  },
+
+  /**
+   * Determines if we allow to write log
+   * @param {string} level
+   * @returns {boolean}
+   */
+  isAllowedToWrite: function(level) {
+    if (! level || ! _.includes(this.levels, level) || ! this.hasWriter()) return false;
+    var index = this.levels.indexOf(level);
+    if (index === - 1) return false;
+    var currentLevelIndex = this.levels.indexOf(this.level);
+    if (index > currentLevelIndex) return false;
+    return true;
   },
 
   /**
@@ -130,7 +245,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   startTimer: function() {
-    return this.callProfile('timer', 0, arguments);
+    return this._callProfile('timer', 0, arguments);
   },
 
   /**
@@ -138,7 +253,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   stopTimer: function() {
-    return this.callProfile('timer', 1, arguments);
+    return this._callProfile('timer', 1, arguments);
   },
 
   /**
@@ -153,7 +268,7 @@ Fiber.Log = BaseClass.extend({
     this.startTimer(name);
     var result = testTrigger.apply(options.scope, options.args);
     this.stopTimer(name);
-    if (! _.isEmpty(result)) this.write(this._level, result);
+    if (! _.isEmpty(result)) this.write(this.level, result);
     return true;
   },
 
@@ -162,7 +277,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   startProfile: function() {
-    return this.callProfile('profile', 0, arguments);
+    return this._callProfile('profile', 0, arguments);
   },
 
   /**
@@ -170,7 +285,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   stopProfile: function() {
-    return this.callProfile('profile', 1, arguments);
+    return this._callProfile('profile', 1, arguments);
   },
 
   /**
@@ -178,7 +293,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   group: function() {
-    this.callProfile('group', 0, arguments);
+    this._callProfile('group', 0, arguments);
     return this;
   },
 
@@ -187,7 +302,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   ungroup: function() {
-    this.callProfile('group', 1, arguments);
+    this._callProfile('group', 1, arguments);
     return this;
   },
 
@@ -196,7 +311,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   groupCollapse: function() {
-    this.callProfile('groupCollapse', 2, arguments);
+    this._callProfile('groupCollapse', 2, arguments);
     return this;
   },
 
@@ -205,7 +320,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {Fiber.Log}
    */
   showTrace: function() {
-    this.callProfile('trace', null, arguments);
+    this._callProfile('trace', null, arguments);
     return this;
   },
 
@@ -255,214 +370,20 @@ Fiber.Log = BaseClass.extend({
   assert: function() {
     this._callWriter(this._methods.assert, arguments);
     return this;
-  },
-
-  /**
-   * Returns current log level
-   * @type {string|null}
-   */
-  getLevel: function() {
-    return this._level || null;
-  },
-
-  /**
-   * Sets log level
-   * @param {string} level
-   * @return {Fiber.Log}
-   */
-  setLevel: function(level) {
-    level = $val(level, this._level);
-    if (level && _.includes(this._levels, level)) this._level = level;
-    return this;
-  },
-
-  /**
-   * Sets writer method to use by default for all log _levels
-   * @param {string} method
-   * @returns {Fiber.Log}
-   */
-  setWriterMethod: function(method) {
-    this._method = method;
-    return this;
-  },
-
-  /**
-   * Returns used writer method
-   * @returns {string|function()}
-   */
-  getWriterMethod: function() {
-    return this._method;
-  },
-
-  /**
-   * Sets log writer function
-   * @param {Object} writer
-   * @returns {Fiber.Log}
-   */
-  setWriter: function(writer) {
-    this._writer = $val(writer, this._writer, _.isObject);
-    return this;
-  },
-
-  /**
-   * Returns writer function
-   * @returns {Object}
-   */
-  getWriter: function() {
-    return this._writer;
-  },
-
-  /**
-   * Determine if log has valid writer
-   * @returns {boolean}
-   */
-  hasWriter: function() {
-    return _.isObject(this.getWriter());
-  },
-
-  /**
-   * Calls writer function with the given arguments
-   * @param {string} level
-   * @param {Array} arguments - to path to writer function
-   * @return {Fiber.Log}
-   */
-  callWriter: function(level, args) {
-    var details = this.renderDetails()
-      , method = _.includes(this._methods, level) ? this._methods[level] : this._method;
-    args = [details].concat($val(args, [], _.isArray));
-    this._callWriter(method, args);
-    return this;
-  },
-
-  /**
-   * Calls profiler functions
-   * @param {string} key
-   * @param {number|null} index
-   * @param {?Array|Arguments} args
-   * @returns {Fiber.Log}
-   */
-  callProfile: function(key, index, args) {
-    if (! _.isNumber(index) && arguments.length === 2) {
-      args = index;
-      index = null;
-    }
-
-    var method = this._profiling[key];
-    if (_.isString(method)) this._callWriter(method, args);
-    else if (_.isArray(method) && _.isNumber(index) && index < method.length) this._callWriter(method[index], args);
-    return this;
-  },
-
-  /**
-   * Logs message with a given level and args and returns given value
-   * @param {string} level
-   * @param {string} msg
-   * @param {Array|Arguments|*} args
-   * @param {*} returnVal
-   * @param {boolean} [tryToCall=true]
-   * @returns {*}
-   */
-  logReturn: function(level, msg, args, returnVal, tryToCall) {
-    this.callWriter(level, [msg, args]);
-    return $val(tryToCall, true) ? $fn.result(returnVal) : returnVal;
-  },
-
-  /**
-   * Writes arguments using `writer` function and
-   * immediately throws Error with the same arguments
-   * @param {...args}
-   */
-  errorThrow: function(msg) {
-    return this.logReturn('error', msg, _.drop(arguments), function() {
-      throw new Error(msg);
-    });
-  },
-
-  /**
-   * Writes arguments using `writer` function and returns false
-   * @param {...args}
-   * @return {boolean}
-   */
-  errorReturn: function(msg) {
-    return this.logReturn('error', msg, _.drop(arguments), false);
-  },
-
-  /**
-   * Sets timestamp logging state
-   * @param {boolean} state
-   * @returns {Fiber.Log}
-   */
-  setTimestampState: function(state) {
-    this.timestamp = $val(state, true, _.isBoolean);
-    return this;
-  },
-  /**
-   * Renders details info
-   * @param {?Object} [data={}]
-   * @returns {string}
-   */
-  renderDetails: function(data) {
-    if (! this._template) return '';
-    return $fn.template.system($fn.result(this._template), this.getTemplateData(data));
-  },
-
-  /**
-   * Returns template data to render details
-   * @param {?Object} [data={}]
-   * @returns {Object}
-   */
-  getTemplateData: function(data) {
-    var date = new Date();
-    return _.extend({
-      self: this,
-      level: this._templateLevel ? ', `' + this.getLevel() + '`' : '',
-      before: [
-        $fn.result(this, '_templatePrefix'),
-        this._timestamp ? 'at ' + date.toTimeString().slice(0, 8) + '.' + date.getMilliseconds() : ''
-      ].join(' '),
-    }, $val(data, {}, _.isPlainObject));
-  },
-
-  /**
-   * Determines if we allow to write log
-   * @param {string} level
-   * @returns {boolean}
-   */
-  isAllowedToWrite: function(level) {
-    if (! level || ! _.includes(this._levels, level) || ! this.hasWriter()) return false;
-    var index = this._levels.indexOf(level);
-    if (index === - 1) return false;
-    var currentLevelIndex = this._levels.indexOf(this.getLevel());
-    if (index > currentLevelIndex) return false;
-    return true;
-  },
-
-  /**
-   * Calls raw writer
-   * @param {string|function()} method
-   * @param {?Array} [args]
-   * @returns {*}
-   * @private
-   */
-  _callWriter: function(method, args) {
-    if (_.isString(method)) method = $fn.class.resolveMethod(this._writer, method);
-    if (! _.isFunction(method) && _.isFunction(this._fallback)) method = this._fallback;
-    if (_.isFunction(method)) return method.apply(this._writer, args);
   }
 });
 
 /**
- * Adds log level methods `trace`, `debug`, `info`, `warn`, `error` to the Log Class prototype
+ * Adds level log methods to the Log prototype
  */
-$each(Fiber.Log.prototype._levels, function(level) {
+$each(_.keys(Fiber.Constants.get('Log.levels')), function(level) {
   Fiber.Log.prototype[level] = function() {
-    var args = [level].concat(_.toArray(arguments));
-    return this.write.apply(this, args);
+    return this.write.apply(this, $fn.argsConcat(level, arguments));
   };
 });
 
 /**
- * Add system logger
+ * Create default Logger
  * @type {Object.<Fiber.Log>}
  */
 Fiber.log = $log = new Fiber.Log();

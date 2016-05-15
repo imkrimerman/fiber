@@ -28,7 +28,7 @@ Fiber.fn.types = {
    * @returns {boolean}
    */
   matchesType: function(arg, type) {
-    var argType = $fn.types.transform(typeof arg);
+    var argType = $fn.types.parseType(arg);
     if (! $isDef(type)) return argType;
     type = type instanceof Fiber.Type ? type.getType() : type;
     if (_.isPlainObject(type) && $fn.has(type, $fn.lookUpKeys.type))
@@ -43,7 +43,7 @@ Fiber.fn.types = {
    * @returns {boolean}
    */
   matchesSignature: function(arg, type) {
-    var signature = $fn.types.transform(Object.prototype.toString.apply(arg));
+    var signature = $fn.types.parseSignature(arg);
     if ($isDef(type)) return signature;
     type = type instanceof Fiber.Type ? type.getSignature() : type;
     if (_.isPlainObject(type) && $fn.has(type, $fn.lookUpKeys.signature))
@@ -65,11 +65,11 @@ Fiber.fn.types = {
    * Determines if arg is matches the type
    * @param {*} arg
    * @param {string|Object.<Fiber.Type>} type
-   * @param {?boolean} [oneArg=false]
+   * @param {boolean} [oneArg=false]
    * @returns {boolean}
    */
   matches: function(arg, type, oneArg) {
-    type = _.isString(type) && Fiber.Types ? Fiber.Types[type] : type;
+    if (_.isString(type) && Fiber.Types) type = $fn.get(Fiber.Types, type);
     if (oneArg || ! _.isArray(arg)) return this.matchesOne(arg, type);
     return $fn.multi(arg, this.matchesOne, null, 'every', this);
   },
@@ -92,6 +92,28 @@ Fiber.fn.types = {
    */
   what: function(arg) {
     for (var name in Fiber.Types) if ($fn.types.matches(arg, Fiber.Types[name], true)) return name;
-    return _.capitalize(typeof arg);
+    return new Fiber.Type({
+      type: $fn.types.parseType(arg),
+      signature: $fn.types.parseSignature(arg),
+      example: $fn.constant(arg)
+    });
   },
+
+  /**
+   * Returns transformed result of typeof call on `arg`.
+   * @param {*} arg
+   * @returns {string}
+   */
+  parseType: function(arg) {
+    return $fn.types.transform(typeof arg);
+  },
+
+  /**
+   * Returns transformed result of `toString` call on `arg`.
+   * @param {*} arg
+   * @returns {string}
+   */
+  parseSignature: function(arg) {
+    return $fn.types.transform(Object.prototype.toString.apply(arg))
+  }
 };

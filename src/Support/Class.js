@@ -242,24 +242,22 @@ Fiber.fn.class = {
         $apply: function(Class, method, args, context) {
           return $fn.apply(Class, method, args, context || this);
         },
-        $mutate: function(proto, override) {
-          return $fn.class.include(this.$super('prototype'), $fn.merge(Fiber.resolve(proto)), override);
-        },
         $implement: function(contract) {
-          $fn.class.implement(this.constructor, contract, true);
+          $fn.class.implementOwn(this.constructor, contract);
           return this;
         },
-        $new: function() {
-          return $fn.class.createNew.call(null, this, 'constructor');
-        },
+        $mutate: $fn.delegate($fn.class.mutate),
+        $new: $fn.delegate($fn.class.createNew),
         toString: function() {
-          return $fn.get(this, $PropNames.type, '[object Fiber.Class]');
+          return $fn.get(this, $PropNames.type, $fn.types.parseSignature(this));
         },
       },
       statics: {
-        extend: $fn.delegator.proxy($fn.class.make),
-        create: $fn.delegator.proxy($fn.class.createNew, null, 0),
-        implement: $fn.delegator.proxy($fn.class.implement),
+        extend: $fn.delegate($fn.class.make),
+        create: $fn.delegate($fn.class.createNew),
+        implement: $fn.delegate($fn.class.implement),
+        implementOwn: $fn.delegate($fn.class.implementOwn),
+        mutate: $fn.delegate($fn.class.mutate),
       }
     };
 
@@ -268,52 +266,56 @@ Fiber.fn.class = {
 
   /**
    * Creates new Class instance
-   * @param {function()|Object} Class
+   * @param {function()|Object} object
    * @param {?string} [property]
    * @returns {Object}
    */
-  createNew: function(Class, property) {
-    var isDef = $isDef(property)
-      , parent = _.isString(property) ? $fn.get(Class, property) : isDef ? property : Class;
-    return $fn.class.instance(parent, isDef ? _.drop(arguments) : arguments);
+  createNew: function(object) {
+    var parent = $fn.class.isClass(object) ? object : $fn.get(object, 'constructor');
+    return $fn.class.instance(parent, _.drop(arguments));
   },
 
   /**
-   * Adds `contract` to the `Class` to check on instantiation
-   * @param {Object} Class
+   * Mutates object prototype or object it self.
+   * @param {function()|Function|Object} object
+   * @param {Object} proto
+   * @returns {function()|Function|Object}
+   */
+  mutate: function(object, proto) {
+    var source = _.isFunction(object.$super) && object.$super('prototype') || object.prototype || object.__proto__;
+    $fn.class.include(source, $fn.merge(Fiber.resolve(proto)), true);
+    return object;
+  },
+
+  /**
+   * Extends `object` and adds `contract` to it.
+   * @param {Object} object
    * @param {Object.<Fiber.Contract>} contract
-   * @param {boolean} [own=false] - if true then implement Contract for the given Class,
-   *                                otherwise return Contracted copy of the Class.
    * @returns {Object}
    */
-  implement: function(Class, contract, own) {
-    if (! Fiber.Contract) return Class;
+  implement: function(object, contract) {
+    return $fn.class.implementOwn.apply(null, $fn.argsConcat($fn.class.nativeExtend(object), _.drop(arguments)));
+  },
 
-    if (arguments.length > 2) {
-      Class = _.first(arguments);
-      return _.map(_.toArray(_.drop(arguments)), $fn.class.implement.bind(null, Class));
-    }
+  /**
+   * Adds `contract` to the `object`.
+   * @param {Object} object
+   * @param {Object.<Fiber.Contract>} contract
+   * @returns {Object}
+   */
+  implementOwn: function(object, contract) {
+    if (! Fiber.Contract) return object;
+    if (arguments.length > 2) contract = _.drop(arguments);
 
-    if (arguments.length === 1 && Class instanceof Fiber.Contract) {
-      contract = Class;
-      Class = $fn.class.create();
-    }
+    contract = $fn.merge($fn.multi(contract, function(one) {
+      one = _.isString(one) ? $fn.get(Fiber.Contracts, one) : one;
+      if (one instanceof Fiber.Contract) return $fn.createPlain(one.getName(), one);
+      $log.errorThrow('`Contract` is not instance of Fiber.Contract.', one);
+    }));
 
-    contract = $fn.castArr(contract);
-
-    for (var i = 0; i < contract.length; i ++) {
-      var oneContract = contract[i];
-      if (_.isString(oneContract) && (oneContract = _.capitalize(oneContract)) && $fn.has(Fiber.Contracts, oneContract))
-        oneContract = Fiber.Contracts[oneContract];
-      if (oneContract instanceof Fiber.Contract) {
-        var follows = $val(Class[$PropNames.contract], {}, _.isPlainObject)
-          , ContractClass = own ? Class : $fn.class.nativeExtend(Class);
-        ContractClass[$PropNames.contract] = _.extend({}, follows, $fn.createPlain(oneContract.getName(), oneContract));
-        return ContractClass;
-      }
-    }
-
-    $log.errorThrow('`Contract` is not instance of Fiber.Contract', contract);
+    var follows = object[$PropNames.contract] || {};
+    object[$PropNames.contract] = $fn.merge(follows, contract);
+    return object;
   },
 
   /**
@@ -355,6 +357,71 @@ Fiber.fn.class = {
       if (_.isFunction(fn)) return _.bind(fn, scope);
     }
     return null;
+  },
+
+  /**
+   * Adds `alias` for the `method` in `object`
+   * @param {Object} object
+   * @param {string|Object} method
+   * @param {string|Array} alias
+   * @param {?boolean} [toProto=false]
+   * @returns {boolean}
+   */
+  alias: function(object, method, alias, toProto) {
+    if (_.isPlainObject(method)) return _.every(method, function(mAlias, mMethod) {
+      return $fn.class.alias(object, mMethod, mAlias, toProto);
+    });
+
+    var castedAlias = $fn.castArr(alias);
+    var method = $fn.class.getMethod(object, method);
+    if (! method) return false;
+    for (var i = 0; i < castedAlias.length; i ++) {
+      var alias = castedAlias[i];
+      if ($val(toProto, false) && object.prototype) object.prototype[alias] = method;
+      else object[alias] = method;
+    }
+    return true;
+  },
+
+  /**
+   * Proxies `mixin` to the given `object`
+   * @param {Object} object
+   * @param {Object} mixin
+   * @param {boolean} [toProto=false]
+   * @returns {Object}
+   */
+  proxyMixin: function(object, mixin, toProto) {
+    return $fn.class.bindMixin(object, mixin, toProto, $fn.proxy);
+  },
+
+  /**
+   * Delegates `mixin` to the given `object`
+   * @param {Object} object
+   * @param {Object} mixin
+   * @param {boolean} [toProto=false]
+   * @returns {Object}
+   */
+  delegateMixin: function(object, mixin, toProto) {
+    return $fn.class.bindMixin(object, mixin, toProto, $fn.delegate);
+  },
+
+  /**
+   * Binds `mixin` to the given `object` using `bindFn`
+   * @param {Object} object
+   * @param {Object} mixin
+   * @param {boolean} [toProto=false]
+   * @param {function()|Function} [bindFn]
+   * @returns {Object}
+   */
+  bindMixin: function(object, mixin, toProto, bindFn) {
+    bindFn = $val(bindFn, $fn.proxy, _.isFunction);
+    $each(mixin, function(value, property) {
+      var container = object;
+      if (toProto) container = object.prototype;
+      if (_.isFunction(value)) container[property] = bindFn(value, object);
+      else container[property] = value;
+    });
+    return object;
   },
 
   /**
@@ -438,7 +505,7 @@ Fiber.fn.class = {
    */
   handleOptions: function(scope, options, defaults, deep) {
     if (! scope) return $log.error('Scope is not provided or not valid', scope);
-    options = $val(options, {}, _.isPlainObject);
+    options = $val(options, {}, [_.isPlainObject, $fn.class.isInstance]);
     return scope.options = $fn.class.handleOptionsDefaults(options, defaults, deep);
   },
 

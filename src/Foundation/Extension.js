@@ -132,6 +132,14 @@ Fiber.Extension = Fiber.Class.extend({
   },
 
   /**
+   * Returns copy of the extension code capsule
+   * @returns {Object}
+   */
+  copy: function() {
+    return $fn.clone(this.getCode());
+  },
+
+  /**
    * Includes current extension to the given `object`
    * @param {Object} object
    * @param {?boolean} [override=false]
@@ -165,14 +173,6 @@ Fiber.Extension = Fiber.Class.extend({
    */
   toCode: function() {
     return this.copy();
-  },
-
-  /**
-   * Returns copy of the extension code capsule
-   * @returns {Object}
-   */
-  copy: function() {
-    return $fn.clone(this.getCode());
   },
 
   /**

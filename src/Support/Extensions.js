@@ -205,7 +205,7 @@ Fiber.fn.extensions = {
   },
 
   /**
-   * Ensures that extension code capsule is returned
+   * Ensures that return value is extension code capsule.
    * @param {Object.<Fiber.Extension>|Array|*} extension
    * @returns {Object|Array}
    */

@@ -16,13 +16,13 @@ Fiber.fn.cast = {
   /**
    * Casts value to plain object
    * @param {*} value
-   * @param {?boolean} [force=false]
+   * @param {boolean} [force=false]
    * @returns {Object}
    */
   toPlain: function(value, force) {
-    force = force == null || ! _.isBoolean(force) ? false : force;
+    force = _.isBoolean(force) ? force : false;
     if (_.isPlainObject(value)) return value;
-    if (_.isArray(value) && force) return _.zipObject($fn.fill());
+    if (_.isArray(value) && force) return _.zipObject($fn.fill(value.length), value);
     if (! _.isObject(value) || _.isArray(value)) return {};
     if (_.isFunction(value) && ! $fn.class.isClass(value)) {
       var tryVal = value();
@@ -87,3 +87,8 @@ Fiber.fn.cast = {
     return ! ! value;
   }
 };
+
+/**
+ * Adds `toBool` alias
+ */
+$fn.class.alias($fn.cast, 'toBoolean', 'toBool');

@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Stack = Fiber.Class.extends({
+Fiber.Stack = Fiber.Class.extend({
 
   /**
    * Stack holder.

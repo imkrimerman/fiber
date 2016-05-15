@@ -8,10 +8,10 @@ $fn.deepProps = {
    * Deep properties configuration
    * @type {Object}
    */
-  rules: {
-    condition: [_.isArray, _.isPlainObject],
-    exclude: ['fn'],
-    private: { allow: false, signature: '_' },
+  config: {
+    rules: [_.isArray, _.isPlainObject],
+    exclude: ['fn', '$fn'],
+    private: { allow: true, signature: '_' },
     explore: [
       { owner: Fiber, path: 'container.shared.items' },
       { owner: Fiber, path: 'container.bindings.items' },
@@ -27,14 +27,42 @@ $fn.deepProps = {
   },
 
   /**
+   * Deeply extends properties to the given `child` object
+   * @param {Object} child - Child hash object to apply deep extend
+   * @param {Object|function()} [parent = {}] - Class or instance to extend from
+   * @param {?Array} [properties] - Properties to extend (optional), default: auto explored options
+   * @returns {Object|Array|*}
+   */
+  handle: function(child, parent, properties) {
+    if (! child) return child;
+    if (! parent) parent = {};
+    // if `properties` not provided or not is array, then we'll use Fiber global properties
+    if (! _.isArray(properties)) properties = $fn.deepProps.explore();
+    // traverse each property
+    _.each(properties, function(property) {
+      // check and grab `property` from `parent` object prototype
+      var objProtoProp = $fn.has(parent.prototype, property) && parent.prototype[property];
+      if (_.isFunction(objProtoProp)) objProtoProp = $fn.applyFn(objProtoProp, [], parent.prototype);
+      // if we don't have given `property` in `child` or in `parent` object prototype
+      // then we'll return same `child` object
+      if (! $fn.has(child, property) || ! objProtoProp) return child;
+      // if `property` value is array then concatenate `parent` object with `child` object
+      if (_.isArray(child[property])) child[property] = objProtoProp.concat(child[property]);
+      // else if it's plain object then extend `child` object from `parent` object
+      else if (_.isPlainObject(child[property])) child[property] = _.extend({}, child[property], objProtoProp);
+    });
+    return child;
+  },
+
+  /**
    * Returns list of explored deep extend properties
    * @return {Array}
    */
   explore: function(explorables, rules, comparatorFn) {
     var properties = [];
     // check arguments or set default values
-    explorables = $fn.castArr($val(explorables, this.rules.explore));
-    rules = $fn.castArr($val(rules, $fn.deepProps.rules.condition));
+    explorables = $fn.castArr($val(explorables, this.rules.explore, $fn.deepProps.isExplorable));
+    rules = $fn.castArr($val(rules, $fn.deepProps.config.rules));
     comparatorFn = $valIncludes(comparatorFn, 'some');
     // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
@@ -65,14 +93,9 @@ $fn.deepProps = {
   exploreInObject: function(container, rules, method, exclude) {
     var properties = [];
     exclude = $fn.castArr($val(exclude, [], [_.isArray, _.isString]));
-
-    if (! $fn.deepProps.rules.private.allow) $each(_.keys(container), function(key) {
-      _.startsWith(key, $fn.deepProps.rules.private.signature) && exclude.push(key);
-    });
-
-    container = _.omit(container, exclude.concat($fn.deepProps.rules.exclude));
-
+    container = _.omit(container, exclude.concat($fn.deepProps.config.exclude));
     $each(container, function(value, prop) {
+      if (! $fn.deepProps.config.private.allow && _.startsWith(prop, $fn.deepProps.config.private.signature)) return;
       if ($fn.deepProps.validate(value, rules, method)) properties.push(prop);
     });
     return _.uniq(properties);
@@ -86,38 +109,22 @@ $fn.deepProps = {
    * @returns {boolean}
    */
   validate: function(property, rules, method) {
-    if (! rules || ! property) return false;
+    if (! rules) return true;
+    if (! property) return false;
     method = $valIncludes(method, 'every', ['some', 'any', 'every'])
     return _[method]($fn.castArr(rules), function(rule) {
-      return rule(property);
+      return _.isFunction(rule) && rule(property) || true;
     });
   },
 
   /**
-   * Deeply extends properties to the given `child` object
-   * @param {Object} child - Child hash object to apply deep extend
-   * @param {Object|function()} [parent = {}] - Class or instance to extend from
-   * @param {?Array} [properties] - Properties to extend (optional), default: auto explored options
-   * @returns {Object|Array|*}
+   * Determines if given `object` can be explored.
+   * @param {Object} object
+   * @returns {boolean}
    */
-  handle: function(child, parent, properties) {
-    if (! child) return child;
-    if (! parent) parent = {};
-    // if `properties` not provided or not is array, then we'll use Fiber global properties
-    properties = $val(properties, $fn.deepProps.explore(), _.isArray);
-    // traverse each property
-    _.each(properties, function(property) {
-      // check and grab `property` from `parent` object prototype
-      var objProtoProp = $fn.has(parent.prototype, property) && parent.prototype[property];
-      if (_.isFunction(objProtoProp)) objProtoProp = $fn.applyFn(objProtoProp, [], parent.prototype);
-      // if we don't have given `property` in `child` or in `parent` object prototype
-      // then we'll return same `child` object
-      if (! $fn.has(child, property) || ! objProtoProp) return child;
-      // if `property` value is array then concatenate `parent` object with `child` object
-      if (_.isArray(child[property])) child[property] = objProtoProp.concat(child[property]);
-      // else if it's plain object then extend `child` object from `parent` object
-      else if (_.isPlainObject(child[property])) child[property] = _.extend({}, child[property], objProtoProp);
-    });
-    return child;
-  },
+  isExplorable: function(object) {
+    return _.isObject(object) && $fn.multi(object, function(one) {
+        return $fn.hasAllProps(one, ['owner']);
+      }, 'fn.constant', 'every');
+  }
 };

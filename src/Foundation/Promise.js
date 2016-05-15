@@ -122,7 +122,7 @@ Fiber.Promise = Fiber.Class.extend({
   _start: function() {
     return $fn.fireCallCyclic(this, 'start', function() {
       return this._executor(this.resolve, this.reject);
-    }, {fire: this, callEventMethod: false});
+    }, { fire: this, callEventMethod: false });
   },
 
   /**
@@ -141,7 +141,7 @@ Fiber.Promise = Fiber.Class.extend({
         , released = this.release(function(zip) {return zip[unzipFn](param);});
       this['_' + result] = true;
       return released;
-    }, {fire: this, callEventMethod: false});
+    }, { fire: this, callEventMethod: false });
   },
 
   /**
@@ -153,7 +153,7 @@ Fiber.Promise = Fiber.Class.extend({
    */
   _pushCallback: function(onFulFilled, onRejected) {
     this._callbacks.push({
-      onFulFilled: onFulFilled|| $fn.through,
+      onFulFilled: onFulFilled || $fn.through,
       onRejected: onRejected || $fn.through
     });
     return this;
