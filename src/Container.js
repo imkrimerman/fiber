@@ -138,15 +138,15 @@ Fiber.Container = Fiber.Class.extend({
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete || ! _.isFunction(concrete)) $log.errorThrow('Resolution Exception: ' + abstract +
-                                                                ', is not a Class constructor or function.');
+    if (! concrete || ! _.isFunction(concrete)) $log.throws('Resolution Exception: ' + abstract +
+                                                            ', is not a Class constructor or function.');
     if ($fn.class.isClass(concrete)) return this.instantiate(concrete, parameters);
     return concrete.apply($val(scope, this), this.resolve(parameters).concat([this]));
   },
 
   /**
    * Instantiates `concrete` type with resolved `parameters`
-   * @param {function()} concrete
+   * @param {function(...)} concrete
    * @param {Array} parameters
    * @returns {*|Object}
    */
@@ -157,11 +157,11 @@ Fiber.Container = Fiber.Class.extend({
   /**
    * Resolves and injects dependencies to the given function using arguments parsing
    * NOTE: This is not secure and safe way to use Dependency Injection. Variables can be minified and obfuscated.
-   * @param {function()} fn
-   * @returns {function()}
+   * @param {function(...)} fn
+   * @returns {function(...)}
    */
   inject: function(fn) {
-    if (! _.isFunction(fn)) $log.errorThrow('Cannot inject dependencies, provided `fn` is not a function()');
+    if (! _.isFunction(fn)) $log.throws('Cannot inject dependencies, provided `fn` is not a function()');
     return $fn.injection.inject(fn);
   },
 
@@ -252,4 +252,4 @@ Fiber.Types.Container = new Fiber.Type({
  * Create default Fiber Inverse Of Control Container
  * @type {Object.<Fiber.Container>}
  */
-$Ioc = Fiber.container = new Fiber.Container();
+var $Ioc = Fiber.container = new Fiber.Container();

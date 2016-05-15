@@ -65,7 +65,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {boolean}
    */
   hasCode: function() {
-    return _.isPlainObject(this._code);
+    return $isDef(this._code);
   },
 
   /**
@@ -91,7 +91,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {boolean}
    */
   hasInitMethod: function() {
-    return ! ! this._initWith;
+    return $fn.cast.toBoolean(this._initWith);
   },
 
   /**
@@ -143,7 +143,7 @@ Fiber.Extension = Fiber.Class.extend({
    * Includes current extension to the given `object`
    * @param {Object} object
    * @param {?boolean} [override=false]
-   * @returns {*|Object|function()}
+   * @returns {*|Object|function(...)}
    */
   includeTo: function(object, override) {
     return $fn.class.mix(object, this.copy(), override);
@@ -153,7 +153,7 @@ Fiber.Extension = Fiber.Class.extend({
    * Sets code capsule, extension name and initialize method
    * @param {Object} code
    * @param {?string} [name]
-   * @param {?string|function()} [initWith]
+   * @param {?string|function(...)} [initWith]
    * @returns {Fiber.Extension}
    */
   fromCode: function(code, name, initWith) {

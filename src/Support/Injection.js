@@ -12,40 +12,40 @@ Fiber.fn.injection = {
 
   /**
    * Retrieves injection container or part of it by the `key`
-   * @param {function()} fn
+   * @param {function(...)} fn
    * @param {?string} [key]
    * @returns {Object|Array}
    */
   get: function(fn, key) {
     if (! $fn.injection.has(fn)) return [];
-    if (! key) return fn[$PropNames.injection];
-    var joinedKey = $fn.join([$PropNames.injection, key], '.');
+    if (! key) return fn[$propNames.injection];
+    var joinedKey = $fn.join([$propNames.injection, key], '.');
     if ($fn.has(fn, joinedKey)) return $fn.get(fn, joinedKey);
     return [];
   },
 
   /**
    * Determines if given function has injection
-   * @param {function()} fn
+   * @param {function(...)} fn
    * @returns {}
    */
   has: function(fn) {
     if (! $fn.injection.isOneOfAllowed(fn)) return false;
-    return $fn.has(fn, $PropNames.injection);
+    return $fn.has(fn, $propNames.injection);
   },
 
   /**
    * Injects dependencies into the function
-   * @param {function()} fn
+   * @param {function(...)} fn
    * @param {?Array|Arguments} [args]
-   * @returns {function()}
+   * @returns {function(...)}
    */
   inject: function(fn) {
     var resolved = [];
     if (! $fn.injection.isOneOfAllowed(fn)) return fn;
     if (! $fn.injection.has(fn)) resolved = $fn.injection.resolve(fn);
 
-    fn[$PropNames.injection] = {
+    fn[$propNames.injection] = {
       dependencies: resolved,
       resolved: Fiber.make(resolved).map(function(one) {
         return one instanceof Fiber.Extension ? one.getCode() : one;
@@ -59,7 +59,7 @@ Fiber.fn.injection = {
 
   /**
    * Applies injection to the function
-   * @param {function()} fn
+   * @param {function(...)} fn
    * @param {Array} args
    * @returns {*}
    */
@@ -70,7 +70,7 @@ Fiber.fn.injection = {
 
   /**
    * Prepares injection for the function
-   * @param {function()} fn
+   * @param {function(...)} fn
    * @returns {Array}
    */
   resolve: function(fn) {

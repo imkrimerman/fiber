@@ -25,13 +25,13 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Sort comparator function to pass to collection
-   * @type {function()|string|null}
+   * @type {function(...)|string|null}
    */
   comparator: null,
 
   /**
    * Element to render Collection to
-   * @type {string|function()}
+   * @type {string|function(...)}
    */
   collectionElement: '.collection-view',
 
@@ -64,19 +64,19 @@ Fiber.CollectionView = Fiber.View.extend({
 
   /**
    * Methods list to bind
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   bindMethods: ['renderOne', 'removeOne'],
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|function()|string}
+   * @type {Array|function(...)|string}
    */
   willExtend: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: ['CollectionClass', 'comparator', 'collectionElement', '$collectionElement', 'ViewClass'],
 

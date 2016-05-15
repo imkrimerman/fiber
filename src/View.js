@@ -65,7 +65,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @type {Array|function()|string}
+     * @type {Array|function(...)|string}
      */
     willExtend: [
       'model', 'collection', 'el', 'id', 'className', 'tagName', 'events', 'template', 'templateData',
@@ -74,7 +74,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Properties keys that will be owned by the instance
-     * @type {Array|function()}
+     * @type {Array|function(...)}
      */
     ownProps: function() {
       return this.willExtend.concat(['$ui', '_linked', '_views', '_rendered']);
@@ -82,7 +82,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Methods list to bind
-     * @type {Array|function()}
+     * @type {Array|function(...)}
      */
     bindMethods: ['render', '_callRender'],
 
@@ -129,7 +129,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Renders template
-     * @param {string|function()} template
+     * @param {string|function(...)} template
      * @param {?Object} [data={}]
      * @returns {string}
      */
@@ -139,7 +139,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Compiles template
-     * @param {string|function()} template
+     * @param {string|function(...)} template
      * @param {?Object} [data={}]
      * @returns {string}
      */
@@ -199,12 +199,12 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * using `selector`). This only works for delegate-able events: not `focus`,
      * `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
      * @param {string} event
-     * @param {string|function()} selector
-     * @param {?function()} [cb]
+     * @param {string|function(...)} selector
+     * @param {?function(...)} [cb]
      * @example
      *
-     * view.delegate('click', function() {});
-     * view.delegate('click', '.button', function() {});
+     * view.delegate('click', function(...) {});
+     * view.delegate('click', '.button', function(...) {});
      */
     delegate: function(event, selector, cb) {
       if (arguments.length === 2) {
@@ -280,7 +280,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
 
     /**
      * Real render function
-     * @param {function()} render
+     * @param {function(...)} render
      * @return {*}
      * @private
      */
@@ -331,7 +331,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
       this._createListeners(events);
       if (_.isString(listenable) && this.has(listenable)) listenable = this.result(listenable);
       else if (! listenable || ! (listenable instanceof Backbone.Events)) $log.logReturn(
-        'warn', 'Can not subscribe. `Listenable` is not instance of Backbone.Events.', [listenable], this
+        'warn', 'Can not subscribe. `Listenable` is not instance of Backbone.Eventable.', [listenable], this
       );
       this.listenTo(listenable, 'all', this._allEventsHandler.bind(this));
       return this;

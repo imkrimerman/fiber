@@ -29,7 +29,7 @@ Fiber.Events = _.extend({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|function()|string}
+   * @type {Array|function(...)|string}
    */
   willExtend: ['eventsConfig'],
 
@@ -62,7 +62,7 @@ Fiber.Events = _.extend({
   /**
    * Adds response as an action call for the given `event`
    * @param {string} event
-   * @param {function()} action
+   * @param {function(...)} action
    * @param {?Object} [scope=this]
    * @returns {Fiber.Events}
    */
@@ -97,7 +97,7 @@ Fiber.Events = _.extend({
    * Every time `event` is fired invokes `action`.
    * You can provide listenable to listen to as last argument.
    * @param {string} event
-   * @param {function()} action
+   * @param {function(...)} action
    * @param {?Object} [listenable=this]
    * @param {?Object} [scope=this]
    */
@@ -111,7 +111,7 @@ Fiber.Events = _.extend({
    * After first `event` is fired invoke `action` and remove it.
    * You can provide listenable to listen to as last argument.
    * @param {string} event
-   * @param {function()} action
+   * @param {function(...)} action
    * @param {?Object} [listenable=this]
    * @param {?Object} [scope=this]
    */
@@ -138,7 +138,7 @@ Fiber.Events = _.extend({
    * Listens to the Fiber internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
-   * @param {function()} action
+   * @param {function(...)} action
    * @param {?Object} [scope=this]
    * @returns {*}
    */
@@ -153,7 +153,7 @@ Fiber.Events = _.extend({
    * Listens to the Fiber internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
-   * @param {function()} action
+   * @param {function(...)} action
    * @param {?Object} [scope=this]
    * @returns {*}
    */
@@ -168,7 +168,7 @@ Fiber.Events = _.extend({
    * Listens to the Fiber internal event system to give ability to set event listeners
    * even if you don't know what object will be triggering event.
    * @param {string} event
-   * @param {function()} action
+   * @param {function(...)} action
    * @param {?Object} [scope=this]
    * @returns {*}
    */

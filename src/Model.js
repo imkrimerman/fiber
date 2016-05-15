@@ -7,13 +7,13 @@ Fiber.Model = BaseModel.extend({
 
   /**
    * The prefix is used to create the client id which is used to identify models locally.
-   * @type {string|function()|null}
+   * @type {string|function(...)|null}
    */
   cidPrefix: 'model',
 
   /**
    * Model unique client identifier.
-   * @type {string|number|function()}
+   * @type {string|number|function(...)}
    * @private
    */
   cidId: function() {return _.uniqueId();},
@@ -21,13 +21,13 @@ Fiber.Model = BaseModel.extend({
   /**
    * Hidden fields.
    * toJSON method will omit this fields.
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   hidden: [],
 
   /**
    * Validation rules.
-   * @type {Object|function()}
+   * @type {Object|function(...)}
    */
   rules: {},
 
@@ -39,13 +39,13 @@ Fiber.Model = BaseModel.extend({
 
   /**
    * Properties keys that will be auto extended from initialize object.
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   willExtend: ['url', 'hidden', 'rules', 'eventsConfig'],
 
   /**
    * Properties keys that will be owned by the instance.
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: ['hidden', 'rules', 'eventsConfig'],
 
@@ -242,7 +242,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {string}
    */
   serialize: function() {
-    return $fn.serialize(this.attributes);
+    return $fn.serialize.stringify(this.attributes);
   },
 
   /**
@@ -251,7 +251,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model}
    */
   fromSerialized: function(serialized) {
-    if (_.isString(serialized)) serialized = $fn.unserialize(serialized);
+    if (_.isString(serialized)) serialized = $fn.serialize.parse(serialized);
     if (_.isPlainObject(serialized)) this.set(serialized);
     return this;
   },

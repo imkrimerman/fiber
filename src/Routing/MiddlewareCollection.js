@@ -1,3 +1,8 @@
+/**
+ * Middleware Collection
+ * @class
+ * @extends {RouterCollection}
+ */
 Fiber.MiddlewareCollection = RouterCollection.extend({
 
   /**

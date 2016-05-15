@@ -4,12 +4,12 @@
  * @extends {Backbone.Collection}
  * @private
  */
-BaseCollection = $fn.class.make(Backbone.Collection, [
+var BaseCollection = $fn.class.make(Backbone.Collection, [
   $Events, $Extend, $OwnProps, $Binder, {
 
     /**
      * Properties keys that will be auto extended from initialize object
-     * @type {Array|function()}
+     * @type {Array|function(...)}
      */
     willExtend: ['model', 'url'],
 

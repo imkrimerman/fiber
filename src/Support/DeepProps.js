@@ -29,7 +29,7 @@ $fn.deepProps = {
   /**
    * Deeply extends properties to the given `child` object
    * @param {Object} child - Child hash object to apply deep extend
-   * @param {Object|function()} [parent = {}] - Class or instance to extend from
+   * @param {Object|function(...)} [parent = {}] - Class or instance to extend from
    * @param {?Array} [properties] - Properties to extend (optional), default: auto explored options
    * @returns {Object|Array|*}
    */
@@ -104,7 +104,7 @@ $fn.deepProps = {
   /**
    * Validates deep property
    * @param {*} property
-   * @param {Array|function()} rules
+   * @param {Array|function(...)} rules
    * @param {?string} [method]
    * @returns {boolean}
    */

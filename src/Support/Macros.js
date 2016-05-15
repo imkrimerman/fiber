@@ -29,7 +29,7 @@ Fiber.fn.macros = {
    * Returns macros by name or defaults if one is not found.
    * @param {string} name
    * @param {*} [defaults]
-   * @returns {function()|*}
+   * @returns {function(...)|*}
    */
   get: function(name, defaults) {
     if (! _.isString(name)) return name;
@@ -39,7 +39,7 @@ Fiber.fn.macros = {
   /**
    * Sets macros by name
    * @param {string} name
-   * @param {function()} macrosCreator
+   * @param {function(...)} macrosCreator
    * @returns {Object}
    */
   set: function(name, macrosCreator) {
@@ -70,7 +70,7 @@ Fiber.fn.macros = {
 
   /**
    * Includes macros mixin
-   * @param {Object|function()} macrosMixin
+   * @param {Object|function(...)} macrosMixin
    * @param {?boolean} [override=false]
    * @returns {*|Object|Fiber.fn.class}
    */

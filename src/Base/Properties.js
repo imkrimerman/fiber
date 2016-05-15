@@ -1,28 +1,10 @@
-// define base Fiber variables
-var Fr, Fiber, previousFiber,
-// define Internal variables
-  $doc, $PropNames, $fn, $val, $valMerge, $valIncludes, $isDef, $each, $origEach, $trigger,
-  $iteratee, $matches, $Types, BaseClass, $log, $Ioc, $Env, $State, Listeners, RouterCollection,
-  BaseJSTypes, BaseFiberTypes, BaseModel, BaseCollection, $DelegatableFn, $ProtoFunction, $getXhr, $ConstantsStorage;
-
 /**
- * Property names map
- * @type {Object}
+ * Define public Fiber variables.
  */
-$PropNames = {
-  type: '_signature',
-  contract: '_implements',
-  injection: '_injection'
-};
+var Fr, Fiber;
 
 /**
- * Global document reference
- * @type {HTMLElement|void}
- */
-$doc = root.document;
-
-/**
- * Fiber main object
+ * Fiber main object.
  * @type {Object}
  */
 Fiber = Fr = exports;
@@ -32,7 +14,7 @@ Fiber = Fr = exports;
  * restored later on, if `noConflict` is used
  * @private
  */
-previousFiber = root.Fiber;
+var previousFiber = root.Fiber;
 
 /**
  * Runs Fiber.js in `noConflict` mode, returning the `Fiber` variable
@@ -46,30 +28,36 @@ Fiber.noConflict = function() {
 
 /**
  * Attach `lodash`
- * @type {function()}
+ * @type {function(...)}
  */
 Fiber._ = _;
 
 /**
  * Attach dom manipulation library (optional)
- * @type {function()}
+ * @type {function(...)}
  */
 Fiber.$ = $;
 
 /**
- * Fiber types
+ * Fiber Types storage
  * @type {Object}
  */
 Fiber.Types = {};
 
 /**
- * Fiber Contracts classes
+ * Fiber Contracts storage
  * @type {Object}
  */
 Fiber.Contracts = {};
 
 /**
- * Fiber Mocks integration
+ * Fiber Mixin storage
+ * @type {Object}
+ */
+Fiber.Mixins = {};
+
+/**
+ * Fiber Mocks module
  * @type {Object}
  */
 Fiber.Mocks = {};
@@ -81,10 +69,25 @@ Fiber.Mocks = {};
 Fiber.Commands = {};
 
 /**
- * Object to use internally
+ * Internally used storage
  * @type {Object}
  */
 Fiber.internal = {
   events: _.extend({}, Backbone.Events),
-  properties: $PropNames
+};
+
+/**
+ * Global document reference
+ * @type {HTMLElement|void}
+ */
+var doc = root.document;
+
+/**
+ * Property names map.
+ * @type {Object}
+ */
+var $propNames = {
+  type: '_signature',
+  contract: '_implements',
+  injection: '_injection'
 };

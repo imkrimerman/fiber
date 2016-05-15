@@ -4,7 +4,7 @@
  * @extends {Backbone.Events}
  * @private
  */
-BaseClass = $fn.class.create([
+var BaseClass = $fn.class.create([
   Backbone.Events, {
 
     /**

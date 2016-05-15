@@ -14,7 +14,7 @@ Fiber.Type = BaseClass.extend({
 
   /**
    * Type options defaults
-   * @type {Object|function()}
+   * @type {Object|function(...)}
    */
   _defaults: {
     type: null,

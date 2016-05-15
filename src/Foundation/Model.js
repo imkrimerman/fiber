@@ -4,7 +4,7 @@
  * @extends {Backbone.Model}
  * @private
  */
-BaseModel = $fn.class.make(Backbone.Model, [
+var BaseModel = $fn.class.make(Backbone.Model, [
   $Events, $Extend, $OwnProps, $Binder, {
 
     /**

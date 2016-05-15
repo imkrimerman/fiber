@@ -3,7 +3,7 @@ Fiber.Router = Fiber.Object.extend([
 
     /**
      * Routes collection
-     * @type {Object.<Fiber.RouteCollection>}
+     * @type {Object.<Fiber.Routes>}
      */
     routes: null,
 
@@ -21,10 +21,10 @@ Fiber.Router = Fiber.Object.extend([
 
     /**
      * Collections list
-     * @type {Object|function()}
+     * @type {Object|function(...)}
      */
     collections: {
-      routes: Fiber.RouteCollection,
+      routes: Fiber.Routes,
       middleware: Fiber.MiddlewareCollection,
       history: Fiber.HistoryCollection
     },
@@ -74,7 +74,7 @@ Fiber.Router = Fiber.Object.extend([
     /**
      * Executes route with the provided parameters. This is an
      * excellent place to do pre-route setup or post-route cleanup.
-     * @param {function()} route
+     * @param {function(...)} route
      * @param {Array} args
      * @returns {boolean}
      */
@@ -88,7 +88,7 @@ Fiber.Router = Fiber.Object.extend([
 
     /**
      * Executes route
-     * @param {function()} route
+     * @param {function(...)} route
      * @param {Array} args
      * @param {string} alias
      * @returns {boolean}

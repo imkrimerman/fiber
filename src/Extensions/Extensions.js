@@ -13,20 +13,20 @@ var $Extensions = new Fiber.Extension('Extensions', {
 
   /**
    * Properties keys that will be auto extended from the initialization object
-   * @type {Array|function()|string|boolean}
+   * @type {Array|function(...)|string|boolean}
    */
   willExtend: ['extensions'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: ['extensions'],
 
   /**
    * Extensions to auto resolve and initialize. On construct Fiber will resolve
    * this extensions list, include and initialize resolved extensions
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   extensions: [],
 
@@ -43,7 +43,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
   /**
    * Adds given `mixin` to Fiber Class. Mixin can be object or function.
    * Also you can provide `override` boolean to force override properties.
-   * @param {Object|function()} mixin
+   * @param {Object|function(...)} mixin
    * @param {?boolean} [override=false]
    * @returns {Object}
    */
@@ -67,7 +67,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
   /**
    * Includes `mixin` or array of mixins to Fiber Class.
    * Also you can provide `override` boolean to force override properties.
-   * @param {Object|function()|Array} mixin
+   * @param {Object|function(...)|Array} mixin
    * @param {?boolean} [override=false]
    * @returns {Object}
    */

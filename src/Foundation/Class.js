@@ -3,7 +3,7 @@
  * @class
  * @extends {BaseClass}
  */
-Fiber.Class = BaseClass.implement('Events').extend([
+Fiber.Class = BaseClass.implement('Eventable').extend([
   Fiber.Events, {
 
     /**

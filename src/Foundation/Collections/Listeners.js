@@ -3,7 +3,7 @@
  * @class
  * @extends {BaseCollection}
  */
-Listeners = BaseCollection.extend({
+var Listeners = BaseCollection.extend({
 
   /**
    * Determine if event has listeners
@@ -11,7 +11,8 @@ Listeners = BaseCollection.extend({
    * @returns {boolean}
    */
   hasEvent: function(event) {
-    return ! ! this.filterByEvent(event).length;
+    return $fn.cast.toBoolean
+    this.filterByEvent(event).length;
   },
 
   /**
@@ -39,7 +40,7 @@ Listeners = BaseCollection.extend({
   /**
    * Returns listeners event handler
    * @param {string} event
-   * @returns {function()|null}
+   * @returns {function(...)|null}
    */
   getHandler: function(event) {
     var listener = this.getByEvent(event);
@@ -65,7 +66,7 @@ Listeners = BaseCollection.extend({
   /**
    * Calls handler
    * @param {Object} scope
-   * @param {string|function()} handler
+   * @param {string|function(...)} handler
    * @param {?Array} [args]
    * @returns {*}
    */

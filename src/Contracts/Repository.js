@@ -1,8 +1,8 @@
 /**
- * Storage Adapter Contract
+ * Repository Contract
  * @type {Object.<Fiber.Contract>}
  */
-Fiber.Contracts.StorageAdapter = new Fiber.Contract('StorageAdapter', [
+Fiber.Contracts.Repository = new Fiber.Contract('Repository', [
   'Access', {
     request: Fiber.Types.Function,
     response: Fiber.Types.Function

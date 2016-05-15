@@ -6,7 +6,7 @@ Fiber.fn.class = {
 
   /**
    * Creates function to call constructor and attach lifecycle properties
-   * @param {function()} constructor
+   * @param {function(...)} constructor
    * @param {Object} parentClass
    * @returns {FiberClassPreConstructor}
    */
@@ -31,21 +31,21 @@ Fiber.fn.class = {
 
   /**
    * Ensures that contracts will be extended from `parent` to `child`
-   * @param {function()|Object} child
-   * @param {function()|Object} parent
-   * @returns {function()|Object}
+   * @param {function(...)|Object} child
+   * @param {function(...)|Object} parent
+   * @returns {function(...)|Object}
    */
   ensureContractsInSync: function(child, parent) {
-    if ($fn.has(parent, $PropNames.contract)) {
-      if (! $fn.has(child, $PropNames.contract)) child[$PropNames.contract] = {};
-      _.extend(child[$PropNames.contract], parent[$PropNames.contract]);
+    if ($fn.has(parent, $propNames.contract)) {
+      if (! $fn.has(child, $propNames.contract)) child[$propNames.contract] = {};
+      _.extend(child[$propNames.contract], parent[$propNames.contract]);
     }
     return child;
   },
 
   /**
    * Creates common class constructor
-   * @returns {function()}
+   * @returns {function(...)}
    */
   createConstructor: function(defaults) {
     return function(options) {
@@ -62,7 +62,7 @@ Fiber.fn.class = {
    * pointing to parent constructor.
    * @param  {?Object} [protoProps] - Prototype properties (available on the instances)
    * @param  {?Object} [staticProps] - Static properties (available on the constructor)
-   * @return {function()}
+   * @return {function(...)}
    */
   nativeExtend: function(parent, protoProps, staticProps) {
     var child, construct = $fn.class.createConstructorCaller;
@@ -95,10 +95,10 @@ Fiber.fn.class = {
    * Some properties should not be overridden by extend, they should be merge, so we will
    * search for them in given `proto` object and if one is found then we'll merge it with
    * object `prototype` value
-   * @param {function()|Object} Parent - Parent to extend from
+   * @param {function(...)|Object} Parent - Parent to extend from
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
-   * @returns {function()}
+   * @returns {function(...)}
    */
   extend: function(Parent, proto, statics) {
     proto = $fn.merge($fn.class.mixProto(proto));
@@ -110,10 +110,10 @@ Fiber.fn.class = {
   /**
    * Makes new class from `Parent` using extender, statics and extensions.
    * You can provide a string in `proto` or `statics` to auto resolve and inject extensions
-   * @param {?function()|Object} [Parent] - Parent to extend from, default: Empty class
+   * @param {?function(...)|Object} [Parent] - Parent to extend from, default: Empty class
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
-   * @returns {function()}
+   * @returns {function(...)}
    */
   make: function(Parent, proto, statics) {
     // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
@@ -134,7 +134,7 @@ Fiber.fn.class = {
    * Creates simple Class.
    * @param {?Array|Object} [proto] - Prototype properties (available on the instances)
    * @param {?Array|Object} [statics] - Static properties (available on the constructor)
-   * @returns {function()}
+   * @returns {function(...)}
    */
   create: function(proto, statics) {
     return $fn.class.extend($fn.class.createConstructor(), proto, statics);
@@ -142,14 +142,14 @@ Fiber.fn.class = {
 
   /**
    * Creates new `Class` with array of arguments
-   * @param {function()} Parent
+   * @param {function(...)} Parent
    * @param {Array} args
    * @returns {Object}
    */
   instance: function(Parent, args) {
     if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
-    if (! $fn.class.isClass(Parent)) $log.errorThrow('Cannot instantiate from `Parent` Class - is not a Class or' +
-                                                     ' valid instance to retrieve Constructor.');
+    if (! $fn.class.isClass(Parent)) $log.throws('Cannot instantiate from `Parent` Class - is not a Class or' +
+                                                 ' valid instance to retrieve Constructor.');
     function InstanceCreator () {return Parent.apply(this, $fn.castArr(args))};
     InstanceCreator.prototype = Parent.prototype;
     return new InstanceCreator();
@@ -158,10 +158,10 @@ Fiber.fn.class = {
   /**
    * Adds given `mixin` to the `object`. Mixin can be object or function.
    * Also you can provide `override` boolean to force override properties.
-   * @param {Object|function()} object
-   * @param {Object|Object.<Fiber.Extension>|function()} mixin
+   * @param {Object|function(...)} object
+   * @param {Object|Object.<Fiber.Extension>|function(...)} mixin
    * @param {?boolean} [override]
-   * @returns {Object|function()}
+   * @returns {Object|function(...)}
    */
   mix: function(object, mixin, override) {
     override = $val(override, false);
@@ -179,8 +179,8 @@ Fiber.fn.class = {
   /**
    * Includes `mixin` or array of mixins to the `object`.
    * Also you can provide `override` boolean to force override properties.
-   * @param {Object|function()} object
-   * @param {Object|Object[]|function()[]} mixin
+   * @param {Object|function(...)} object
+   * @param {Object|Object[]|function(...)[]} mixin
    * @param {?boolean} [override]
    * @returns {Object}
    */
@@ -194,8 +194,8 @@ Fiber.fn.class = {
 
   /**
    * Adds mixins to the given `object`
-   * @param {Array|Object|function()} proto - Object to add helpers mixin
-   * @returns {Array|Object|function()}
+   * @param {Array|Object|function(...)} proto - Object to add helpers mixin
+   * @returns {Array|Object|function(...)}
    */
   mixProto: function(proto) {
     return $fn.class.mergeExtendMixin('proto', proto);
@@ -203,8 +203,8 @@ Fiber.fn.class = {
 
   /**
    * Adds mixins to the given `statics`
-   * @param {Array|Object|function()} statics
-   * @returns {Array|Object|function()|*}
+   * @param {Array|Object|function(...)} statics
+   * @returns {Array|Object|function(...)|*}
    */
   mixStatics: function(statics) {
     return $fn.class.mergeExtendMixin('statics', statics);
@@ -213,7 +213,7 @@ Fiber.fn.class = {
   /**
    * Merges extend mixin to the given `object`
    * @param {string|Object} mixin
-   * @param {Object|Array|function()} object - Object to add helpers mixin
+   * @param {Object|Array|function(...)} object - Object to add helpers mixin
    * @returns {*}
    */
   mergeExtendMixin: function(mixin, object) {
@@ -249,7 +249,7 @@ Fiber.fn.class = {
         $mutate: $fn.delegate($fn.class.mutate),
         $new: $fn.delegate($fn.class.createNew),
         toString: function() {
-          return $fn.get(this, $PropNames.type, $fn.types.parseSignature(this));
+          return $fn.get(this, $propNames.type, $fn.types.parseSignature(this));
         },
       },
       statics: {
@@ -266,7 +266,7 @@ Fiber.fn.class = {
 
   /**
    * Creates new Class instance
-   * @param {function()|Object} object
+   * @param {function(...)|Object} object
    * @param {?string} [property]
    * @returns {Object}
    */
@@ -277,9 +277,9 @@ Fiber.fn.class = {
 
   /**
    * Mutates object prototype or object it self.
-   * @param {function()|Function|Object} object
+   * @param {function(...)|Function|Object} object
    * @param {Object} proto
-   * @returns {function()|Function|Object}
+   * @returns {function(...)|Function|Object}
    */
   mutate: function(object, proto) {
     var source = _.isFunction(object.$super) && object.$super('prototype') || object.prototype || object.__proto__;
@@ -310,19 +310,19 @@ Fiber.fn.class = {
     contract = $fn.merge($fn.multi(contract, function(one) {
       one = _.isString(one) ? $fn.get(Fiber.Contracts, one) : one;
       if (one instanceof Fiber.Contract) return $fn.createPlain(one.getName(), one);
-      $log.errorThrow('`Contract` is not instance of Fiber.Contract.', one);
+      $log.throws('`Contract` is not instance of Fiber.Contract.', one);
     }));
 
-    var follows = object[$PropNames.contract] || {};
-    object[$PropNames.contract] = $fn.merge(follows, contract);
+    var follows = object[$propNames.contract] || {};
+    object[$propNames.contract] = $fn.merge(follows, contract);
     return object;
   },
 
   /**
    * Attaches `_super_` and `_parent_` objects to child
    * @param {Object} child
-   * @param {function()|Object} parent
-   * @param {function()} constructor
+   * @param {function(...)|Object} parent
+   * @param {function(...)} constructor
    * @returns {Object}
    */
   attachSuper: function(child, parent) {
@@ -348,7 +348,7 @@ Fiber.fn.class = {
    * @param {Object} object - Object to resolve method from
    * @param {string} method - Method key (string) to resolve
    * @param {?Object} [scope] - binds `scope` object to method
-   * @returns {function()|null}
+   * @returns {function(...)|null}
    */
   resolveMethod: function(object, method, scope) {
     scope = $val(scope, object, _.isObject);
@@ -410,7 +410,7 @@ Fiber.fn.class = {
    * @param {Object} object
    * @param {Object} mixin
    * @param {boolean} [toProto=false]
-   * @param {function()|Function} [bindFn]
+   * @param {function(...)|Function} [bindFn]
    * @returns {Object}
    */
   bindMixin: function(object, mixin, toProto, bindFn) {
@@ -426,7 +426,7 @@ Fiber.fn.class = {
 
   /**
    * Returns Class method or void otherwise
-   * @param {Object|function()} object
+   * @param {Object|function(...)} object
    * @param {string} method
    * @param {*} [defaults]
    * @param {?boolean} [allowFunctions=true]
@@ -451,11 +451,11 @@ Fiber.fn.class = {
 
   /**
    * Checks if Class has to follow the contracts
-   * @param {function()} Class
+   * @param {function(...)} Class
    */
   expectFollowingContracts: function(Class) {
-    if ($fn.has(Class, $PropNames.contract)) {
-      $fn.expect(_.every($fn.get(Class, $PropNames.contract), function(contract) {
+    if ($fn.has(Class, $propNames.contract)) {
+      $fn.expect(_.every($fn.get(Class, $propNames.contract), function(contract) {
         return contract instanceof Fiber.Contract && contract.isImplementedBy(Class);
       }), 'Given `Class` is not following the `Contracts`' + Class);
     }
@@ -465,7 +465,7 @@ Fiber.fn.class = {
    * Creates condition methods
    * @param {Object} object
    * @param {Array} methods
-   * @param {string|function()} checkerMethod
+   * @param {string|function(...)} checkerMethod
    * @param {?string} [condition=if]
    * @returns {Object}
    */
@@ -486,8 +486,8 @@ Fiber.fn.class = {
   /**
    * Prepares checker method for conditional methods
    * @param {Object} object
-   * @param {string|function()} checkerMethod
-   * @returns {function()}
+   * @param {string|function(...)} checkerMethod
+   * @returns {function(...)}
    */
   prepareConditionCheckerMethod: function(object, method) {
     if (_.isString(method)) method = object[method];
@@ -544,7 +544,7 @@ Fiber.fn.class = {
    * Merges options to object
    * @param {Object} object
    * @param {Object} options
-   * @param {Array|string|boolean|function()} [willExtend]
+   * @param {Array|string|boolean|function(...)} [willExtend]
    * @param {boolean} [retrieve=true]
    * @returns {Object}
    */
@@ -576,7 +576,7 @@ Fiber.fn.class = {
 
   /**
    * Determines if `object` is one of the Backbone Components
-   * @param {function()} instance
+   * @param {function(...)} instance
    * @returns {boolean}
    */
   isBackboneClass: function(object) {

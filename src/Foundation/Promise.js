@@ -27,22 +27,22 @@ Fiber.Promise = Fiber.Class.extend({
 
   /**
    * Constructs Promise
-   * @param {function()|Function} executor
+   * @param {function(...)|Function} executor
    */
   constructor: function(executor) {
     $fn.expect(_.isFunction(executor));
     this._resolved = false;
     this._rejected = false;
     this._executor = executor;
-    this._callbacks = new Fiber.Stack();
+    this._callbacks = new Fiber.Queue();
     this._start();
   },
 
   /**
    * Hook.
    * When promise resolve is fulfilled.
-   * @param {function()|Function} [onFulFilled]
-   * @param {function()|Function} [onRejected]
+   * @param {function(...)|Function} [onFulFilled]
+   * @param {function(...)|Function} [onRejected]
    * @returns {Fiber.Promise}
    */
   then: function(onFulFilled, onRejected) {
@@ -52,8 +52,8 @@ Fiber.Promise = Fiber.Class.extend({
   /**
    * Hook.
    * When promise resolve is rejected.
-   * @param {function()|Function} [onFulFilled]
-   * @param {function()|Function} [onRejected]
+   * @param {function(...)|Function} [onFulFilled]
+   * @param {function(...)|Function} [onRejected]
    * @returns {Fiber.Promise}
    */
   catch: function(onRejected) {
@@ -81,11 +81,11 @@ Fiber.Promise = Fiber.Class.extend({
 
   /**
    * Releases promise callbacks.
-   * @param {function()|Function} iterator
+   * @param {function(...)|Function} iterator
    * @returns {Array}
    */
   release: function(iterator) {
-    return this._callbacks.releaseUntil(iterator, function() {
+    return this._callbacks.release(iterator, function() {
       return ! this.isFinished();
     }, this);
   },
@@ -134,7 +134,6 @@ Fiber.Promise = Fiber.Class.extend({
    */
   _finish: function(result, param) {
     return $fn.fireCallCyclic(this, 'finish', function() {
-      if (value === this) throw new TypeError('A promise cannot be resolved with itself.');
       result = $valIncludes(result, false, [true, false, 'resolved', 'rejected']);
       if (_.isBoolean(result)) result = result ? 'resolved' : 'rejected';
       var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected'
@@ -146,13 +145,13 @@ Fiber.Promise = Fiber.Class.extend({
 
   /**
    * Pushes callbacks.
-   * @param {function()|Function} onFulFilled
-   * @param {function()|Function} onRejected
+   * @param {function(...)|Function} onFulFilled
+   * @param {function(...)|Function} onRejected
    * @returns {Fiber.Promise}
    * @private
    */
   _pushCallback: function(onFulFilled, onRejected) {
-    this._callbacks.push({
+    this._callbacks.enqueue({
       onFulFilled: onFulFilled || $fn.through,
       onRejected: onRejected || $fn.through
     });

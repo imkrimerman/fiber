@@ -12,7 +12,7 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: [],
 

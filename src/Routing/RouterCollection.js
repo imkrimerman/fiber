@@ -1,35 +1,36 @@
 /**
- * Base Router Collection
+ * Fiber Router Collection
  * @class
  * @extends {BaseCollection}
  */
-RouterCollection = BaseCollection.extend({
+Fiber.RouterCollection = BaseCollection.extend({
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: ['router'],
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|function()|string}
+   * @type {Array|function(...)|string}
    */
   willExtend: ['router'],
 
   /**
    * Router instance
    * @type {Object.<Fiber.Router>}
+   * @private
    */
-  router: null,
+  _router: null,
 
   /**
    * Sets current router
    * @param {Object.<Fiber.Router>} router
-   * @returns {RouterCollection}
+   * @returns {Fiber.RouterCollection}
    */
   setRouter: function(router) {
-    this.router = router;
+    this._router = router instanceof Fiber.Router && router;
     return this;
   },
 
@@ -38,7 +39,7 @@ RouterCollection = BaseCollection.extend({
    * @returns {Object.<Fiber.Router>}
    */
   getRouter: function() {
-    return this.router;
+    return this._router;
   },
 
   /**
@@ -46,15 +47,15 @@ RouterCollection = BaseCollection.extend({
    * @returns {boolean}
    */
   hasRouter: function() {
-    return ! _.isEmpty(this.router);
+    return ! _.isEmpty(this._router);
   },
 
   /**
    * Removes `router` reference
-   * @returns {RouterCollection}
+   * @returns {Fiber.RouterCollection}
    */
-  unsetRouter: function() {
-    this.router = null;
+  forgetRouter: function() {
+    this._router = null;
     return this;
   },
 });

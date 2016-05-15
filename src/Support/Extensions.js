@@ -20,7 +20,7 @@ Fiber.fn.extensions = {
    * Returns extension if one is found or empty object otherwise.
    * @param {Array|string} alias
    * @param {?boolean} [retrieveCode=true]
-   * @returns {null|Object.<Fiber.Extension>|Array.<Fiber.Extension>|Object|function()|string}
+   * @returns {null|Object.<Fiber.Extension>|Array.<Fiber.Extension>|Object|function(...)|string}
    */
   get: function(alias, retrieveCode) {
     if (_.isArray(alias)) return _.map($fn.castArr(alias), function(one) {
@@ -37,7 +37,7 @@ Fiber.fn.extensions = {
   /**
    * Adds extension
    * @param {Object|string} alias
-   * @param {Object|function()} [extension]
+   * @param {Object|function(...)} [extension]
    * @param {?boolean} [override=false]
    * @returns {Fiber}
    */
@@ -316,7 +316,7 @@ Fiber.fn.extensions = {
   /**
    * Creates new Fiber extension
    * @param {string} name
-   * @param {Object|function()} code
+   * @param {Object|function(...)} code
    * @returns {Object.<Fiber.Extension>}
    */
   create: function(name, code) {

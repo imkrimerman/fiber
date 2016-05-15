@@ -12,7 +12,7 @@ Fiber.fn.validation = {
 
     /**
      * Rule required flag
-     * @type {boolean|function()}
+     * @type {boolean|function(...)}
      */
     required: false,
 
@@ -25,19 +25,19 @@ Fiber.fn.validation = {
 
     /**
      * Rule validators
-     * @type {Array|Object|function()|string}
+     * @type {Array|Object|function(...)|string}
      */
     validators: [],
 
     /**
      * Logical middleware before validation
-     * @type {function()|null}
+     * @type {function(...)|null}
      */
     when: null,
 
     /**
      * Flag to enable/disable events triggering on model during validation
-     * @type {boolean|function()}
+     * @type {boolean|function(...)}
      */
     silent: false,
 
@@ -55,14 +55,14 @@ Fiber.fn.validation = {
 
       /**
        * `Attribute required` message.
-       * @type {string|function()}
+       * @type {string|function(...)}
        */
       required: 'Required attribute [{{= attribute }}] is missing.',
 
       /**
        * Single validation message for all validators.
        * Will be used if validators type is not plain object.
-       * @type {string|function()}
+       * @type {string|function(...)}
        */
       single: 'Attribute [{{= attribute }}] is not valid.',
 
@@ -71,7 +71,7 @@ Fiber.fn.validation = {
        * To use messages hash you need to set validators property as plain object and
        * give each validator function an alias (object key), then you can use same alias
        * to add specific error message for each validator.
-       * @type {Object|function()}
+       * @type {Object|function(...)}
        */
       hash: {}
     },

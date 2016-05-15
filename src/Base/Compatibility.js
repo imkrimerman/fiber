@@ -1,8 +1,8 @@
 /**
  * Original Backbone Events trigger method
- * @type {function()}
+ * @type {function(...)}
  */
-$trigger = Backbone.Events.trigger;
+var $trigger = Backbone.Events.trigger;
 
 /**
  * Wraps Backbone Events trigger method to give ability to listen to global events.
@@ -27,18 +27,18 @@ Backbone.Events.destroyEvents = function() {
 
 /**
  * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
- * @type {_.each|*|(function((Array|Object), function()=): (Array|Object))}
+ * @type {_.each|*|(function((Array|Object), function(...)=): (Array|Object))}
  */
-$origEach = _.bind(_.each, _);
+var $origEach = _.bind(_.each, _);
 
 /**
  * Adds compatibility for `each` method
  * @param {Array|Object} collection
- * @param {function()} iteratee
+ * @param {function(...)} iteratee
  * @param {?Object} [scope]
  * @returns {*}
  */
-$each = function(collection, iteratee, scope) {
+var $each = function(collection, iteratee, scope) {
   if (scope) iteratee = _.bind(iteratee, scope);
   return $origEach(collection, iteratee);
 };
@@ -47,7 +47,7 @@ $each = function(collection, iteratee, scope) {
  * Internal function that returns an efficient (for current engines) version
  * of the passed-in callback, to be repeatedly applied in other Underscore
  * functions.
- * @param {function()} func
+ * @param {function(...)} func
  * @param {?Object} [context]
  * @param {?number} [argCount]
  * @returns {*}
@@ -79,10 +79,10 @@ var $optimizeCb = function(func, context, argCount) {
  * An Internal function to generate callbacks that can be applied to each
  * element in a collection, returning the desired result — either `identity`,
  * an arbitrary callback, a property matcher, or a property accessor.
- * @param {string|function()|Object} value
+ * @param {string|function(...)|Object} value
  * @param {?Object} [scope]
  * @param {?number} [argCount]
- * @returns {function()}
+ * @returns {function(...)}
  */
 var $iterateeCb = function(value, scope, argCount) {
   if (_.iteratee !== $iteratee) return _.iteratee(value, scope);
@@ -96,11 +96,11 @@ var $iterateeCb = function(value, scope, argCount) {
  * External wrapper for our callback generator. Users may customize
  * `_.iteratee` if they want additional predicate/iteratee shorthand styles.
  * This abstraction hides the Internal-only argCount argument.
- * @param {string|function()|Object} value
+ * @param {string|function(...)|Object} value
  * @param {?Object} [scope]
- * @returns {function()}
+ * @returns {function(...)}
  */
-$iteratee = function(value, scope) {
+var $iteratee = function(value, scope) {
   return $iterateeCb(value, scope, Infinity);
 };
 
@@ -108,9 +108,9 @@ $iteratee = function(value, scope) {
  * Returns a predicate for checking whether an object has a given set of
  * `key:value` pairs.
  * @param {Object} attributes
- * @returns {function()}
+ * @returns {function(...)}
  */
-$matches = function(attributes) {
+var $matches = function(attributes) {
   return function(object) {
     return _.isMatch(object, _.extend({}, attributes));
   };
@@ -133,10 +133,10 @@ _.mixin({
  * Returns Xhr
  * @return {XMLHttpRequest|ActiveXObject}
  */
-$getXhr = function() {
+var $getXhr = function() {
   try { return new (root.XMLHttpRequest || ActiveXObject); }
   catch (e) {
-    $log.errorThrow('Xhr is unavailable in current browser.');
+    $log.throws('Xhr is unavailable in current browser.');
   }
   ;
 };

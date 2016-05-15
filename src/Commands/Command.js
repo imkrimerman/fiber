@@ -14,7 +14,7 @@ Fiber.Commands.Command = Fiber.Bag.extend([
 
     /**
      * Properties keys that will be owned by the instance
-     * @type {Array|function()}
+     * @type {Array|function(...)}
      */
     ownProps: ['selfExecutable'],
 

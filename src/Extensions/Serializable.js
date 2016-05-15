@@ -1,16 +1,16 @@
 /**
- * Serialize Extension
+ * Serializable Extension
  * @class
  * @extends {Fiber.Extension}
  */
-var $Serialize = new Fiber.Extension('Serialize', {
+var $Serializable = new Fiber.Extension('Serializable', {
 
   /**
    * Serializes class to string.
    * @returns {string}
    */
   serialize: function() {
-    return $fn.serialize(this.attributes);
+    return $fn.serialize.stringify(this.attributes);
   },
 
   /**
@@ -19,13 +19,13 @@ var $Serialize = new Fiber.Extension('Serialize', {
    * @returns {Object}
    */
   fromSerialized: function(serialized) {
-    if (_.isString(serialized)) serialized = $fn.unserialize(serialized);
+    if (_.isString(serialized)) serialized = $fn.serialize.parse(serialized);
     if (_.isPlainObject(serialized)) this.set(serialized);
     return this;
   }
 });
 
 /**
- * Adds serialization to the Fiber Base Class
+ * Adds Serializable Extension to the Fiber Base Class
  */
-BaseClass.mutate($Serialize.getCode()).implementOwn('Serialize');
+BaseClass.implementOwn('Serializable').mutate($Serializable.getCode());

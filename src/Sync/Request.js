@@ -7,9 +7,11 @@ Fiber.Sync.Request = Fiber.Class.extend({
 
   /**
    * Request transport
-   * @type {function(): JQueryXHR|Function: JQueryXHR}
+   * @type {function(...): JQueryXHR|Function: JQueryXHR}
    */
-  transport: Backbone.ajax,
+  transport: function(options) {
+    return (new Fiber.Xhr(options)).transmit();
+  },
 
   /**
    * Class type signature.
@@ -28,7 +30,7 @@ Fiber.Sync.Request = Fiber.Class.extend({
     this._prepared = false;
     this.bag = new Fiber.Bag({
       method: method,
-      type: Fiber.Sync.Http[method],
+      type: Fiber.Config.get('Sync.http.' + method),
       model: model,
       options: $valMerge(options, {
         emulateHTTP: Backbone.emulateHTTP,
@@ -57,7 +59,7 @@ Fiber.Sync.Request = Fiber.Class.extend({
       , error = options.error
       , params = { type: type, dataType: 'json' };
     // Retrieve url from Model
-    if (! options.url) params.url = $fn.result(model, 'url') || $log.errorThrow('`Url` is found. Aborting request.');
+    if (! options.url) params.url = $fn.result(model, 'url') || $log.throws('`Url` is found. Aborting request.');
     // if `model` is instance of Model then lets convert it to JSON hash
     if (model instanceof Backbone.Model) model = model.toJSON(options);
     // Ensure that we have the appropriate request data.

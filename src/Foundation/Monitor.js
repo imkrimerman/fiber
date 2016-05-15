@@ -25,13 +25,13 @@ Fiber.Monitor = BaseClass.extend({
 
   /**
    * Properties keys that will be auto extended from the initialization object
-   * @type {Array|function()|string|boolean}
+   * @type {Array|function(...)|string|boolean}
    */
   willExtend: ['watches', 'notifies'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: ['watches', 'notifies', '_monitor', '_monitoring', '_cache', '_logger', '_globalEventingMethods'],
 
@@ -78,8 +78,8 @@ Fiber.Monitor = BaseClass.extend({
     $fn.class.handleOptions(this, options);
     $fn.class.ensureOwn(this, this.ownProps);
     $fn.class.extendFromOptions(this, options, this.willExtend);
-    this._logger = new Fiber.Log({ level: 'debug', templatePrefix: '[Fiber.Monitor]', templateLevel: false });
     this._monitor = Fiber.Events.$new();
+    this._logger = new Fiber.Log({ level: 'debug', as: '[Fiber.Monitor]', templates: { level: false } });
   },
 
   /**
@@ -89,7 +89,10 @@ Fiber.Monitor = BaseClass.extend({
    */
   monitor: function(object) {
     this._monitor.listenTo(object, 'all', this.notifyEvent.bind(this));
-    if ($fn.class.isImplementing(object, 'Events')) this.watch(object, this._globalEventingMethods, true);
+    this._monitor.listenTo(Fiber.internal.events, 'all', function(event, obj) {
+      if (obj === object) this.notifyEvent.apply(this, arguments);
+    }.bind(this));
+    this.watch(object, null, true);
     return this;
   },
 
@@ -127,6 +130,7 @@ Fiber.Monitor = BaseClass.extend({
    */
   watch: function(source, method, isEvent) {
     var self = this;
+    if (_.isEmpty(method)) method = $fn.methods(source);
     $fn.multi(method, function(one) {
       var orig = self._cache[one] = { source: source, fn: source[one] };
       source[one] = function() {
@@ -189,7 +193,7 @@ Fiber.Monitor = BaseClass.extend({
     var notifyArgs = $fn.cast.toArray(arguments);
     this.trigger.apply(this, ['notify'].concat(notifyArgs));
     if (this.notifies.log) this._logger.callWriter('debug', notifyArgs);
-    else if (_.isFunction(this.notifies.callback)) $fn.applyFn(this.notifies.callback, notifyArgs);
+    if (_.isFunction(this.notifies.callback)) $fn.applyFn(this.notifies.callback, notifyArgs);
     return this;
   },
 });

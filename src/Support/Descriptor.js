@@ -186,7 +186,7 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   isLocked: function(secret) {
-    return ! ! this._locked[secret];
+    return $fn.cast.toBoolean(this._locked[secret]);
   },
 
   /**

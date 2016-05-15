@@ -127,6 +127,24 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
   },
 
   /**
+   * Picks provided keys.
+   * @param {Array|string} keys
+   * @returns {Object}
+   */
+  pick: function(keys) {
+    return _.pick(this._items, $fn.castArr(keys));
+  },
+
+  /**
+   * Omits provided keys.
+   * @param {Array|string} keys
+   * @returns {Object}
+   */
+  omit: function(keys) {
+    return _.omit(this._items, $fn.castArr(keys));
+  },
+
+  /**
    * Returns copy of the current used Bag holder
    * @param {?boolean} [deep=true]
    * @returns {Object}

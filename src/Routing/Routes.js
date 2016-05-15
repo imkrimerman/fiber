@@ -3,7 +3,7 @@
  * @class
  * @extends {RouterCollection}
  */
-Fiber.RouteCollection = RouterCollection.extend({
+Fiber.Routes = RouterCollection.extend({
 
   /**
    * Default collection model
@@ -13,7 +13,7 @@ Fiber.RouteCollection = RouterCollection.extend({
 
   /**
    * Methods list to bind
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   bindMethods: ['wrap', 'bind', 'bindOne'],
 
@@ -58,7 +58,7 @@ Fiber.RouteCollection = RouterCollection.extend({
 
   /**
    * Binds routes to current router
-   * @returns {Fiber.RouteCollection}
+   * @returns {Fiber.Routes}
    */
   bind: function() {
     this.each(this.bindOne);
@@ -77,7 +77,7 @@ Fiber.RouteCollection = RouterCollection.extend({
   /**
    * Binds routes to the given Router
    * @param {Object.<Fiber.Router>} router
-   * @return {Fiber.RouteCollection}
+   * @return {Fiber.Routes}
    */
   bindTo: function(router) {
     this.setRouter(router);
@@ -87,7 +87,7 @@ Fiber.RouteCollection = RouterCollection.extend({
   /**
    * Creates function wrapper that will return route model when invoked
    * @param {Object.<Fiber.Route>} route
-   * @returns {function()}
+   * @returns {function(...)}
    */
   wrap: function(route) {
     return $fn.constant(route);

@@ -2,7 +2,7 @@
  * Fiber support function
  * @type {Object}
  */
-$fn = Fiber.fn = {
+var $fn = Fiber.fn = {
 
   /**
    * List of properties to exclude when mixin functions to Class prototype
@@ -105,7 +105,7 @@ $fn = Fiber.fn = {
    * @see https://github.com/imkrimerman/im.val (npm version without current enhancements)
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
-   * @param {?function()|function()[]} [checker] - function to call to check validity
+   * @param {?function(...)|function(...)[]} [checker] - function to call to check validity
    * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
    * @returns {*}
    */
@@ -123,7 +123,7 @@ $fn = Fiber.fn = {
   /**
    * Validates value with the given checkers
    * @param {*} value - value to check
-   * @param {Array|function()} checkers - function to call to check validity
+   * @param {Array|function(...)} checkers - function to call to check validity
    * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
    * @returns {boolean}
    */
@@ -145,12 +145,13 @@ $fn = Fiber.fn = {
    * Returns `value` if `includes` array contains `value` or returns defaults otherwise.
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
-   * @param {Array|*} includes - array of values to check if the value is contained there
+   * @param {Array|Object} [includes] - array of values to check if the value is contained there
    * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
    * @returns {*}
    */
   valIncludes: function(value, defaults, includes, match) {
     if (includes == null) includes = ['every', 'some', 'any'];
+    if (_.isPlainObject(includes)) includes = _.keys(includes);
     return $val(value, defaults, function(val) {
       return _.includes(includes, val);
     }, match);
@@ -160,8 +161,8 @@ $fn = Fiber.fn = {
    * Applies `val` function and calls callback with result as first argument
    * @param {*} value - value to check
    * @param {*} defaults - default value to use
-   * @param {function()} cb - callback to call after check
-   * @param {?function()} [checker] - function to call to check validity
+   * @param {function(...)} cb - callback to call after check
+   * @param {?function(...)} [checker] - function to call to check validity
    * @param {?string} [match='every'] - function to use ('every', 'some')
    * @returns {*}
    */
@@ -175,13 +176,13 @@ $fn = Fiber.fn = {
    * Applies `val` checker function and extends checked value with `extender` if allowed.
    * @param {*} value - value to check
    * @param {Object} extender - object to extend with
-   * @param {?function()|string} [method=_.extend] - function to use to merge the objects (can be
+   * @param {?function(...)|string} [method=_.extend] - function to use to merge the objects (can be
    *                                               lodash method name or function)
-   * @param {?function()} [checker] - function to call to check validity
+   * @param {?function(...)} [checker] - function to call to check validity
    * @param {?string} [match='every'] - function to use ('every', 'some')
    * @param {?boolean} [toOwn=false] - if true then sets extender directly to checked value,
    * otherwise creates new object and merges checked value with extender
-   * @returns {Object|function()}
+   * @returns {Object|function(...)}
    */
   valMerge: function(value, extender, method, checker, match, toOwn) {
     method = $val(method, _.extend, [_.isFunction, _.isString]);
@@ -221,7 +222,7 @@ $fn = Fiber.fn = {
 
   /**
    * Applies `method` on given `Class` with `scope` and passing `args`
-   * @param {function()|Object} Class - Class to call
+   * @param {function(...)|Object} Class - Class to call
    * @param {string} method - method to call
    * @param {?Array} [args] - arguments to pass
    * @param {?Object|Array} [scope] - scope to bind
@@ -233,7 +234,7 @@ $fn = Fiber.fn = {
 
   /**
    * Applies function with the given arguments and scope
-   * @param {function(): *} fn - function to apply
+   * @param {function(...): *} fn - function to apply
    * @param {?Array} [args] - arguments to pass
    * @param {Object|Array} [scope] - scope to bind to function
    * @returns {*}
@@ -247,7 +248,7 @@ $fn = Fiber.fn = {
   /**
    * Returns function that will be called with the given `scope`.
    * If `argCount` provided then will slice arguments to the count that needs to be passed to the function.
-   * @param {function()|Function} fn
+   * @param {function(...)|Function} fn
    * @param {Object|null} [scope]
    * @param {Array|*} [partials]
    * @param {number} [argCount]
@@ -263,7 +264,7 @@ $fn = Fiber.fn = {
 
   /**
    * Returns function that will be called with given `scope` and appended `partials`, passing `this` as first argument.
-   * @param {function()|Function} fn
+   * @param {function(...)|Function} fn
    * @param {Object|null} [scope]
    * @param {Array|*} [partials]
    * @returns {Function}
@@ -276,13 +277,39 @@ $fn = Fiber.fn = {
   },
 
   /**
+   * Tries to call `callable`.
+   * If any Error will be thrown then it will intercepted and silent.
+   * @param {function(...)} callable
+   * @param {...args}
+   * @returns {Error|*}
+   */
+  try: function(callable) {
+    try { return callable.apply(callable, _.drop(arguments)); }
+    catch (e) { return e; }
+    ;
+  },
+
+  /**
+   * Tries to call `callable` with `onFail` hook.
+   * If any Error will be thrown then it will intercepted and silent.
+   * @param {function(...)} callable
+   * @param {Array|Arguments} args
+   * @param {function(...)} onFail
+   * @returns {Error|*}
+   */
+  tryFail: function(callable, args, onFail) {
+    var attempt = $fn.try.apply(null, $fn.argsConcat(callable, args));
+    return _.isError(attempt) ? (_.isFunction(onFail) && onFail(e, args, callable) || onFail) : attempt;
+  },
+
+  /**
    * Expect that object has all given properties
    * @param {Object} obj
    * @param {Array|Object} props
    * @param {boolean} [isObject=true]
    */
   hasAllProps: function(obj, props) {
-    props = $fn.castArr(_.isPlainObject(props) ? _.keys(props) : props);
+    props = _.isPlainObject(props) ? _.keys(props) : $fn.castArr(props);
     return _.every(props, function(prop) {
       return $fn.has(obj, prop);
     });
@@ -304,7 +331,7 @@ $fn = Fiber.fn = {
   /**
    * Checks if all values in array are the same
    * @param {Array} array
-   * @param {function()|Function} [sameCheckFn]
+   * @param {function(...)|Function} [sameCheckFn]
    * @returns {boolean}
    */
   inArrayAllSame: function(array, sameCheckFn) {
@@ -318,8 +345,8 @@ $fn = Fiber.fn = {
    * Casts `traversable` to array and run through it calling `cb` on each iteration.
    * You can provide `final` argument to return any result
    * @param {*} traversable
-   * @param {function()} iterator
-   * @param {?function()|*} [final]
+   * @param {function(...)} iterator
+   * @param {?function(...)|*} [final]
    * @param {?string} [method]
    * @param {?Object} [scope]
    * @returns {*}
@@ -417,10 +444,10 @@ $fn = Fiber.fn = {
    */
   createPlain: function(key, value) {
     var obj = {}, isValueArray = _.isArray(value);
-    if (_.isArray(key)) return $fn.multi(key, function(one, index) {
+    if (! _.isArray(key)) obj[key] = value;
+    else $each(key, function(one, index) {
       _.extend(obj, $fn.createPlain(one, isValueArray ? value[index] : value));
-    }, function() {return obj;}, 'each');
-    obj[key] = value;
+    });
     return obj;
   },
 
@@ -467,7 +494,7 @@ $fn = Fiber.fn = {
   /**
    * Clones `object` deep using `customizer`
    * @param {Object} object
-   * @param {function()} customizer
+   * @param {function(...)} customizer
    * @param {?Object} [scope]
    * @returns {Object}
    */
@@ -479,7 +506,7 @@ $fn = Fiber.fn = {
   /**
    * Clones `object` using `customizer`
    * @param {Object} object
-   * @param {function()} customizer
+   * @param {function(...)} customizer
    * @param {?Object} [scope]
    * @returns {Object}
    */
@@ -495,7 +522,7 @@ $fn = Fiber.fn = {
    * Clones object
    * @param {Object} object
    * @param {?boolean} [deep=false]
-   * @param {function()} [cloneIterator]
+   * @param {function(...)} [cloneIterator]
    */
   clone: function(object, deep, cloneIterator) {
     return $fn[deep ? 'cloneDeepWith' : 'cloneWith'](object, $val(cloneIterator, function(value) {
@@ -537,7 +564,7 @@ $fn = Fiber.fn = {
   /**
    * Creates function that returns `value`.
    * @param {*} value
-   * @returns {function()}
+   * @returns {function(...)}
    */
   constant: function(value) {
     return function() {return value;};
@@ -571,7 +598,7 @@ $fn = Fiber.fn = {
    * @param {string} event
    * @param {string} attribute
    * @param {?Array} [args]
-   * @param {?function()} [cb]
+   * @param {?function(...)} [cb]
    */
   fireAttribute: function(object, event, attribute, args, cb) {
     var options = { prepare: false, call: false };
@@ -586,7 +613,7 @@ $fn = Fiber.fn = {
 
   /**
    * Invokes method (camel case transformed event) if exists and fires event
-   * @param {function()|Object} object - object to call
+   * @param {function(...)|Object} object - object to call
    * @param {string} event - event to fire and transform to callback name
    * @param ?Object} [args]
    * @param {?Object} [options]
@@ -603,9 +630,9 @@ $fn = Fiber.fn = {
 
   /**
    * Fires lifecycle events, invokes callback and if event method (camel case transformed event) exists will invoke it.
-   * @param {function()|Object} object - object to call
+   * @param {function(...)|Object} object - object to call
    * @param {string} event - event to fire and transform to callback name
-   * @param {function()} callback
+   * @param {function(...)} callback
    * @param {Object} [args]
    * @param {Array} [lifeCycle]
    * @return {*}
@@ -626,11 +653,11 @@ $fn = Fiber.fn = {
 
   /**
    * Returns wrapped `fireCallCyclic` method
-   * @param {function()} fn
+   * @param {function(...)} fn
    * @param {string} event
    * @param {Object} [args]
    * @param {Array} [lifeCycle]
-   * @returns {function()}
+   * @returns {function(...)}
    */
   wrapFireCallCyclic: function(fn, event, args, lifeCycle) {
     return _.wrap(fn, _.bind(function(execFn) {
@@ -680,87 +707,8 @@ $fn = Fiber.fn = {
    * @returns {string}
    */
   debug: function(object, log) {
-    var debug = "[Fiber.Debug] >> `" + $fn.types.what(object).getType() + "`:\n" + $fn.serialize(object, true);
-    return $val(log, true, _.isBoolean) ? $log.debug(debug) && void 0 : debug;
-  },
-
-  /**
-   * Serializes object to string representation
-   * @param {Object} object
-   * @param {boolean} [prettyPrint=false]
-   * @returns {string}
-   */
-  serialize: function(object, prettyPrint) {
-    var isArray = _.isArray(object)
-      , prepared = isArray ? [] : {}
-      , args = [prepared];
-
-    if (_.isFunction(object)) return $fn.serializeFunction(object);
-
-    $each(object, function(value, prop) {
-      if (_.isObject(value) || _.isFunction(value)) value = $fn.serialize(value);
-      isArray ? prepared.push(value) : (prepared[prop] = value);
-    });
-
-    if (prettyPrint) args = args.concat([null, "\t"]);
-    return JSON.stringify.apply(JSON, args);
-  },
-
-  /**
-   * Serializes function
-   * @param {Function|function()|Object} fn
-   * @returns {string}
-   */
-  serializeFunction: function(fn) {
-    return fn.toString().replace($fn.regexp.map.injection.stripComments, '');
-  },
-
-  /**
-   * Un serializes string representation to object
-   * @param {string} string
-   * @returns {Object}
-   */
-  unserialize: function(string, defaults) {
-    var parsed;
-    string = $fn.trim(string);
-    try { parsed = JSON.parse(string); }
-    catch (e) { parsed = $val(defaults, {}); }
-    $each(parsed, function(value, prop) {
-      if (_.isString(value)) parsed[prop] = $fn.unserializeFunction(value);
-    });
-    return parsed;
-  },
-
-  /**
-   * Unserializes function
-   * @param {string} string
-   * @returns {Function|function()|*}
-   */
-  unserializeFunction: function(string) {
-    if (! _.isString(string)) return string;
-    string = $fn.trim(string);
-    if (string[0] === '[' || string[0] === '{') return string;
-    string = string.replace($fn.regexp.map.injection.stripComments, '');
-    if (! $fn.regexp.matches(string, 'isFunction')) return string;
-    if ($fn.regexp.matches(string, 'isFunctionEmpty')) return function() {};
-    var args = $fn.injection.parseArguments(string);
-    args.push($fn.trim(string.substring(string.indexOf('{') + 1, string.lastIndexOf('}'))));
-    return $fn.class.instance(Function, args);
-  },
-
-  /**
-   * Serializes object to the query parameters string
-   * @param {Object} object
-   * @param {Object} [options]
-   * @returns {string}
-   */
-  toQuery: function(object, options) {
-    options = $valMerge(options, { omitMethods: true, prefixQuestionMark: false, }, 'defaults');
-    if (options.omitMethods) object = _.omit(object, $fn.methods(object));
-    var prefix = options.prefixQuestionMark ? '?' : '';
-    return prefix + _.map(_.toPairs(object), function(pair) {
-        return _.map(pair, function(fragment) {return encodeURIComponent(fragment);}).join('=');
-      }).join('&');
+    var msg = "[Fiber.Debug] >> `" + $fn.types.what(object).getType() + "`:\n" + $fn.serialize.stringify(object, true);
+    return $val(log, true, _.isBoolean) ? $log.debug(msg) && void 0 : msg;
   },
 
   /**
@@ -805,13 +753,13 @@ $fn = Fiber.fn = {
    * @returns {Object}
    */
   detectBrowser: function() {
-    var agent = navigator.userAgent
-      , isOpera = Object.prototype.toString.call(window.opera) == '[object Opera]';
+    var isOpera = $fn.types.parseSignature(root.opera) == '[object Opera]'
+      , agent = navigator.userAgent;
     return {
-      isIE: ! ! window.attachEvent && ! isOpera,
+      isIE: $fn.cast.toBoolean(window.attachEvent && ! isOpera),
       isOpera: isOpera,
-      isWebKit: ! ! ~ agent.indexOf('AppleWebKit/'),
-      isGecko: ~ agent.indexOf('Gecko') > - 1 && ! ~ agent.indexOf('KHTML'),
+      isWebKit: $fn.cast.toBoolean(~ agent.indexOf('AppleWebKit/')),
+      isGecko: ~ agent.indexOf('Gecko') && ! (~ agent.indexOf('KHTML')),
       isMobileSafari: /Apple.*Mobile/.test(agent)
     }
   },
@@ -848,7 +796,7 @@ $fn = Fiber.fn = {
    * @returns {boolean}
    */
   isAllowedToCall: function(object, method, level) {
-    level = $val(level, $PropNames.access.default, _.isString) || object[$PropNames.access.key];
+    level = $val(level, $propNames.access.default, _.isString) || object[$propNames.access.key];
     if (! _.isObject(object) || ! level) return true;
     var methods = $fn.get(object, '_accessRules.' + level);
     if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
@@ -863,14 +811,6 @@ $fn = Fiber.fn = {
 };
 
 /**
- * Checks if value is defined
- * @param {*} value - Value to check
- * @returns {boolean}
- * @static
- */
-$isDef = $fn.val.isDef = $fn.isDef;
-
-/**
  * Adds not defined value to the statics of `val` function.
  * @type {string}
  * @static
@@ -878,30 +818,38 @@ $isDef = $fn.val.isDef = $fn.isDef;
 $fn.val.notDefined = $fn.notDefined;
 
 /**
+ * Checks if value is defined
+ * @param {*} value - Value to check
+ * @returns {boolean}
+ * @static
+ */
+var $isDef = $fn.val.isDef = $fn.isDef;
+
+/**
  * Returns value if not undefined or null,
  * otherwise returns defaults or $_NULL_$ value
  * @see https://github.com/imkrimerman/im.val (npm version)
  * @param {*} value - value to check
  * @param {*} defaults - default value to use
- * @param {?function()|function()[]} [checker] - function to call to check validity
+ * @param {?function(...)|function(...)[]} [checker] - function to call to check validity
  * @param {?string} [match='every'] - function to use ('every', 'some')
  * @returns {*}
  */
-$val = $fn.val;
+var $val = $fn.val;
 
 /**
  * Applies `val` checker function and extends checked value with `extender` if allowed.
  * @param {*} value - value to check
  * @param {Object} extender - object to extend with
- * @param {?function()|string} [method=_.extend] - function to use to merge the objects (can be
+ * @param {?function(...)|string} [method=_.extend] - function to use to merge the objects (can be
  *   lodash method name or function)
- * @param {?function()} [checker] - function to call to check validity
+ * @param {?function(...)} [checker] - function to call to check validity
  * @param {?string} [match='every'] - function to use ('every', 'some')
  * @param {?boolean} [toOwn=false] - if true then sets extender directly to checked value,
  * otherwise creates new object and merges checked value with extender
- * @returns {Object|function()}
+ * @returns {Object|function(...)}
  */
-$valMerge = $fn.valMerge;
+var $valMerge = $fn.valMerge;
 
 /**
  * Returns `value` if `includes` array contains `value` or returns defaults otherwise.
@@ -911,4 +859,4 @@ $valMerge = $fn.valMerge;
  * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
  * @returns {*}
  */
-$valIncludes = $fn.valIncludes;
+var $valIncludes = $fn.valIncludes;

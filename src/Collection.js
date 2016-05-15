@@ -13,13 +13,13 @@ Fiber.Collection = BaseCollection.extend({
 
   /**
    * Properties keys that will be auto extended from initialize object
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   willExtend: ['model', 'url', 'eventsConfig'],
 
   /**
    * Properties keys that will be owned by the instance
-   * @type {Array|function()}
+   * @type {Array|function(...)}
    */
   ownProps: ['eventsConfig'],
 

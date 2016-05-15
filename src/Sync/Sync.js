@@ -29,7 +29,7 @@ Fiber.Sync = Fiber.Class.extend({
  * Http methods map.
  * @type {Object}
  */
-Fiber.Constants.set('Sync.http', {
+Fiber.Config.set('Sync.http', {
   read: 'GET',
   create: 'POST',
   update: 'PUT',
@@ -41,7 +41,7 @@ Fiber.Constants.set('Sync.http', {
  * Http methods to Storage methods map
  * @type {Object}
  */
-Fiber.Constants.set('Sync.methods', {
+Fiber.Config.set('Sync.methods', {
   read: 'get',
   create: 'set',
   update: 'update',
