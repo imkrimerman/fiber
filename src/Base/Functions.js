@@ -1,4 +1,141 @@
 /**
+ * Value that represents `not defined` state
+ * @type {string}
+ */
+var $notDefined = '$_NOT_DEFINED_$';
+
+/**
+ * Returns value if not undefined or null, otherwise returns defaults or $__NULL__$ value.
+ * @see https://github.com/imkrimerman/im.val (npm version without current enhancements)
+ * @param {*} value - value to check
+ * @param {*} [defaults] - default value to use
+ * @param {?function(...)|function(...)[]} [checker] - function to call to check validity
+ * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
+ * @returns {*}
+ */
+var $val = function(value, defaults, checker, match) {
+  // if defaults not specified then assign notDefined `$__NULL__$` value
+  defaults = arguments.length > 1 ? defaults : $notDefined;
+  // if we don't have any `value` then return `defaults`
+  if (! arguments.length) return defaults;
+  // if value check was made and it's not valid then return `defaults`
+  if (! $valCheck(value, checker, match)) return defaults;
+  // if value not specified return defaults, otherwise return value;
+  return value != null ? value : defaults;
+};
+
+/**
+ * Validates value with the given checkers
+ * @param {*} value - value to check
+ * @param {Array|function(...)} checkers - function to call to check validity
+ * @param {?string} [match='some'] - function to use ('every', 'any', 'some') 'any' === 'some'
+ * @returns {boolean}
+ */
+var $valCheck = function(value, checkers, match) {
+  // if value and checker is specified then use it to additionally check value
+  if (! _.isArray(checkers) && ! _.isFunction(checkers)) return true;
+  return _[match || 'some']($castArr(checkers), function(check) {
+    if (_.isFunction(check)) return check(value);
+  });
+};
+
+/**
+ * Returns `value` if `includes` array contains `value` or returns defaults otherwise.
+ * @param {*} value - value to check
+ * @param {*} defaults - default value to use
+ * @param {Array|Object} [includes] - array of values to check if the value is contained there
+ * @param {?string} [match='some'] - function to use ('every', 'any', 'some') 'any' === 'some'
+ * @returns {boolean}
+ */
+var $valIncludes = function(value, defaults, includes, match) {
+  if (includes == null) includes = ['every', 'some', 'any'];
+  if (_.isPlainObject(includes)) includes = _.keys(includes);
+  return $val(value, defaults, function(val) {
+    return _.includes(includes, val);
+  }, match || 'some');
+};
+
+/**
+ * Applies `val` function and calls callback with result as first argument
+ * @param {*} value - value to check
+ * @param {*} defaults - default value to use
+ * @param {function(...)} cb - callback to call after check
+ * @param {?function(...)} [checker] - function to call to check validity
+ * @param {?string} [match='every'] - function to use ('every', 'some')
+ * @returns {*}
+ */
+var $valCb = function(value, defaults, cb, checker, match) {
+  var val = $val(value, defaults, checker, match);
+  if (! _.isFunction(cb)) return val;
+  return cb(val);
+};
+
+/**
+ * Applies `val` checker function and extends checked value with `extender` if allowed.
+ * @param {*} value - value to check
+ * @param {Object} extender - object to extend with
+ * @param {?function(...)|string} [method=_.extend] - function to use to merge the objects (can be
+ *                                               lodash method name or function)
+ * @param {?function(...)} [checker] - function to call to check validity
+ * @param {?string} [match='every'] - function to use ('every', 'some')
+ * @param {?boolean} [toOwn=false] - if true then sets extender directly to checked value,
+ * otherwise creates new object and merges checked value with extender
+ * @returns {Object|function(...)}
+ */
+var $valMerge = function(value, extender, method, checker, match, toOwn) {
+  method = $val(method, _.extend, [_.isFunction, _.isString]);
+  if (_.isString(method) && $has(_, method)) method = _[method];
+  if (! $isDef(checker)) checker = _.isPlainObject;
+  toOwn = $val(toOwn, false, _.isBoolean);
+  return $valCb(value, {}, function(checked) {
+    var args = toOwn ? [checked, extender] : [{}, checked, extender];
+    if (! $isExtendable(args)) return checked;
+    return method.apply(_, args);
+  }, checker, match);
+};
+
+/**
+ * Checks if value is defined
+ * @param {*} value - Value to check
+ * @returns {boolean}
+ */
+var $isDef = function(value) {
+  if (! arguments.length) return false;
+  return $val(value) !== $notDefined;
+};
+
+/**
+ * Adds not defined value to the statics of `val` function.
+ * @type {string}
+ * @static
+ */
+$val.notDefined = $notDefined;
+
+/**
+ * Determines if object can be extended.
+ * Check for `extend` function or if it's plain object
+ * @param {*} object
+ * @returns {boolean}
+ */
+var $isExtendable = function(object) {
+  if (arguments.length > 1) object = _.toArray(arguments);
+  return _.every($castArr(object), function(one) {
+    return _.isObject(one) && ($isClass(object) || _.isFunction(one.extend) || _.isPlainObject(one));
+  });
+};
+
+/**
+ * Determines if given object is Class
+ * @type {Object}
+ */
+var $isClass = function(object) {
+  if (_.isPlainObject(object) || _.isArray(object)) return false;
+  var proto = Object.getPrototypeOf(object);
+  if (proto === null) return false;
+  return (typeof proto.constructor == 'function');
+};
+
+/**
  * Gets value by given `path` key. You can provide `defaults` value that
  * will be returned if value is not found by the given key. If `defaults` is
  * not provided then `null` will be returned.
@@ -110,6 +247,47 @@ var $bind = function(scope) {
   $noop.prototype = this.prototype;
   bound.prototype = new $noop();
   return bound;
+};
+
+  /**
+   * Clones object
+   * @param {Object} object
+   * @param {?boolean} [deep=false]
+   * @param {function(...)} [cloneIterator]
+   */
+var $clone = function(object, deep, cloneIterator) {
+  return (deep ? $cloneDeepWith : $cloneWith)(object, $val(cloneIterator, function(value) {
+    if (_.isFunction(value)) return value;
+    if (_.isArray(value)) return value.slice();
+    return _.clone(value);
+  }, _.isFunction));
+};
+
+/**
+ * Clones `object` deep using `customizer`
+ * @param {Object} object
+ * @param {function(...)} customizer
+ * @param {?Object} [scope]
+ * @returns {Object}
+ */
+var $cloneDeepWith = function(object, customizer, scope) {
+  if (_.isObject(scope)) customizer = _.bind(customizer, scope);
+  return _.cloneDeepWith(object, customizer);
+};
+
+/**
+ * Clones `object` using `customizer`
+ * @param {Object} object
+ * @param {function(...)} customizer
+ * @param {?Object} [scope]
+ * @returns {Object}
+ */
+var $cloneWith = function(object, customizer, scope) {
+  var clone = {};
+  $each(object, function(val, prop) {
+    clone[prop] = customizer.call(scope, val, prop);
+  });
+  return clone;
 };
 
 /**

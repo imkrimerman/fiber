@@ -53,9 +53,9 @@ Fiber.Events = _.extend({
    * @returns {Fiber.Events}
    */
   channel: function(name) {
-    if ($fn.has(this._channels, name)) return $fn.get(this._channels, name);
+    if ($has(this._channels, name)) return $get(this._channels, name);
     var channel = Fiber.Events.$new();
-    $fn.set(this._channels, name, channel);
+    $set(this._channels, name, channel);
     return channel;
   },
 
@@ -67,7 +67,7 @@ Fiber.Events = _.extend({
    * @returns {Fiber.Events}
    */
   respondTo: function(event, action, scope) {
-    return $fn.set(this._responders, event, _.bind(action, $val(scope, this)));
+    return $set(this._responders, event, _.bind(action, $val(scope, this)));
   },
 
   /**
@@ -77,8 +77,8 @@ Fiber.Events = _.extend({
    * @returns {*}
    */
   request: function(event) {
-    if (! $fn.has(this._responders, event)) return void 0;
-    var responder = $fn.get(this._responders, event);
+    if (! $has(this._responders, event)) return void 0;
+    var responder = $get(this._responders, event);
     if (_.isFunction(responder)) return responder.apply(responder, _.drop(_.toArray(arguments)));
   },
 
@@ -184,7 +184,7 @@ Fiber.Events = _.extend({
    * @returns {string}
    */
   event: function(event) {
-    var eventName = $fn.get(this, $fn.join(['eventsConfig.catalog', event], '.')) || event;
+    var eventName = $get(this, $fn.join(['eventsConfig.catalog', event], '.')) || event;
     // returns passed event as is if first char is `!`
     if (event[0] === '!') return event.slice(1);
     // skip catalog look up by providing `@`
@@ -262,7 +262,7 @@ Fiber.Events = _.extend({
    */
   _prepareEventName: function(event, listenable) {
     listenable = $val(listenable, this);
-    return $fn.has(listenable, 'event') ? listenable.event(event) : event;
+    return $has(listenable, 'event') ? listenable.event(event) : event;
   },
 
   /**

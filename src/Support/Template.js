@@ -118,7 +118,7 @@ Fiber.fn.template = {
    * @returns {function(...)}
    */
   getEngine: function(alias) {
-    var engine = $fn.get($fn.template._engines, alias || 'engine');
+    var engine = $get($fn.template._engines, alias || 'engine');
     if (_.isFunction(engine)) return engine;
     return $fn.template.getFallback();
   },
@@ -131,7 +131,7 @@ Fiber.fn.template = {
    */
   setEngine: function(alias, engine) {
     if (! _.isFunction(engine)) return $fn.template;
-    return $fn.set($fn.template._engines, alias, engine);
+    return $set($fn.template._engines, alias, engine);
   },
 
   /**
@@ -150,7 +150,7 @@ Fiber.fn.template = {
    */
   forgetEngine: function(alias) {
     var engine = $fn.template.getEngine(alias);
-    $fn.forget($fn.template._engines, alias);
+    $forget($fn.template._engines, alias);
     return engine;
   },
 
@@ -186,7 +186,7 @@ Fiber.fn.template = {
    * @returns {*}
    */
   getSettings: function(path) {
-    return $fn.get($fn.template, $fn.template.makeSettingsPath(path));
+    return $get($fn.template, $fn.template.makeSettingsPath(path));
   },
 
   /**
@@ -202,7 +202,7 @@ Fiber.fn.template = {
     }
 
     if (! path) return $fn.template;
-    return $fn.set($fn.template, $fn.template.makeSettingsPath(path), value);
+    return $set($fn.template, $fn.template.makeSettingsPath(path), value);
   },
 
   /**
@@ -211,7 +211,7 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasSettings: function(path) {
-    return $fn.has($fn.template, $fn.template.makeSettingsPath(path));
+    return $has($fn.template, $fn.template.makeSettingsPath(path));
   },
 
   /**
@@ -220,7 +220,7 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   forgetSettings: function(path) {
-    return $fn.get($fn.template, $fn.template.makeSettingsPath(path));
+    return $get($fn.template, $fn.template.makeSettingsPath(path));
   },
 
   /**

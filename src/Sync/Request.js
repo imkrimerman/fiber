@@ -59,7 +59,7 @@ Fiber.Sync.Request = Fiber.Class.extend({
       , error = options.error
       , params = { type: type, dataType: 'json' };
     // Retrieve url from Model
-    if (! options.url) params.url = $fn.result(model, 'url') || $log.error('`Url` is found. Aborting request.');
+    if (! options.url) params.url = $result(model, 'url') || $log.error('`Url` is found. Aborting request.');
     // if `model` is instance of Model then lets convert it to JSON hash
     if (model instanceof Backbone.Model) model = model.toJSON(options);
     // Ensure that we have the appropriate request data.

@@ -13,12 +13,12 @@ Fiber.fn.macros = {
     getSet: function(property, checkToSetFn) {
       return {
         get: function() {
-          return $fn.get(this, property);
+          return $get(this, property);
         },
         set: function(value) {
-          if (_.isString(checkToSetFn)) checkToSetFn = $fn.get(this, checkToSetFn);
+          if (_.isString(checkToSetFn)) checkToSetFn = $get(this, checkToSetFn);
           if (! $isDef(checkToSetFn) || _.isFunction(checkToSetFn) && checkToSetFn(value))
-            $fn.set(this, property, value);
+            $set(this, property, value);
           return this;
         }
       };

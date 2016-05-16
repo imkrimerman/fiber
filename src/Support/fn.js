@@ -11,12 +11,6 @@ $fn = Fiber.fn = {
   protoExclude: ['proto', 'protoExclude'],
 
   /**
-   * Value that represents not defined state.
-   * @type {string}
-   */
-  notDefined: '$__NULL__$',
-
-  /**
    * Gets value by given `property` key. You can provide `defaults` value that
    * will be returned if value is not found by the given key. If `defaults` is
    * not provided then `null` will be returned.
@@ -74,17 +68,25 @@ $fn = Fiber.fn = {
   bind: $bind,
 
   /**
-   * A no-operation function that returns undefined regardless of the arguments it receives.
-   * @returns {void}
-   */
-  noop: $noop,
-
-  /**
    * Force object cast to array
    * @param {*} object
    * @returns {Array}
    */
   castArr: $castArr,
+
+  /**
+   * Clones object
+   * @param {Object} object
+   * @param {?boolean} [deep=false]
+   * @param {function(...)} [cloneIterator]
+   */
+  clone: $clone,
+
+  /**
+   * A no-operation function that returns undefined regardless of the arguments it receives.
+   * @returns {void}
+   */
+  noop: $noop,
 
   /**
    * Returns value if not undefined or null, otherwise returns defaults or $__NULL__$ value.
@@ -95,16 +97,7 @@ $fn = Fiber.fn = {
    * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
    * @returns {*}
    */
-  val: function(value, defaults, checker, match) {
-    // if defaults not specified then assign notDefined `$__NULL__$` value
-    defaults = arguments.length > 1 ? defaults : $fn.notDefined;
-    // if we don't have any `value` then return `defaults`
-    if (! arguments.length) return defaults;
-    // if value check was made and it's not valid then return `defaults`
-    if (! $fn.valCheck(value, checker, match)) return defaults;
-    // if value not specified return defaults, otherwise return value;
-    return value != null ? value : defaults;
-  },
+  val: $val,
 
   /**
    * Validates value with the given checkers
@@ -113,19 +106,7 @@ $fn = Fiber.fn = {
    * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
    * @returns {boolean}
    */
-  valCheck: function(value, checkers, match) {
-    match = _.isString(match) ? match : 'any';
-    // if value and checker is specified then use it to additionally check value
-    if (! _.isArray(checkers) && ! _.isFunction(checkers)) return true;
-    return _[match]($castArr(checkers), function(check) {
-      if (_.isFunction(check) && value != null) {
-        // if `check` returns true then we are good
-        if (check(value)) return true;
-        // and return false otherwise
-        return false;
-      }
-    });
-  },
+  valCheck: $valCheck,
 
   /**
    * Returns `value` if `includes` array contains `value` or returns defaults otherwise.
@@ -135,13 +116,7 @@ $fn = Fiber.fn = {
    * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
    * @returns {*}
    */
-  valIncludes: function(value, defaults, includes, match) {
-    if (includes == null) includes = ['every', 'some', 'any'];
-    if (_.isPlainObject(includes)) includes = _.keys(includes);
-    return $val(value, defaults, function(val) {
-      return _.includes(includes, val);
-    }, match);
-  },
+  valIncludes: $valIncludes,
 
   /**
    * Applies `val` function and calls callback with result as first argument
@@ -152,11 +127,7 @@ $fn = Fiber.fn = {
    * @param {?string} [match='every'] - function to use ('every', 'some')
    * @returns {*}
    */
-  valCb: function(value, defaults, cb, checker, match) {
-    var val = $val(value, defaults, checker, match);
-    if (! _.isFunction(cb)) return val;
-    return cb(val);
-  },
+  valCb: $valCb,
 
   /**
    * Applies `val` checker function and extends checked value with `extender` if allowed.
@@ -170,27 +141,22 @@ $fn = Fiber.fn = {
    * otherwise creates new object and merges checked value with extender
    * @returns {Object|function(...)}
    */
-  valMerge: function(value, extender, method, checker, match, toOwn) {
-    method = $val(method, _.extend, [_.isFunction, _.isString]);
-    if (_.isString(method) && $fn.has(_, method)) method = _[method];
-    if (! $isDef(checker)) checker = _.isPlainObject;
-    toOwn = $val(toOwn, false, _.isBoolean);
-    return $fn.valCb(value, {}, function(checked) {
-      var args = toOwn ? [checked, extender] : [{}, checked, extender];
-      if (! $fn.isExtendable(args)) return checked;
-      return method.apply(_, args);
-    }, checker, match);
-  },
+  valMerge: $valMerge,
 
   /**
    * Checks if value is defined
    * @param {*} value - Value to check
    * @returns {boolean}
    */
-  isDef: function(value) {
-    if (! arguments.length) return false;
-    return $fn.val(value) !== $fn.val.notDefined;
-  },
+  isDef: $isDef,
+
+  /**
+   * Determines if object can be extended.
+   * Check for `extend` function or if it's plain object
+   * @param {*} object
+   * @returns {boolean}
+   */
+  isExtendable: $isExtendable,
 
   /**
    * Merges multiple objects or arrays into one.
@@ -226,8 +192,7 @@ $fn = Fiber.fn = {
    * @returns {*}
    */
   applyFn: function(fn, args, scope) {
-    if (! $isDef(args)) args = [];
-    else args = ! _.isArguments(args) ? $castArr(args) : args;
+    args = ! $isDef(args) ? [] : $castArr(args);
     if (_.isFunction(fn)) return fn.apply($val(scope, fn), args);
   },
 
@@ -297,7 +262,7 @@ $fn = Fiber.fn = {
   hasAllProps: function(obj, props) {
     props = _.isPlainObject(props) ? _.keys(props) : $castArr(props);
     return _.every(props, function(prop) {
-      return $fn.has(obj, prop);
+      return $has(obj, prop);
     });
   },
 
@@ -348,7 +313,7 @@ $fn = Fiber.fn = {
 
     if (_.isString(final)) {
       if ($fn.macros.has(final)) final = $fn.macros.create(final, traversable);
-      if ($fn.has(Fiber, final)) final = $fn.get(Fiber, final);
+      if ($has(Fiber, final)) final = $get(Fiber, final);
     }
 
     var result = $fn.applyFn(_[$val(method, 'map')], [traversable, iterator], scope);
@@ -433,7 +398,7 @@ $fn = Fiber.fn = {
    */
   copyProps: function(source, destination, props, deep) {
     var method = $val(deep, false, _.isBoolean) ? 'cloneDeep' : 'clone';
-    for (var i = 0; i < props.length; i ++) if ($fn.has(source, props[i]))
+    for (var i = 0; i < props.length; i ++) if ($has(source, props[i]))
       destination[props[i]] = _[method](source[props[i]]);
     return destination;
   },
@@ -461,47 +426,6 @@ $fn = Fiber.fn = {
     if (! _.isObject(object) || _.isArray(object)) return methods;
     var properties = _.keys(_.omit(object, $fn.methods(object)));
     return ! _.isEmpty(exclude) ? _.difference(properties, $castArr(exclude)) : properties;
-  },
-
-  /**
-   * Clones `object` deep using `customizer`
-   * @param {Object} object
-   * @param {function(...)} customizer
-   * @param {?Object} [scope]
-   * @returns {Object}
-   */
-  cloneDeepWith: function(object, customizer, scope) {
-    if (_.isObject(scope)) customizer = _.bind(customizer, scope);
-    return _.cloneDeepWith(object, customizer);
-  },
-
-  /**
-   * Clones `object` using `customizer`
-   * @param {Object} object
-   * @param {function(...)} customizer
-   * @param {?Object} [scope]
-   * @returns {Object}
-   */
-  cloneWith: function(object, customizer, scope) {
-    var clone = {};
-    $each(object, function(val, prop) {
-      clone[prop] = customizer.call(scope, val, prop);
-    });
-    return clone;
-  },
-
-  /**
-   * Clones object
-   * @param {Object} object
-   * @param {?boolean} [deep=false]
-   * @param {function(...)} [cloneIterator]
-   */
-  clone: function(object, deep, cloneIterator) {
-    return $fn[deep ? 'cloneDeepWith' : 'cloneWith'](object, $val(cloneIterator, function(value) {
-      if (_.isFunction(value)) return value;
-      if (_.isArray(value)) return value.slice();
-      return _.clone(value);
-    }, _.isFunction));
   },
 
   /**
@@ -745,69 +669,5 @@ $fn = Fiber.fn = {
     var pairs = _.toPairs(map);
     for (var i = 0; i < pairs.length; i ++) if (pairs[i][1]) return pairs[i][0].replace('is', '');
     return null;
-  },
-
-  /**
-   * Determines if object can be extended.
-   * Check for `extend` function or if it's plain object
-   * @param {*} object
-   * @returns {boolean}
-   */
-  isExtendable: function(object) {
-    if (arguments.length > 1) object = _.toArray(arguments);
-    return _.every($castArr(object), function(one) {
-      return _.isObject(one) && (_.isFunction(one.extend) || _.isPlainObject(one));
-    });
   }
 };
-
-/**
- * Adds not defined value to the statics of `val` function.
- * @type {string}
- * @static
- */
-$fn.val.notDefined = $fn.notDefined;
-
-/**
- * Checks if value is defined
- * @param {*} value - Value to check
- * @returns {boolean}
- * @static
- */
-var $isDef = $fn.val.isDef = $fn.isDef;
-
-/**
- * Returns value if not undefined or null,
- * otherwise returns defaults or $_NULL_$ value
- * @see https://github.com/imkrimerman/im.val (npm version)
- * @param {*} value - value to check
- * @param {*} defaults - default value to use
- * @param {?function(...)|function(...)[]} [checker] - function to call to check validity
- * @param {?string} [match='every'] - function to use ('every', 'some')
- * @returns {*}
- */
-var $val = $fn.val;
-
-/**
- * Applies `val` checker function and extends checked value with `extender` if allowed.
- * @param {*} value - value to check
- * @param {Object} extender - object to extend with
- * @param {?function(...)|string} [method=_.extend] - function to use to merge the objects (can be
- *   lodash method name or function)
- * @param {?function(...)} [checker] - function to call to check validity
- * @param {?string} [match='every'] - function to use ('every', 'some')
- * @param {?boolean} [toOwn=false] - if true then sets extender directly to checked value,
- * otherwise creates new object and merges checked value with extender
- * @returns {Object|function(...)}
- */
-var $valMerge = $fn.valMerge;
-
-/**
- * Returns `value` if `includes` array contains `value` or returns defaults otherwise.
- * @param {*} value - value to check
- * @param {*} defaults - default value to use
- * @param {Array|*} includes - array of values to check if the value is contained there
- * @param {?string} [match='any'] - function to use ('every', 'any', 'some') 'any' === 'some'
- * @returns {*}
- */
-var $valIncludes = $fn.valIncludes;

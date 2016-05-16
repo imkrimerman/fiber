@@ -81,5 +81,13 @@ _.extend($Storage.prototype, {
    */
   omit: function(paths) {
     return _.omit(this._items, $castArr(paths));
+  },
+
+  /**
+   * Returns all items from the current Bag holder
+   * @returns {Object}
+   */
+  all: function() {
+    return $clone(this._items);
   }
 });

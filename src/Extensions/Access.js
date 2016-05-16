@@ -33,7 +33,7 @@ var $Access = new Fiber.Extension('Access', {
    */
   get: function(property, defaults) {
     if (! this.isAllowedToCall('get')) return void 0;
-    return $fn.get(this, property, defaults);
+    return $get(this, property, defaults);
   },
 
   /**
@@ -43,7 +43,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   set: function(property, value) {
-    if (this.isAllowedToCall('set')) $fn.set(this, property, value);
+    if (this.isAllowedToCall('set')) $set(this, property, value);
     return this;
   },
 
@@ -54,7 +54,7 @@ var $Access = new Fiber.Extension('Access', {
    */
   has: function(property) {
     if (! this.isAllowedToCall('has')) return void 0;
-    return $fn.has(this, property);
+    return $has(this, property);
   },
 
   /**
@@ -67,7 +67,7 @@ var $Access = new Fiber.Extension('Access', {
    */
   result: function(property, defaults) {
     if (! this.isAllowedToCall('result')) return void 0;
-    return $fn.result(this, property, defaults);
+    return $result(this, property, defaults);
   },
 
   /**
@@ -76,7 +76,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   forget: function(property) {
-    if (this.isAllowedToCall('unset')) $fn.forget(this, property);
+    if (this.isAllowedToCall('unset')) $forget(this, property);
     return this;
   },
 
@@ -86,7 +86,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {boolean}
    */
   isAllowedToCall: function(method) {
-    var methods = $fn.get(this._accessRules, this._accessLevel);
+    var methods = $get(this._accessRules, this._accessLevel);
     if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
     return _.includes(methods, method);
   },

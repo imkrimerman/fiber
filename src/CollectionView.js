@@ -172,7 +172,7 @@ Fiber.CollectionView = Fiber.View.extend({
       return this.$collectionElement;
     }
 
-    var collectionEl = $fn.result(this, 'collectionElement');
+    var collectionEl = $result(this, 'collectionElement');
     collectionEl = this.replaceCollectionElementUi(collectionEl);
 
     var $element = this.$(collectionEl);

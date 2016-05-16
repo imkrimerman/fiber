@@ -273,7 +273,7 @@ Fiber.fn.extensions = {
     var hoistingKey = $fn.extensions.migrate
       , extensionKey = $fn.extensions.key;
     if ($fn.class.isClass(object)) object[hoistingKey] = $fn.concat(extensionKey, object[hoistingKey] || []);
-    if (reset || ! $fn.has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
+    if (reset || ! $has(object, extensionKey) || ! _.isArray(object[extensionKey])) object[extensionKey] = [];
     return object[extensionKey] = $fn.concat(object[extensionKey], list);
   },
 
@@ -287,7 +287,7 @@ Fiber.fn.extensions = {
   hasIncluded: function(object, list, match) {
     var key = $fn.extensions.key
       , method = $valIncludes(match, 'every');
-    if (! $fn.has(object, key) || ! _.isArray(object[key])) return false;
+    if (! $has(object, key) || ! _.isArray(object[key])) return false;
     return _[method](function(one) { return ~ list.indexOf(one); });
   },
 

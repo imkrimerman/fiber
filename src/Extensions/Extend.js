@@ -27,7 +27,7 @@ var $Extend = new Fiber.Extension('Extend', {
    * @returns {*}
    */
   applyExtend: function(options) {
-    $fn.class.extendFromOptions(this, $val(options, {}), $fn.result(this, 'willExtend', false));
+    $fn.class.extendFromOptions(this, $val(options, {}), $result(this, 'willExtend', false));
   }
 });
 

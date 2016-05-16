@@ -93,7 +93,7 @@ Fiber.fn.computed = {
    * @returns {string}
    */
   getPostfix: function(model) {
-    var modelPostfix = $fn.get(model, $fn.computed.lookUp, null);
+    var modelPostfix = $get(model, $fn.computed.lookUp, null);
     if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
     return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
   },

@@ -36,8 +36,8 @@ Fiber.fn.class = {
    * @returns {function(...)|Object}
    */
   ensureContractsInSync: function(child, parent) {
-    if ($fn.has(parent, $propNames.contract)) {
-      if (! $fn.has(child, $propNames.contract)) child[$propNames.contract] = {};
+    if ($has(parent, $propNames.contract)) {
+      if (! $has(child, $propNames.contract)) child[$propNames.contract] = {};
       _.extend(child[$propNames.contract], parent[$propNames.contract]);
     }
     return child;
@@ -74,7 +74,7 @@ Fiber.fn.class = {
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
     // by us to simply call the parent's constructor.
-    if (! protoProps || ! $fn.has(protoProps, 'constructor')) child = construct(parent);
+    if (! protoProps || ! $has(protoProps, 'constructor')) child = construct(parent);
     else child = construct(protoProps.constructor, parent);
     // Add static properties to the constructor function, if supplied.
     _.extend(child, parent, staticProps);
@@ -147,7 +147,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   instance: function(Parent, args) {
-    if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
+    if ($fn.class.isInstance(Parent)) Parent = $get(Parent, 'constructor');
     if (! $fn.class.isClass(Parent)) $log.error('Cannot instantiate from `Parent` Class - is not a Class or' +
                                                  ' valid instance to retrieve Constructor.');
     function InstanceCreator () {return Parent.apply(this, $castArr(args))};
@@ -249,7 +249,7 @@ Fiber.fn.class = {
         $mutate: $fn.delegate($fn.class.mutate),
         $new: $fn.delegate($fn.class.createNew),
         toString: function() {
-          return $fn.get(this, $propNames.type, $fn.types.parseSignature(this));
+          return $get(this, $propNames.type, $fn.types.parseSignature(this));
         },
       },
       statics: {
@@ -271,7 +271,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   createNew: function(object) {
-    var parent = $fn.class.isClass(object) ? object : $fn.get(object, 'constructor');
+    var parent = $fn.class.isClass(object) ? object : $get(object, 'constructor');
     return $fn.class.instance(parent, _.drop(arguments));
   },
 
@@ -308,7 +308,7 @@ Fiber.fn.class = {
     if (arguments.length > 2) contract = _.drop(arguments);
 
     contract = $fn.merge($fn.multi(contract, function(one) {
-      one = _.isString(one) ? $fn.get(Fiber.Contracts, one) : one;
+      one = _.isString(one) ? $get(Fiber.Contracts, one) : one;
       if (one instanceof Fiber.Contract) return $fn.createPlain(one.getName(), one);
       $log.error('`Contract` is not instance of Fiber.Contract.', one);
     }));
@@ -333,7 +333,7 @@ Fiber.fn.class = {
       if (methodFn = $fn.class.getMethod(proto, method))
         return $fn.applyFn(methodFn, args, scope || this);
       if (method === 'prototype') proto = parent;
-      return $fn.get(proto, method);
+      return $get(proto, method);
     };
     child.$superInit = function() {
       return parent.apply(this, arguments.length === 1 && _.isArguments(arguments[0]) ? arguments[0] : arguments);
@@ -433,7 +433,7 @@ Fiber.fn.class = {
    * @returns {*}
    */
   getMethod: function(object, method, defaults, allowFunctions) {
-    var method = $fn.get(object.prototype || object, method, defaults);
+    var method = $get(object.prototype || object, method, defaults);
     if ($val(allowFunctions, true) && ! _.isFunction(method)) return defaults;
     return method;
   },
@@ -454,8 +454,8 @@ Fiber.fn.class = {
    * @param {function(...)} Class
    */
   expectFollowingContracts: function(Class) {
-    if ($fn.has(Class, $propNames.contract)) {
-      $fn.expect(_.every($fn.get(Class, $propNames.contract), function(contract) {
+    if ($has(Class, $propNames.contract)) {
+      $fn.expect(_.every($get(Class, $propNames.contract), function(contract) {
         return contract instanceof Fiber.Contract && contract.isImplementedBy(Class);
       }), 'Given `Class` is not following the `Contracts`' + Class);
     }
@@ -533,9 +533,9 @@ Fiber.fn.class = {
     properties = $castArr(properties);
     for (var i = 0; i < properties.length; i ++) {
       var property = properties[i]
-        , propertyValue = $fn.get(object, property);
+        , propertyValue = $get(object, property);
       if (object.hasOwnProperty(property)) continue;
-      $fn.set(object, property, $fn.clone(propertyValue, true));
+      $set(object, property, $fn.clone(propertyValue, true));
     }
     return object;
   },
@@ -549,7 +549,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   extendFromOptions: function(object, options, willExtend) {
-    willExtend = $fn.result($val(willExtend, []));
+    willExtend = $result($val(willExtend, []));
     var isArray = _.isArray(willExtend);
     if (isArray) options = _.pick(options, $fn.compact(willExtend));
     if (! (_.isBoolean(willExtend) && willExtend || willExtend === 'all')) options = {};
@@ -614,7 +614,7 @@ Fiber.fn.class = {
     }));
     return _.every(contract, function(oneContract) {
       return _[fn](oneContract.get(), function(type, property) {
-        var value = $fn.get(source, property, $val.notDefined);
+        var value = $get(source, property, $val.notDefined);
         return $fn.types.matches(value, type);
       });
     });

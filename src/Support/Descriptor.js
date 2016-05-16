@@ -221,7 +221,7 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   hasLevel: function(level) {
-    return $fn.has(_.keys($fn.descriptor.levels), level);
+    return $has(_.keys($fn.descriptor.levels), level);
   },
 
   /**
@@ -230,7 +230,7 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   hasDescriptor: function(alias) {
-    return $fn.has(_.keys($fn.descriptor.descriptors), alias);
+    return $has(_.keys($fn.descriptor.descriptors), alias);
   },
 
   /**

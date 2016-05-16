@@ -147,7 +147,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {string}
    */
   getTemplate: function(glue) {
-    return $fn.compact(_.map($fn.result(this.templates), function(part) {
+    return $fn.compact(_.map($result(this.templates), function(part) {
       if (_.isString(part) || _.isFunction(part)) return part;
     })).join(glue || ' ');
   },
@@ -178,7 +178,7 @@ Fiber.Log = BaseClass.extend({
    */
   returns: function(level, message, args, returnVal, tryToCall) {
     this.callWriter(level, [message, args]);
-    return $val(tryToCall, true) ? $fn.result(returnVal) : returnVal;
+    return $val(tryToCall, true) ? $result(returnVal) : returnVal;
   },
 
   /**

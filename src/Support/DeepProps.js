@@ -41,11 +41,11 @@ $fn.deepProps = {
     // traverse each property
     _.each(properties, function(property) {
       // check and grab `property` from `parent` object prototype
-      var objProtoProp = $fn.has(parent.prototype, property) && parent.prototype[property];
+      var objProtoProp = $has(parent.prototype, property) && parent.prototype[property];
       if (_.isFunction(objProtoProp)) objProtoProp = $fn.applyFn(objProtoProp, [], parent.prototype);
       // if we don't have given `property` in `child` or in `parent` object prototype
       // then we'll return same `child` object
-      if (! $fn.has(child, property) || ! objProtoProp) return child;
+      if (! $has(child, property) || ! objProtoProp) return child;
       // if `property` value is array then concatenate `parent` object with `child` object
       if (_.isArray(child[property])) child[property] = objProtoProp.concat(child[property]);
       // else if it's plain object then extend `child` object from `parent` object
@@ -67,7 +67,7 @@ $fn.deepProps = {
     // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
       var explorable = explorables[i]
-        , holder = $fn.get(explorable.owner, explorable.path, {});
+        , holder = $get(explorable.owner, explorable.path, {});
       // if holder is not valid then continue
       if (_.isEmpty(holder) || _.isFunction(holder) || ! _.isObject(holder)) continue;
       // if we are not exploring deeply then wrap container container into array

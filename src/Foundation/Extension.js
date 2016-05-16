@@ -160,10 +160,10 @@ Fiber.Extension = Fiber.Class.extend({
     code = $valMerge(code, { initWith: false }, 'defaults');
     initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
     if (_.isString(name)) this.setName(name);
-    if (_.isFunction($fn.get(code, '_init_'))) this._init_ = code._init_;
+    if (_.isFunction($get(code, '_init_'))) this._init_ = code._init_;
     this.setCode(code);
     this.setInitMethod(initWith || code.initWith || this._initWith);
-    $fn.forget(code, ['initWith', '_init_']);
+    $forget(code, ['initWith', '_init_']);
     return this;
   },
 

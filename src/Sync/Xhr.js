@@ -34,7 +34,7 @@ Fiber.Sync.Xhr = Fiber.Class.extend({
   constructor: function(options) {
     this._xhr = $getXhr();
     this.$superInit();
-    $fn.class.handleOptions(this, options, $fn.result(this.defaults));
+    $fn.class.handleOptions(this, options, $result(this.defaults));
   },
 
   open: function(user, password) {

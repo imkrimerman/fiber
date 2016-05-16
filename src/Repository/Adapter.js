@@ -78,7 +78,7 @@ Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
    * @returns {Object.<Fiber.Request>}
    */
   request: function(method, key, value, options) {
-    if (! $fn.has(this, method)) return false;
+    if (! $has(this, method)) return false;
     return new Fiber.Request(method, $fn.createPlain(key, value), $valMerge(options, {
       $callback: this.pop(),
       fake: true

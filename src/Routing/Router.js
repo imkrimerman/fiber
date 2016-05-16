@@ -158,7 +158,7 @@ Fiber.Router = Fiber.Object.extend([
       if (_.isPlainObject(data)) {
         for (var alias in data) {
           var route = data[alias];
-          if ($fn.has(route, 'alias')) continue;
+          if ($has(route, 'alias')) continue;
           route.alias = alias;
         }
         data = _.values(data);

@@ -50,6 +50,6 @@ Fiber.Collection = BaseCollection.extend({
    * @returns {boolean}
    */
   isSyncable: function() {
-    return _.isString($fn.result(this, 'url'));
+    return _.isString($result(this, 'url'));
   }
 });

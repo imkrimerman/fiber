@@ -71,7 +71,7 @@ Fiber.Model = BaseModel.extend({
     this.flushView();
     if (options.adapter) this.adapter = options.adapter;
     if (options.parse) attributes = $val(this.parse(attributes, options), {}, _.isPlainObject);
-    attributes = _.defaultsDeep({}, attributes, $fn.result(this, 'defaults'));
+    attributes = _.defaultsDeep({}, attributes, $result(this, 'defaults'));
     this.set(attributes, options);
     this.changed = {};
     this.when('invalid', function() {$fn.apply(this, 'whenInvalid', arguments);});
@@ -84,7 +84,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {string|number}
    */
   createClientId: function() {
-    return this.cid = $fn.result(this, 'cidPrefix') + $fn.result(this, 'cidId');
+    return this.cid = $result(this, 'cidPrefix') + $result(this, 'cidId');
   },
 
   /**
@@ -98,7 +98,7 @@ Fiber.Model = BaseModel.extend({
     options = $valMerge(options, { compute: true }, 'defaults');
     if (options.compute && $fn.computed.has(this, attribute, 'get'))
       return $fn.computed.get(this, attribute);
-    return $fn.get(this.attributes, attribute);
+    return $get(this.attributes, attribute);
   },
 
   /**
@@ -126,7 +126,7 @@ Fiber.Model = BaseModel.extend({
   has: function(attribute, options) {
     options = $valMerge(options, { compute: true }, 'defaults');
     if (options.compute) return $fn.computed.has(this, attribute, 'get');
-    return $fn.has(this.attributes, attribute);
+    return $has(this.attributes, attribute);
   },
 
   /**
@@ -153,7 +153,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Object}
    */
   getRules: function() {
-    return $fn.result(this, 'rules');
+    return $result(this, 'rules');
   },
 
   /**
@@ -264,7 +264,7 @@ Fiber.Model = BaseModel.extend({
     options = $valMerge(options, { hidden: true }, 'defaults');
     var jsonModel = this.all();
     if (! options.hidden) return jsonModel;
-    return _.omit(jsonModel, $fn.result(this, 'hidden'));
+    return _.omit(jsonModel, $result(this, 'hidden'));
   },
 
   /**
@@ -293,7 +293,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {boolean}
    */
   isSyncable: function() {
-    try { return _.isString($fn.result(this, 'url')); }
+    try { return _.isString($result(this, 'url')); }
     catch (e) { return false; }
   }
 });

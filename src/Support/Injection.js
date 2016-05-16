@@ -20,7 +20,7 @@ Fiber.fn.injection = {
     if (! $fn.injection.has(fn)) return [];
     if (! key) return fn[$propNames.injection];
     var joinedKey = $fn.join([$propNames.injection, key], '.');
-    if ($fn.has(fn, joinedKey)) return $fn.get(fn, joinedKey);
+    if ($has(fn, joinedKey)) return $get(fn, joinedKey);
     return [];
   },
 
@@ -31,7 +31,7 @@ Fiber.fn.injection = {
    */
   has: function(fn) {
     if (! $fn.injection.isOneOfAllowed(fn)) return false;
-    return $fn.has(fn, $propNames.injection);
+    return $has(fn, $propNames.injection);
   },
 
   /**

@@ -40,7 +40,7 @@ Fiber.fn.regexp = {
   exec: function(string, regExpOrPath) {
     var re = regExpOrPath;
     if (_.isString(regExpOrPath)) {
-      re = $fn.get($fn.regexp.map, regExpOrPath);
+      re = $get($fn.regexp.map, regExpOrPath);
       if (! re) re = $fn.regexp.$new(re);
     }
     if (! _.isRegExp(re)) return [];
@@ -54,7 +54,7 @@ Fiber.fn.regexp = {
    * @returns {boolean}
    */
   matches: function(string, path) {
-    var re = $fn.get($fn.regexp.map, path);
+    var re = $get($fn.regexp.map, path);
     if (re) return $fn.regexp.test(string, re);
     return true;
   },
