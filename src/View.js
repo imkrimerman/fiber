@@ -101,7 +101,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
       this._linked = new Fiber.LinkedViews();
       this._views = new Fiber.Views(this.$el);
       this.initialize.apply(this, arguments);
-      Fiber.$ && this.$el.data('fiber.view', this);
+      $ && this.$el.data('fiber.view', this);
     },
 
     /**
@@ -121,9 +121,9 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {Fiber.View}
      */
     attachToParent: function($parent, fn) {
-      if (! Fiber.$) return this;
-      if (_.isString($parent)) $parent = Fiber.$($parent);
-      if ($parent instanceof Fiber.$) $parent[$val(fn, 'html')](this.$el);
+      if (! $) return this;
+      if (_.isString($parent)) $parent = $($parent);
+      if ($parent instanceof $) $parent[$val(fn, 'html')](this.$el);
       return this;
     },
 
@@ -179,8 +179,8 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {*|jQuery|HTMLElement}
      */
     resolveOneUi: function(selector, alias) {
-      if (! Fiber.$) return {};
-      return this.$ui[alias] = Fiber.$(selector);
+      if (! $) return {};
+      return this.$ui[alias] = $(selector);
     },
 
     /**
@@ -189,7 +189,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @returns {Fiber.View}
      */
     html: function(html) {
-      if (! Fiber.$) return this;
+      if (! $) return this;
       this.$el.html(html);
       return this;
     },

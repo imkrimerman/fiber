@@ -6,14 +6,14 @@ describe('Fiber.Bag', function() {
   });
 
   it('should initialize', function() {
-    expect(this.bag.items).to.eql({});
+    expect(this.bag._items).to.eql({});
     expect(this.bag).to.be.an.instanceof(Fiber.Bag);
-    expect(this.bag.items).to.eql({});
+    expect(this.bag._items).to.eql({});
   });
 
   it('should `set` key/value', function() {
     this.bag.set('bagKey', 'TEST');
-    expect(this.bag.items['bagKey']).to.eql('TEST');
+    expect(this.bag._items['bagKey']).to.eql('TEST');
   });
 
   it('should `get` value by key', function() {
@@ -33,7 +33,7 @@ describe('Fiber.Bag', function() {
     this.bag.set('bagKey', 'TEST');
     expect(this.bag.get('bagKey')).to.eql('TEST');
     this.bag.forget('bagKey');
-    expect(this.bag.items).not.to.have.property('bagKey');
+    expect(this.bag._items).not.to.have.property('bagKey');
   });
 
   it('should return `all` items', function() {
@@ -45,15 +45,15 @@ describe('Fiber.Bag', function() {
   it('should `flush` items', function() {
     this.bag.set('bagKey', 'TEST');
     this.bag.set('bagKey2', 'TEST');
-    expect(_.size(this.bag.items)).to.eql(2);
+    expect(_.size(this.bag._items)).to.eql(2);
     this.bag.flush();
-    expect(_.size(this.bag.items)).to.eql(0);
+    expect(_.size(this.bag._items)).to.eql(0);
   });
 
   it('should determine size of the items', function() {
     this.bag.set('bagKey', 'TEST');
     this.bag.set('bagKey2', 'TEST');
-    expect(_.size(this.bag.items)).to.eql(this.bag.size());
+    expect(_.size(this.bag._items)).to.eql(this.bag.size());
     expect(this.bag.size()).to.eql(2);
   });
 

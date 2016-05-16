@@ -66,21 +66,21 @@ _.extend($Storage.prototype, {
   },
 
   /**
-   * Picks values by provided `paths`.
-   * @param {Array|string} paths
+   * Picks values by provided `keys`.
+   * @param {Array} keys
    * @returns {Object}
    */
-  pick: function(paths) {
-    return _.pick(this._items, $castArr(paths));
+  pick: function(keys) {
+    return $pick.apply(null, arguments);
   },
 
   /**
-   * Omits values by provided `paths`.
-   * @param {Array|string} paths
+   * Omits values by provided `keys`.
+   * @param {Array} keys
    * @returns {Object}
    */
-  omit: function(paths) {
-    return _.omit(this._items, $castArr(paths));
+  omit: function(keys) {
+    return $omit.apply(null, arguments);
   },
 
   /**

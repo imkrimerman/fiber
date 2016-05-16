@@ -27,18 +27,6 @@ Fiber.noConflict = function() {
 };
 
 /**
- * Attach `lodash`
- * @type {function(...)}
- */
-Fiber._ = _;
-
-/**
- * Attach dom manipulation library (optional)
- * @type {function(...)}
- */
-Fiber.$ = $;
-
-/**
  * Fiber Types storage
  * @type {Object}
  */
@@ -80,7 +68,19 @@ Fiber.internal = {
  * Global document reference
  * @type {HTMLElement|void}
  */
-var doc = root.document;
+var $doc = root.document;
+
+/**
+ * Fiber support function
+ * @type {Object}
+ */
+var $fn;
+
+/**
+ * Fiber dom manipulation library
+ * @type {Fiber.$}
+ */
+var $;
 
 /**
  * Property names map.
@@ -91,9 +91,3 @@ var $propNames = {
   contract: '_implements',
   injection: '_injection'
 };
-
-/**
- * Fiber support function
- * @type {Object}
- */
-var $fn;

@@ -5,6 +5,30 @@
 var $notDefined = '$_NOT_DEFINED_$';
 
 /**
+ * Function to transform type before check.
+ * @type {Function}
+ */
+var $typeTransformer = String.prototype.toLowerCase.call;
+
+/**
+ * Returns string representation of object.
+ * @param {Object} object
+ * @returns {string}
+ */
+var $objToString = function(object) {
+  return Object.prototype.toString.call(object);
+};
+
+/**
+ * Returns string representation of function.
+ * @param {Object} object
+ * @returns {string}
+ */
+var $funcToString = function(object) {
+  return Function.prototype.toString.call(object);
+};
+
+/**
  * Returns value if not undefined or null, otherwise returns defaults or $__NULL__$ value.
  * @see https://github.com/imkrimerman/im.val (npm version without current enhancements)
  * @param {*} value - value to check
@@ -194,12 +218,12 @@ var $has = function(object, path, match) {
  * You can provide `defaults` value that will be returned if value is not found
  * by the given key. If `defaults` is not provided that defaults will be set to `null`.
  * @param {Object|function(...args)} object
- * @param {string} path
+ * @param {string} [path]
  * @param {*} [defaults]
  * @returns {*}
  */
 var $result = function(object, path, defaults) {
-  if (! _.isArray(path) && ! _.isObject(object)) return object;
+  if (! _.isObject(object)) return object;
   if (_.isFunction(object)) return object(path, defaults, object);
   return _.map($castArr(path), function(prop) {
     return _.result(object, prop, defaults);
@@ -221,10 +245,54 @@ var $forget = function(object, path) {
 };
 
 /**
+ * Picks values from `object` by provided `keys`.
+ * @param {Object} object
+ * @param {Array} keys
+ * @returns {Object}
+ */
+var $pick = function(object, keys) {
+  if (_.isString(keys) && arguments.length === 3) {
+    object = $get(object, keys);
+    keys = arguments[2];
+  }
+  return _.pick(object, keys);
+};
+
+/**
+ * Omits values from `object` by provided `keys`.
+ * @param {Object} object
+ * @param {Array} keys
+ * @returns {Object}
+ */
+var $omit = function(object, keys) {
+  if (_.isString(keys) && arguments.length === 3) {
+    object = $get(object, keys);
+    keys = arguments[2];
+  }
+  return _.omit(object, keys);
+};
+
+/**
  * A no-operation function that returns undefined regardless of the arguments it receives.
  * @returns {void}
  */
 var $noop = function() {};
+
+/**
+ * Starts timer to detect function execution speed.
+ * Passes `done` callback as the last argument to mark execution state as `finished`.
+ * @param {Function} fn
+ * @param {Array|Arguments} [args]
+ * @param {Object} [scope]
+ */
+var $timer = function(fn, args, scope) {
+  var stringFn = fn;
+  console.time("[Fiber.$timer] >>\n" + stringFn);
+  fn.apply(scope || fn, $castArr(args).concat(function() {
+    console.timeEnd("[Fiber.$timer] >>\n" + stringFn);
+    arguments.length && console.log(arguments);
+  }));
+};
 
 /**
  * The bind function is an addition to ECMA-262, 5th edition; as such it may not be present in all browsers.
@@ -249,12 +317,12 @@ var $bind = function(scope) {
   return bound;
 };
 
-  /**
-   * Clones object
-   * @param {Object} object
-   * @param {?boolean} [deep=false]
-   * @param {function(...)} [cloneIterator]
-   */
+/**
+ * Clones object
+ * @param {Object} object
+ * @param {?boolean} [deep=false]
+ * @param {function(...)} [cloneIterator]
+ */
 var $clone = function(object, deep, cloneIterator) {
   return (deep ? $cloneDeepWith : $cloneWith)(object, $val(cloneIterator, function(value) {
     if (_.isFunction(value)) return value;
@@ -302,10 +370,55 @@ var $castArr = function(object) {
 }
 
 /**
- * Returns Xhr
- * @return {XMLHttpRequest|ActiveXObject}
+ * Returns result of `typeof` call on `arg`
+ * @param {*} arg
+ * @param {boolean} [transform=false]
+ * @returns {string}
  */
-var $getXhr = function() {
-  try { return new (root.XMLHttpRequest || ActiveXObject); }
-  catch (e) { $log.error('Xhr is unavailable in current browser.'); }
+var $parseType = function(arg, transform) {
+  var result = typeof arg;
+  return transform ? $typeTransformer(result) : result;
 };
+
+/**
+ * Returns result of `toString` call on `arg`
+ * @param {*} arg
+ * @param {boolean} [transform=false]
+ * @returns {string}
+ */
+var $parseSignature = function(arg, transform) {
+  var result = $objToString(arg);
+  return transform ? $typeTransformer(result) : result;
+};
+
+/**
+ * Returns Type hash for the given `arg` or undefined if not matched any of known types.
+ * @param {*} arg
+ * @returns {Object|void}
+ */
+var $whatType = function(arg) {
+  var argType = $parseType(arg, true), argSignature = $parseSignature(arg, true), $tr = $typeTransformer;
+  for (var i = 0; i < $BaseTypes.length; i ++) {
+    if (argType !== $tr($BaseTypes[i].type) || argSignature !== $tr($BaseTypes[i].signature)) continue;
+    return $BaseTypes[i];
+  }
+};
+
+/**
+ * Determines if `arg` is of `type`
+ * @param {*} arg
+ * @param {*} type
+ * @returns {boolean}
+ */
+var $ofType = function(arg, type) {
+  var detected = $whatType(arg);
+  if (! detected) return $parseSignature(arg, true) === $parseSignature(type, true);
+  if (! _.isPlainObject(type) || ! type.type && ! type.signature) type = $whatType(type);
+  return detected.type === type.type && detected.signature === type.signature;
+};
+
+/**
+ * Superagent request.
+ * @type {Function}
+ */
+var $request = superagent;

@@ -1,22 +1,24 @@
 {
-  "name": "fiber",
-  "description": "Give your Backbone Apps some Fiber.",
-  "url": "http://familydev.in.ua/hub/fiber",
+  "name": "FiberJS",
+  "description": "Fiber brings simplicity and scalability to your JS Apps.",
   "keywords": [
     "backbone",
     "marionette",
+    "reactive",
+    "virtual dom",
     "model",
     "view",
-    "controller",
     "router",
-    "server",
+    "contracts",
+    "ioc",
+    "inversion of control",
+    "di container",
     "client",
     "browser"
   ],
   "author": "Igor Krimerman",
   "devDependencies": {
     "chai": "^3.5.0",
-    "docco": "^0.7.0",
     "eslint": "^1.10.3",
     "gulp": "^3.9.0",
     "gulp-connect": "^2.3.1",
@@ -43,31 +45,23 @@
   },
   "dependencies": {
     "backbone": "^1.2.3",
-    "combyne": "^0.8.1",
-    "jquery": "^2.2.0",
     "lodash": "^4.5.0",
-    "ractive": "^0.7.3"
+    "ractive": "^0.7.3",
+    "superagent": "^1.8.3"
   },
   "scripts": {
+    "postinstall": "npm run min && npm run doc",
     "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha",
     "doc": "rm -rf ./docs/doc && mr-doc -s ./src -o ./docs/doc -n 'Fiber' -t 'cayman'",
-    "open-doc": "open -a \"Google Chrome\" docs/doc/index.html",
-    "anotate": "rm -rf ./docs/anotate && docco ./build/fiber.js -o ./docs/anotate",
-    "open-anotate": "open -a \"Google Chrome\" docs/anotate/fiber.html"
+    "open-doc": "open -a \"Google Chrome\" docs/doc/index.html"
   },
-  "main": "fiber.js",
+  "main": "build/fiber.js",
   "version": "0.1.3",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/imkrimerman/fiber.git"
-  },
-  "files": [
-    "fiber.js",
-    "fiber-min.js",
-    "fiber-min.map",
-    "LICENSE"
-  ]
+  }
 }

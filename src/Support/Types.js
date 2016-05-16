@@ -15,17 +15,14 @@ Fiber.fn.types = {
   },
 
   /**
-   * function(...) to apply same transformation before check
+   * Function to apply same transformation before check
    * @type {function(...)}
    */
-  transformer: function(str) {
-    return String.prototype.toLowerCase.apply(str);
-  },
+  transformer: $typeTransformer,
 
   /**
-   * Returns transformed string
+   * Returns transformed string type.
    * @param {string} string
-   * @param {?Object} [scope]
    * @returns {string}
    */
   transform: function(string) {
@@ -39,8 +36,7 @@ Fiber.fn.types = {
    * @returns {boolean}
    */
   matchesType: function(arg, type) {
-    var argType = $fn.types.parseType(arg);
-    if (! $isDef(type)) return argType;
+    var argType = $fn.types.parseType(arg, true);
     type = type instanceof Fiber.Type ? type.getType() : type;
     if (_.isPlainObject(type) && $has(type, $fn.types.defaults.type))
       type = $get(type, $fn.types.defaults.type);
@@ -54,8 +50,7 @@ Fiber.fn.types = {
    * @returns {boolean}
    */
   matchesSignature: function(arg, type) {
-    var signature = $fn.types.parseSignature(arg);
-    if ($isDef(type)) return signature;
+    var signature = $fn.types.parseSignature(arg, true);
     type = type instanceof Fiber.Type ? type.getSignature() : type;
     if (_.isPlainObject(type) && $has(type, $fn.types.defaults.signature))
       signature = $get(type, $fn.types.defaults.signature);
@@ -81,7 +76,7 @@ Fiber.fn.types = {
    * @returns {string}
    */
   what: function(arg) {
-    for (var name in Fiber.Types) if ($fn.types.matches(arg, Fiber.Types[name], true)) return name;
+    for (var name in Fiber.Types) if ($fn.types.matches(arg, Fiber.Types[name])) return name;
     return new Fiber.Type({
       type: $fn.types.parseType(arg),
       signature: $fn.types.parseSignature(arg),
@@ -92,18 +87,20 @@ Fiber.fn.types = {
   /**
    * Returns transformed result of typeof call on `arg`.
    * @param {*} arg
+   * @param {boolean} [transform=false]
    * @returns {string}
    */
-  parseType: function(arg) {
-    return $fn.types.transform(typeof arg);
+  parseType: function(arg, transform) {
+    return $parseType(arg, transform);
   },
 
   /**
    * Returns transformed result of `toString` call on `arg`.
    * @param {*} arg
+   * @param {boolean} [transform=false]
    * @returns {string}
    */
-  parseSignature: function(arg) {
-    return $fn.types.transform(Object.prototype.toString.apply(arg))
+  parseSignature: function(arg, transform) {
+    return $parseSignature(arg, transform);
   }
 };

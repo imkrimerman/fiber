@@ -7,8 +7,9 @@
 </head>
 <body>
   <div id="mocha"></div>
-  <script src="../node_modules/jquery/dist/jquery.js"></script>
   <script src="../node_modules/lodash/lodash.js"></script>
+  <script src="../node_modules/superagent/superagent.js"></script>
+  <script src="../node_modules/ractive/ractive.js"></script>
   <script src="../node_modules/backbone/backbone.js"></script>
   <script src="../node_modules/mocha/mocha.js"></script>
   <script src="../node_modules/chai/chai.js"></script>
@@ -16,20 +17,6 @@
   <script src="../build/fiber.js"></script>
   <script src="./utils.js"></script>
   <!-- inject:js -->
-  <script src="./collection.spec.js"></script>
-  <script src="./collectionView.spec.js"></script>
-  <script src="./model.spec.js"></script>
-  <script src="./view.spec.js"></script>
-  <script src="./base/bag.spec.js"></script>
-  <script src="./extensions/access.spec.js"></script>
-  <script src="./extensions/extend.spec.js"></script>
-  <script src="./extensions/extensions.spec.js"></script>
-  <script src="./extensions/mixin.spec.js"></script>
-  <script src="./extensions/nsEvents.spec.js"></script>
-  <script src="./extensions/ownProperties.spec.js"></script>
-  <script src="./helpers/fn.spec.js"></script>
-  <script src="./support/linkedViews.spec.js"></script>
-  <script src="./support/listeners.spec.js"></script>
   <!-- endinject -->
   <script>
     $(function() {

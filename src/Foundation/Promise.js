@@ -28,12 +28,13 @@ Fiber.Promise = Fiber.Class.extend({
   /**
    * Constructs Promise
    * @param {function(...)|Function} executor
+   * @param {Object} [executor]
    */
-  constructor: function(executor) {
+  constructor: function(executor, scope) {
     $fn.expect(_.isFunction(executor));
     this._resolved = false;
     this._rejected = false;
-    this._executor = executor;
+    this._executor = scope ? executor.bind(scope) : executor;
     this._callbacks = new Fiber.Queue();
     this._start();
   },

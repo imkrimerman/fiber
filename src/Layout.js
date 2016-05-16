@@ -15,7 +15,7 @@ Fiber.Layout = Fiber.View.extend({
       this.contentSelector = $content;
       this.$contentElement = this.$(this.contentSelector);
     }
-    else if ($content instanceof Fiber.$) {
+    else if ($content instanceof $) {
       this.contentSelector = $content.selector;
       this.$contentElement = $content;
     }
@@ -28,7 +28,7 @@ Fiber.Layout = Fiber.View.extend({
   },
 
   hasContentElement: function() {
-    return this.getContentElement() instanceof Fiber.$;
+    return this.getContentElement() instanceof $;
   },
 
   renderToContentElement: function(view) {

@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Bag}
  */
-Fiber.Sync.Response = Fiber.Bag.extend({
+Fiber.Response = Fiber.Bag.extend({
 
   /**
    * Class type signature
@@ -37,6 +37,6 @@ Fiber.Sync.Response = Fiber.Bag.extend({
  */
 Fiber.Types.Response = new Fiber.Type({
   type: 'object',
-  signature: Fiber.Sync.Response.prototype._signature,
-  example: function() {return new Fiber.Sync.Response;}
+  signature: Fiber.Response.prototype._signature,
+  example: function() {return new Fiber.Response;}
 });

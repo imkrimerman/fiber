@@ -149,7 +149,7 @@ Fiber.fn.class = {
   instance: function(Parent, args) {
     if ($fn.class.isInstance(Parent)) Parent = $get(Parent, 'constructor');
     if (! $fn.class.isClass(Parent)) $log.error('Cannot instantiate from `Parent` Class - is not a Class or' +
-                                                 ' valid instance to retrieve Constructor.');
+                                                ' valid instance to retrieve Constructor.');
     function InstanceCreator () {return Parent.apply(this, $castArr(args))};
     InstanceCreator.prototype = Parent.prototype;
     return new InstanceCreator();

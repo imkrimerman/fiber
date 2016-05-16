@@ -8,6 +8,7 @@ module.exports = [
   // Base
   './src/Base/Properties.js',
   './src/Base/Version.js',
+  './src/Base/Types.js',
   './src/Base/Functions.js',
   './src/Base/Compatibility.js',
   './src/Base/Storage.js',

@@ -29,22 +29,30 @@ Fiber.Sync = Fiber.Class.extend({
  * Http methods map.
  * @type {Object}
  */
-Fiber.Config.set('Sync.http', {
-  read: 'GET',
-  create: 'POST',
-  update: 'PUT',
-  patch: 'PATCH',
-  delete: 'DELETE',
-});
-
-/**
- * Http methods to Storage methods map
- * @type {Object}
- */
-Fiber.Config.set('Sync.methods', {
-  read: 'get',
-  create: 'set',
-  update: 'update',
-  patch: 'update',
-  delete: 'forget'
+Fiber.Config.set('Sync', {
+  Verbs: {
+    get: 'GET',
+    post: 'POST',
+    put: 'PUT',
+    patch: 'PATCH',
+    'delete': 'DELETE'
+  },
+  Methods: {
+    read: 'GET',
+    create: 'POST',
+    update: 'PUT',
+    patch: 'PATCH',
+    'delete': 'DELETE',
+  },
+  Emulate: {
+    JSON: false,
+    HTTP: false
+  },
+  Fn: {
+    get: 'read',
+    set: 'create',
+    update: 'update',
+    forget: 'delete',
+    result: 'read'
+  }
 });

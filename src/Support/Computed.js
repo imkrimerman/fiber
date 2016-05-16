@@ -11,13 +11,13 @@ Fiber.fn.computed = {
   postfix: 'Attribute',
 
   /**
-   * Model property path to look up for specific postfix
+   * Model property path to look up for specific postfix.
    * @type {string}
    */
   lookUp: 'compute.postfix',
 
   /**
-   * Returns result of property computation
+   * Returns result of property computation.
    * @param {Object.<Fiber.Model>} model
    * @param {string} prop
    * @returns {*}
@@ -27,7 +27,7 @@ Fiber.fn.computed = {
   },
 
   /**
-   * Sets computed property value
+   * Sets computed property value.
    * @param {Object.<Fiber.Model>} model
    * @param {string} prop
    * @param {*} value
@@ -47,17 +47,15 @@ Fiber.fn.computed = {
    * @returns {boolean}
    */
   has: function(model, prop, action, match) {
-    match = $valIncludes(match, 'any');
+    $valIncludes(match, 'some');
     return _[match]($castArr(action), function(onePrefix) {
-      var computedKey = $fn.computed.createMethodName(prop, onePrefix, model);
-      if (_.isFunction(model[computedKey])) return true;
-      return false;
+      return _.isFunction(model[$fn.computed.createMethodName(prop, onePrefix, model)]);
     });
   },
 
   /**
-   * Applies property computation on the model
-   * @param {Object.<Fiber.Model>} model
+   * Applies property computation on the model.
+   * @param {Object.<Fiber.Model>|Object} model
    * @param {string} prop
    * @param {string} action
    * @param {?Array} [args]
@@ -65,12 +63,13 @@ Fiber.fn.computed = {
    * @returns {*}
    */
   apply: function(model, prop, action, args, options) {
-    options = $valMerge(options, { denyCompute: true }, 'extend');
+    options = $valMerge(options, { compute: true }, 'extend');
     var computedFn = $fn.class.resolveMethod(model, $fn.computed.createMethodName(prop, action, model))
-      , nativeArgs = [model.$super().prototype[action].bind(model), $fn.computed, $Ioc];
+      , nativeArgs = [$fn[action].bind(null, model.attributes || model._items || model), $fn.computed, $Ioc];
     if (! _.isFunction(computedFn)) return;
     var computedValue = computedFn.apply(model, $val(args, [], _.isArray).concat(nativeArgs));
-    return action === 'set' && model.set(prop, computedValue, options) || computedValue;
+    if (action !== 'set') return computedValue;
+    return model.set && model.set(prop, computedValue, options) || $set(model._items || model, prop, computedValue);
   },
 
   /**
@@ -97,4 +96,13 @@ Fiber.fn.computed = {
     if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
     return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
   },
+
+  /**
+   * Determines if given string is matching computed method name pattern.
+   * @param {string} string
+   * @returns {boolean}
+   */
+  isMethodName: function(string) {
+    return $fn.regexp.test($fn.trim(string), '^(get|set|has)[a-zA-Z0-9]+' + this.postfix + '$');
+  }
 };

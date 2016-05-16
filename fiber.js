@@ -7,23 +7,27 @@
  *
  **************************************************************************/
 ;(function(factory) {
+  // Fiber dependencies
+  var deps = ['lodash', 'backbone', 'ractive', 'superagent']
   // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
   // We use `self` instead of `window` for `WebWorker` support.
-  var root = (typeof self == 'object' && self.self === self && self) ||
+    , root = (typeof self == 'object' && self.self === self && self) ||
              (typeof global == 'object' && global.global === global && global);
   // Set up Fiber appropriately for the environment. Start with AMD.
   if (typeof define === 'function' && define.amd)
-    define(['lodash', 'backbone', 'exports'], function(_, Backbone, exports) {
+    define(deps.concat('exports'), function(_, Backbone, Ractive, superagent, exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Fiber.
-      root.Fiber = factory(root, exports, Backbone, _);
+      root.Fiber = factory(root, exports, Backbone, _, Ractive, superagent);
     });
-  // Next for Node.js or CommonJS. jQuery (or similar) may not be needed as a module.
-  else if (typeof exports !== 'undefined') factory(root, exports, require('backbone'), require('lodash'));
+  // Next for Node.js or CommonJS.
+  else if (typeof exports !== 'undefined') factory.apply(null, [root, exports].concat(deps.map(function(dep) {
+    return require(dep);
+  })));
   // Finally, as a browser global.
-  else root.Fiber = factory(root, {}, root.Backbone, root._);
+  else root.Fiber = factory(root, {}, root.Backbone, root._, root.Ractive, root.superagent);
 
-})(function(root, exports, Backbone, _) {
+})(function(root, exports, Backbone, _, Ractive, superagent) {
   'use strict';
   /*eslint valid-jsdoc: 1*/
   // Register loading start

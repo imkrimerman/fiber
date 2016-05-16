@@ -95,10 +95,10 @@ Fiber.Views = Fiber.Class.extend({
    * @returns {Fiber.Views}
    */
   handleRootElement: function($el) {
-    if (! Fiber.$) return $log.debug('Dom manipulation library in not available.');
-    if (! ($el instanceof Fiber.$) && ! _.isString($el))
+    if (! $) return $log.debug('Dom manipulation library in not available.');
+    if (! ($el instanceof $) && ! _.isString($el))
       $log.error('`$el` should be a valid jQuery element or selector.');
-    this.$el = _.isString($el) ? Fiber.$($el) : $el;
+    this.$el = _.isString($el) ? $($el) : $el;
     return this;
   },
 

@@ -26,6 +26,12 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
     },
 
     /**
+     * Bag items defaults
+     * @type {Object|function()}
+     */
+    defaults: {},
+
+    /**
      * Class type signature
      * @type {string}
      * @private
@@ -39,31 +45,55 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      */
     constructor: function(items, options) {
       this._initHolder(items);
+      this._handleDefaults();
       this.$superInit(options);
     },
 
     /**
-     * Sets key/value to the current Bag holder.
-     * @param {string} [key] - Key to set
+     * Gets value by given `path`. You can provide `defaults` value that
+     * will be returned if value is not found by the given path. If `defaults` is
+     * not provided then `null` will be returned.
+     * @param {string} path
+     * @param {*} [defaults]
+     * @returns {*}
+     */
+    get: function(path, defaults) {
+      if ($fn.computed.has(this, path)) return $fn.computed.get(this, path);
+      return this.$super('get', [path, defaults]);
+    },
+
+    /**
+     * Sets path/value to the current Bag holder.
+     * @param {string} [path] - Key to set
      * @param {*} [value] - Value to set
      * @returns {Fiber.Bag}
      */
-    set: function(key, value) {
-      if (_.isPlainObject(key)) return this.reset(key);
-      $set(this._items, key, value);
-      this._fireEvent('set', key, [key, value, this]);
+    set: function(path, value) {
+      if (_.isPlainObject(path)) return this.reset(path);
+      if ($fn.computed.has(this, path)) $fn.computed.set(this, path, value);
+      else $set(this._items, path, value);
+      this._fireEvent('set', path, [path, value, this]);
       return this;
     },
 
     /**
-     * Removes key/value from current Bag holder at given `key`
-     * @param {string} key - Key to remove value by
+     * Checks if current Bag holder has given `key`
+     * @param {string} key - Key to check existence of value in items Bag
+     * @returns {boolean}
+     */
+    has: function(key) {
+      return $fn.computed.has(this, path) || $has(this._items, key);
+    },
+
+    /**
+     * Removes path/value from current Bag holder at given `path`
+     * @param {string} path - Key to remove value by
      * @return {*} - value that is removed
      */
-    forget: function(key) {
-      var value = this.get(key);
-      $forget(this._items, key);
-      this._fireEvent('forget', [value, key, this]);
+    forget: function(path) {
+      var value = this.get(path);
+      $forget(this._items, path);
+      this._fireEvent('forget', [value, path, this]);
       return value;
     },
 
@@ -121,14 +151,24 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
     },
 
     /**
-     * Fires bag events
+     * Ensures that default values are presenting in the Bag.
+     * @returns {Fiber.Bag}
+     * @private
+     */
+    _handleDefaults: function() {
+      if (! _.isEmpty(this.defaults)) _.defaultsDeep(this._items, $result(this.defaults));
+      return this;
+    },
+
+    /**
+     * Fires bag events.
      * @param {string} event
-     * @param {?string} [key]
+     * @param {?string} [path]
      * @param {?Array|*} [args]
      * @returns {Fiber.Bag}
      */
-    _fireEvent: function(event, key, args) {
-      $fn.fireAttribute(this, event, key, $fn.merge($castArr(args), [this]));
+    _fireEvent: function(event, path, args) {
+      $fn.fireAttribute(this, event, path, $fn.merge($castArr(args), [this]));
       return this;
     }
   }

@@ -158,7 +158,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {Fiber.CollectionView}
    */
   clearCollectionElement: function() {
-    if (this.$collectionElement instanceof Fiber.$) this.$collectionElement.empty();
+    if (this.$collectionElement instanceof $) this.$collectionElement.empty();
     return this;
   },
 
@@ -167,7 +167,7 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {jQuery|HTMLElement}
    */
   resolveCollectionElement: function() {
-    if (this.$collectionElement instanceof Fiber.$) {
+    if (this.$collectionElement instanceof $) {
       this.$el.append(this.$collectionElement);
       return this.$collectionElement;
     }
