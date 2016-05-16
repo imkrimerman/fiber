@@ -8,6 +8,7 @@ module.exports = [
   // Base
   './src/Base/Properties.js',
   './src/Base/Version.js',
+  './src/Base/Functions.js',
   './src/Base/Compatibility.js',
   './src/Base/Storage.js',
   './src/Base/Config.js',
@@ -57,7 +58,7 @@ module.exports = [
   './src/Extensions/Extend.js',
   './src/Extensions/Extensions.js',
   './src/Extensions/OwnProps.js',
-  './src/Extensions/Serializable.js',
+  './src/Extensions/Serialize.js',
   // Sync
   './src/Sync/Sync.js',
   './src/Sync/Request.js',

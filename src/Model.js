@@ -64,7 +64,7 @@ Fiber.Model = BaseModel.extend({
   constructor: function(attributes, options) {
     this.attributes = {};
     this.errorBag = new Fiber.ErrorBag();
-    this.adapter = new Fiber.Storage();
+    this.adapter = new Fiber.Repository();
     attributes = $val(attributes, {}, _.isPlainObject);
     options = $fn.class.handleOptions(this, options);
     this.createClientId();

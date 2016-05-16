@@ -273,7 +273,7 @@ Fiber.Events = _.extend({
    */
   joinEventName: function(events, delimiter) {
     delimiter = $val(delimiter, ':', _.isString);
-    return $fn.compact(_.map($fn.castArr(events), function(event) {
+    return $fn.compact(_.map($castArr(events), function(event) {
       return $fn.trim($fn.cast.toString(event), delimiter);
     })).join(delimiter);
   },

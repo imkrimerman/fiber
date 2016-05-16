@@ -61,8 +61,8 @@ $fn.deepProps = {
   explore: function(explorables, rules, comparatorFn) {
     var properties = [];
     // check arguments or set default values
-    explorables = $fn.castArr($val(explorables, this.rules.explore, $fn.deepProps.isExplorable));
-    rules = $fn.castArr($val(rules, $fn.deepProps.config.rules));
+    explorables = $castArr($val(explorables, $fn.deepProps.config.explore, $fn.deepProps.isExplorable));
+    rules = $castArr($val(rules, $fn.deepProps.config.rules));
     comparatorFn = $valIncludes(comparatorFn, 'some');
     // traverse through explorables collection
     for (var i = 0; i < explorables.length; i ++) {
@@ -92,7 +92,7 @@ $fn.deepProps = {
    */
   exploreInObject: function(container, rules, method, exclude) {
     var properties = [];
-    exclude = $fn.castArr($val(exclude, [], [_.isArray, _.isString]));
+    exclude = $castArr($val(exclude, [], [_.isArray, _.isString]));
     container = _.omit(container, exclude.concat($fn.deepProps.config.exclude));
     $each(container, function(value, prop) {
       if (! $fn.deepProps.config.private.allow && _.startsWith(prop, $fn.deepProps.config.private.signature)) return;
@@ -112,7 +112,7 @@ $fn.deepProps = {
     if (! rules) return true;
     if (! property) return false;
     method = $valIncludes(method, 'every', ['some', 'any', 'every'])
-    return _[method]($fn.castArr(rules), function(rule) {
+    return _[method]($castArr(rules), function(rule) {
       return _.isFunction(rule) && rule(property) || true;
     });
   },

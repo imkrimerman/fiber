@@ -23,7 +23,7 @@ Fiber.fn.extensions = {
    * @returns {null|Object.<Fiber.Extension>|Array.<Fiber.Extension>|Object|function(...)|string}
    */
   get: function(alias, retrieveCode) {
-    if (_.isArray(alias)) return _.map($fn.castArr(alias), function(one) {
+    if (_.isArray(alias)) return _.map($castArr(alias), function(one) {
       return $fn.extensions.get(one, retrieveCode);
     });
 
@@ -97,7 +97,7 @@ Fiber.fn.extensions = {
    */
   omit: function(exclude) {
     var extensions = $fn.extensions.all();
-    exclude = $fn.castArr($val(exclude, []));
+    exclude = $castArr($val(exclude, []));
     return _.isEmpty(exclude) ? extensions : _.omit(extensions, exclude);
   },
 
@@ -198,7 +198,7 @@ Fiber.fn.extensions = {
   mapCall: function(extension, method, first, args, scope) {
     if (_.isPlainObject(extension)) extension = _.values(extension);
     var boundCall = function(ext) {return $fn.extensions.call(ext, method, args, scope);}
-      , casted = $fn.castArr(extension);
+      , casted = $castArr(extension);
     first = $val(first, false);
     if (method) casted = casted.map(boundCall);
     return first ? _.first(casted) : casted;
@@ -306,7 +306,7 @@ Fiber.fn.extensions = {
 
     if (! _.isObject(object)) return [];
     var found = [];
-    _.each($fn.castArr(object), function(obj) {
+    _.each($castArr(object), function(obj) {
       if (_.isString(obj)) found.push(obj);
       else if ($fn.extensions.isExtension(obj)) found.push(obj.getName());
     });

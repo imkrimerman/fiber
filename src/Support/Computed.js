@@ -48,7 +48,7 @@ Fiber.fn.computed = {
    */
   has: function(model, prop, action, match) {
     match = $valIncludes(match, 'any');
-    return _[match]($fn.castArr(action), function(onePrefix) {
+    return _[match]($castArr(action), function(onePrefix) {
       var computedKey = $fn.computed.createMethodName(prop, onePrefix, model);
       if (_.isFunction(model[computedKey])) return true;
       return false;

@@ -182,16 +182,6 @@ Fiber.Log = BaseClass.extend({
   },
 
   /**
-   * Logs `message` and immediately throws Error with the same arguments.
-   * @param {...args}
-   */
-  throws: function(msg) {
-    this.returns('error', msg, _.drop(arguments), function() {
-      throw new Error(msg);
-    });
-  },
-
-  /**
    * Starts/Stops timer by `name`.
    * @param {string} name
    * @returns {Fiber.Log}
@@ -210,9 +200,10 @@ Fiber.Log = BaseClass.extend({
    */
   isAllowedLevel: function(level) {
     if (! level || ! _.includes(this.levels, level)) return false;
-    var index = this.levels.indexOf(level);
+    var levels = _.values(this.levels)
+      , index = levels.indexOf(level);
     if (index === - 1) return false;
-    var currentLevelIndex = this.levels.indexOf(this.level);
+    var currentLevelIndex = levels.indexOf(this.level);
     if (index >= currentLevelIndex) return true;
     return false;
   },

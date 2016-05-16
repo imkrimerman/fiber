@@ -36,7 +36,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @return {Object}
    */
   applyExtensions: function(extensions) {
-    extensions = $val(extensions, [], _.isArray).concat($fn.castArr($fn.result(this, 'extensions')));
+    extensions = $val(extensions, [], _.isArray).concat($castArr($fn.result(this, 'extensions')));
     return this.includeExtension(extensions);
   },
 
@@ -82,7 +82,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @return {Object}
    */
   includeExtension: function(alias, override) {
-    alias = $fn.castArr(alias);
+    alias = $castArr(alias);
     if ($fn.has(alias, 'Extensions')) alias.splice(alias.indexOf('Extensions'), 1);
     var options = { override: override || false, init: true, list: [], args: {} }
       , extension = $fn.extensions.get(alias, false);

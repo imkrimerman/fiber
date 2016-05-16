@@ -91,3 +91,9 @@ var $propNames = {
   contract: '_implements',
   injection: '_injection'
 };
+
+/**
+ * Fiber support function
+ * @type {Object}
+ */
+var $fn;

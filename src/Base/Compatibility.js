@@ -130,41 +130,6 @@ _.mixin({
 });
 
 /**
- * Returns Xhr
- * @return {XMLHttpRequest|ActiveXObject}
- */
-var $getXhr = function() {
-  try { return new (root.XMLHttpRequest || ActiveXObject); }
-  catch (e) {
-    $log.throws('Xhr is unavailable in current browser.');
-  }
-  ;
-};
-
-/**
  * Adds `Function.bind` polyfill if function is not exists. Used to support `bind` in PhantomJS.
  */
-if (! Function.prototype.bind) {
-
-  /**
-   * The bind function is an addition to ECMA-262, 5th edition; as such it may not be present in all browsers.
-   * You can partially work around this by inserting the following code at the beginning of your scripts,
-   * allowing use of much of the functionality of bind() in implementations that do not natively support it.
-   * @param {Object} scope
-   * @param {...args}
-   * @returns {bound}
-   */
-  $ProtoFunction.bind = function(scope) {
-    if (typeof this !== 'function') throw new TypeError('[Fiber.TypeError] `Function.bind` >> Caller is not callable.');
-    var args = Array.prototype.slice.call(arguments, 1)
-      , fn = this
-      , noop = function() {}
-      , bound = function() {
-      return fn.apply(this instanceof noop && scope ? this : scope, args);
-    };
-
-    noop.prototype = this.prototype;
-    bound.prototype = new noop();
-    return bound;
-  };
-}
+if (! Function.prototype.bind) Function.prototype.bind = $bind;

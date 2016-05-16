@@ -3,7 +3,7 @@
  * @class
  * @extends {RouterCollection}
  */
-Fiber.Routes = RouterCollection.extend({
+Fiber.Routes = Fiber.RouterCollection.extend({
 
   /**
    * Default collection model
@@ -27,7 +27,7 @@ Fiber.Routes = RouterCollection.extend({
     var prepared = [];
 
     if (! options.remove) {
-      models = $fn.castArr(models);
+      models = $castArr(models);
 
       for (var i = 0; i < models.length; i ++) {
         var model = models[i];

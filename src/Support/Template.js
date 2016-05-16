@@ -89,7 +89,7 @@ Fiber.fn.template = {
     engineName = $valIncludes(engineName, 'engine', $fn.template.getAliases());
     var engine = $fn.template.getEngine(engineName);
     // if engine is not found then lets wrap to return the same
-    if (! _.isFunction(engine)) $log.throws('Template engine is not a function');
+    if (! _.isFunction(engine)) $log.error('Template engine is not a function');
     // otherwise lets use all arguments and path them into the engine
     var prepared = engine(template);
     // adds static compile function to the template

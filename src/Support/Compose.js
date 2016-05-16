@@ -13,7 +13,7 @@ Fiber.fn.compose = {
    */
   view: function(View, options) {
     if (! ($fn.class.isBackboneClass(View)))
-      $log.throws('View cannot be composed.', View, options);
+      $log.error('View cannot be composed.', View, options);
 
     options = $val(options, {}, _.isPlainObject);
 

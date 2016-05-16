@@ -2,7 +2,7 @@
  * Fiber support function
  * @type {Object}
  */
-var $fn = Fiber.fn = {
+$fn = Fiber.fn = {
 
   /**
    * List of properties to exclude when mixin functions to Class prototype
@@ -19,53 +19,30 @@ var $fn = Fiber.fn = {
   /**
    * Gets value by given `property` key. You can provide `defaults` value that
    * will be returned if value is not found by the given key. If `defaults` is
-   * not provided that defaults will be set to `null`.
+   * not provided then `null` will be returned.
    * @param {Object} object
    * @param {string} property
    * @param {?*} [defaults]
    * @returns {*}
    */
-  get: function(object, property, defaults) {
-    if (! _.isArray(property)) return _.get(object, property, defaults);
-    return _.map(property, function(prop) {
-      return $fn.get(object, prop);
-    });
-  },
+  get: $get,
 
   /**
    * Sets `value` by given `property` key.
    * @param {Object} object
    * @param {string} property
    * @param {*} value
-   * @returns {*}
+   * @returns {Object}
    */
-  set: function(object, property, value) {
-    if (_.isPlainObject(property)) $fn.class.mix(object, property);
-    if (! _.isArray(property)) _.set(object, property, value);
-    else {
-      var isValueArray = _.isArray(value);
-      $each(property, function(prop, index) {
-        $fn.set(object, prop, isValueArray ? value[index] : value);
-      });
-    }
-    return object;
-  },
+  set: $set,
 
   /**
-   * Determine if Class has given `property`.
+   * Determine if `object` has given `property`.
    * @param {Object} object
    * @param {string} property
    * @returns {boolean}
    */
-  has: function(object, property) {
-    if (_.isArray(object)) return $fn.multi(property, function(prop) {
-      return _.includes(object, prop);
-    }, function(result) { return result; }, 'any');
-    if (! _.isArray(property)) return _.has(object, property);
-    return _[(arguments.length > 2 ? $val(arguments[2], 'every', _.isString) : 'every')](property, function(prop) {
-      return $fn.has(object, prop);
-    });
-  },
+  has: $has,
 
   /**
    * Gets value by the given `property` key, if `property` value is function then it will be called.
@@ -76,29 +53,38 @@ var $fn = Fiber.fn = {
    * @param {*} defaults
    * @returns {*}
    */
-  result: function(object, property, defaults) {
-    var isObject = _.isObject(object);
-    if (_.isFunction(object)) return object(property, defaults, object);
-    if (isObject) return _.result(object, property, defaults);
-    else if (! isObject && ! _.isArray(property)) return object;
-    return _.map($fn.castArr(property), function(prop) {
-      return $fn.result(object, prop, defaults);
-    });
-  },
+  result: $result,
 
   /**
-   * Alias for unset. Removes `value` by given `property` key.
+   * Removes `value` by the given `property` key.
    * @param {Object} object
    * @param {string} property
    * @returns {Object}
    */
-  forget: function(object, property) {
-    if (! _.isArray(property)) _.unset(object, property);
-    else $each(property, function(prop) {
-      $fn.forget(object, prop);
-    });
-    return object;
-  },
+  forget: $forget,
+
+  /**
+   * The bind function is an addition to ECMA-262, 5th edition; as such it may not be present in all browsers.
+   * You can partially work around this by inserting the following code at the beginning of your scripts,
+   * allowing use of much of the functionality of bind() in implementations that do not natively support it.
+   * @param {Object} scope
+   * @param {...args}
+   * @returns {function(...)}
+   */
+  bind: $bind,
+
+  /**
+   * A no-operation function that returns undefined regardless of the arguments it receives.
+   * @returns {void}
+   */
+  noop: $noop,
+
+  /**
+   * Force object cast to array
+   * @param {*} object
+   * @returns {Array}
+   */
+  castArr: $castArr,
 
   /**
    * Returns value if not undefined or null, otherwise returns defaults or $__NULL__$ value.
@@ -131,7 +117,7 @@ var $fn = Fiber.fn = {
     match = _.isString(match) ? match : 'any';
     // if value and checker is specified then use it to additionally check value
     if (! _.isArray(checkers) && ! _.isFunction(checkers)) return true;
-    return _[match]($fn.castArr(checkers), function(check) {
+    return _[match]($castArr(checkers), function(check) {
       if (_.isFunction(check) && value != null) {
         // if `check` returns true then we are good
         if (check(value)) return true;
@@ -241,7 +227,7 @@ var $fn = Fiber.fn = {
    */
   applyFn: function(fn, args, scope) {
     if (! $isDef(args)) args = [];
-    else args = ! _.isArguments(args) ? $fn.castArr(args) : args;
+    else args = ! _.isArguments(args) ? $castArr(args) : args;
     if (_.isFunction(fn)) return fn.apply($val(scope, fn), args);
   },
 
@@ -256,7 +242,7 @@ var $fn = Fiber.fn = {
    */
   proxy: function(fn, scope, partials, argCount) {
     return function() {
-      var args = $fn.cast.toArray(partials).concat($fn.castArr(arguments))
+      var args = $fn.cast.toArray(partials).concat($castArr(arguments))
         , pass = args.slice(0, $val(argCount, Infinity, _.isNumber));
       return fn.apply($val(scope, this), pass);
     };
@@ -271,7 +257,7 @@ var $fn = Fiber.fn = {
    */
   delegate: function(fn, scope, partials) {
     return function() {
-      var args = [this].concat($fn.cast.toArray(partials)).concat($fn.castArr(arguments));
+      var args = [this].concat($fn.cast.toArray(partials)).concat($castArr(arguments));
       return fn.apply($val(scope, this), args);
     };
   },
@@ -309,7 +295,7 @@ var $fn = Fiber.fn = {
    * @param {boolean} [isObject=true]
    */
   hasAllProps: function(obj, props) {
-    props = _.isPlainObject(props) ? _.keys(props) : $fn.castArr(props);
+    props = _.isPlainObject(props) ? _.keys(props) : $castArr(props);
     return _.every(props, function(prop) {
       return $fn.has(obj, prop);
     });
@@ -352,7 +338,7 @@ var $fn = Fiber.fn = {
    * @returns {*}
    */
   multi: function(traversable, iterator, final, method, scope) {
-    traversable = $fn.castArr($val(traversable, []));
+    traversable = $castArr($val(traversable, []));
 
     final = $val(final, function(object) {
       return function(result) {
@@ -386,7 +372,7 @@ var $fn = Fiber.fn = {
    * @returns {Array}
    */
   argsConcat: function() {
-    var args = _.map(_.toArray(arguments), $fn.castArr);
+    var args = _.map(_.toArray(arguments), $castArr);
     return $fn.concat.apply([], args);
   },
 
@@ -398,7 +384,7 @@ var $fn = Fiber.fn = {
    */
   concat: function() {
     var makeUnique = $val(_.last(arguments), true, _.isBoolean);
-    var args = Array.prototype.concat.apply([], _.toArray(arguments).map($fn.castArr));
+    var args = Array.prototype.concat.apply([], _.toArray(arguments).map($castArr));
     return makeUnique ? _.uniq(args) : args;
   },
 
@@ -417,22 +403,8 @@ var $fn = Fiber.fn = {
     }
 
     if (! _.isNumber(times)) times = array.length;
-    while (i < times) {
-      debugger
-      array.push(hasValue ? value : i ++);
-    }
+    while (i < times) array.push(hasValue ? value : i ++);
     return array;
-  },
-
-  /**
-   * Force object cast to array
-   * @param {*} object
-   * @returns {Array}
-   */
-  castArr: function(object) {
-    if (_.isArray(object)) return object;
-    if (_.isArguments(object)) return $fn.cast.toArray(object);
-    return [object];
   },
 
   /**
@@ -476,7 +448,7 @@ var $fn = Fiber.fn = {
     var name, methods = [];
     if (! _.isObject(object) || _.isArray(object)) return methods;
     for (name in object) if (_.isFunction(object[name])) methods.push(name);
-    return ! _.isEmpty(exclude) ? _.without(methods, $fn.castArr(exclude)) : methods;
+    return ! _.isEmpty(exclude) ? _.without(methods, $castArr(exclude)) : methods;
   },
 
   /**
@@ -488,7 +460,7 @@ var $fn = Fiber.fn = {
   properties: function(object, exclude) {
     if (! _.isObject(object) || _.isArray(object)) return methods;
     var properties = _.keys(_.omit(object, $fn.methods(object)));
-    return ! _.isEmpty(exclude) ? _.difference(properties, $fn.castArr(exclude)) : properties;
+    return ! _.isEmpty(exclude) ? _.difference(properties, $castArr(exclude)) : properties;
   },
 
   /**
@@ -539,7 +511,7 @@ var $fn = Fiber.fn = {
    * @returns {Array}
    */
   trim: function(string, delimiter) {
-    var trimmed = _.map($fn.castArr(string), function(one) {
+    var trimmed = _.map($castArr(string), function(one) {
       return _.trim(one, delimiter || '');
     });
     return _.isArray(string) ? trimmed : _.first(trimmed);
@@ -558,7 +530,7 @@ var $fn = Fiber.fn = {
       strings = _.dropRight(arguments, 1);
     }
 
-    return $fn.trim($fn.compact($fn.castArr(strings)), glue).join(glue);
+    return $fn.trim($fn.compact($castArr(strings)), glue).join(glue);
   },
 
   /**
@@ -587,7 +559,7 @@ var $fn = Fiber.fn = {
    */
   compact: function(array) {
     var i = - 1, index = 0, result = []
-      , length = (array = $fn.castArr(array)) ? array.length : 0;
+      , length = (array = $castArr(array)) ? array.length : 0;
     while (++ i < length) if (array[i]) result[index ++] = array[i];
     return result;
   },
@@ -676,7 +648,7 @@ var $fn = Fiber.fn = {
     for (var key in prepared) {
       var value = prepared[key];
       if (_.isArguments(value)) prepared[key] = value;
-      else prepared[key] = $fn.castArr(value);
+      else prepared[key] = $castArr(value);
     }
     return prepared;
   },
@@ -783,31 +755,10 @@ var $fn = Fiber.fn = {
    */
   isExtendable: function(object) {
     if (arguments.length > 1) object = _.toArray(arguments);
-    return _.every($fn.castArr(object), function(one) {
+    return _.every($castArr(object), function(one) {
       return _.isObject(one) && (_.isFunction(one.extend) || _.isPlainObject(one));
     });
-  },
-
-  /**
-   * Determines if it is not restricted to access the `method` of the given `object`
-   * @param {Object} object
-   * @param {string} method
-   * @param {?string} [level]
-   * @returns {boolean}
-   */
-  isAllowedToCall: function(object, method, level) {
-    level = $val(level, $propNames.access.default, _.isString) || object[$propNames.access.key];
-    if (! _.isObject(object) || ! level) return true;
-    var methods = $fn.get(object, '_accessRules.' + level);
-    if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
-    if (_.includes(methods, method)) return true;
-    return false;
-  },
-
-  /**
-   * Noop function
-   */
-  noop: function() {},
+  }
 };
 
 /**

@@ -97,7 +97,7 @@ Fiber.Views = Fiber.Class.extend({
   handleRootElement: function($el) {
     if (! Fiber.$) return $log.debug('Dom manipulation library in not available.');
     if (! ($el instanceof Fiber.$) && ! _.isString($el))
-      $log.throws('`$el` should be a valid jQuery element or selector.');
+      $log.error('`$el` should be a valid jQuery element or selector.');
     this.$el = _.isString($el) ? Fiber.$($el) : $el;
     return this;
   },
@@ -111,8 +111,8 @@ Fiber.Views = Fiber.Class.extend({
    */
   _renderToDestination: function(selector, view) {
     var $destination = this.$el.find(selector);
-    if (! $destination.length) $log.throws('Destination selector `' + selector + '` is not found in the DOM.');
-    if (! (view instanceof Backbone.View)) $log.throws('Cannot render View. Not instance of Backbone.View.');
+    if (! $destination.length) $log.error('Destination selector `' + selector + '` is not found in the DOM.');
+    if (! (view instanceof Backbone.View)) $log.error('Cannot render View. Not instance of Backbone.View.');
     this._linked.addView(view);
     $destination.html(view.el);
     view.render();

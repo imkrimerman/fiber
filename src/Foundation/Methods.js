@@ -22,7 +22,7 @@ Fiber.make = function(abstract, parameters, scope) {
   if (arguments.length > 1 && ! _.isArray(abstract))
     return Fiber.container.make(abstract, parameters, scope);
 
-  var made = _.map($fn.castArr(abstract), function(one) {
+  var made = _.map($castArr(abstract), function(one) {
     var abstractAlias = null
       , parameters = []
       , scope = null;
@@ -46,7 +46,7 @@ Fiber.make = function(abstract, parameters, scope) {
  * @returns {Array.<Object>|Object}
  */
 Fiber.retrieve = function(abstract) {
-  var result = _.map($fn.castArr(abstract), function(one) {
+  var result = _.map($castArr(abstract), function(one) {
     return Fiber.retrieve(one);
   });
   return ! _.isArray(abstract) ? result : _.first(result);

@@ -148,9 +148,9 @@ Fiber.fn.class = {
    */
   instance: function(Parent, args) {
     if ($fn.class.isInstance(Parent)) Parent = $fn.get(Parent, 'constructor');
-    if (! $fn.class.isClass(Parent)) $log.throws('Cannot instantiate from `Parent` Class - is not a Class or' +
+    if (! $fn.class.isClass(Parent)) $log.error('Cannot instantiate from `Parent` Class - is not a Class or' +
                                                  ' valid instance to retrieve Constructor.');
-    function InstanceCreator () {return Parent.apply(this, $fn.castArr(args))};
+    function InstanceCreator () {return Parent.apply(this, $castArr(args))};
     InstanceCreator.prototype = Parent.prototype;
     return new InstanceCreator();
   },
@@ -310,7 +310,7 @@ Fiber.fn.class = {
     contract = $fn.merge($fn.multi(contract, function(one) {
       one = _.isString(one) ? $fn.get(Fiber.Contracts, one) : one;
       if (one instanceof Fiber.Contract) return $fn.createPlain(one.getName(), one);
-      $log.throws('`Contract` is not instance of Fiber.Contract.', one);
+      $log.error('`Contract` is not instance of Fiber.Contract.', one);
     }));
 
     var follows = object[$propNames.contract] || {};
@@ -372,7 +372,7 @@ Fiber.fn.class = {
       return $fn.class.alias(object, mMethod, mAlias, toProto);
     });
 
-    var castedAlias = $fn.castArr(alias);
+    var castedAlias = $castArr(alias);
     var method = $fn.class.getMethod(object, method);
     if (! method) return false;
     for (var i = 0; i < castedAlias.length; i ++) {
@@ -470,7 +470,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   createConditionMethods: function(object, methods, checkerMethod, condition) {
-    methods = $fn.castArr(methods);
+    methods = $castArr(methods);
     checkerMethod = $fn.class.prepareConditionCheckerMethod(object, checkerMethod);
     condition = _.capitalize($val(condition, 'if'), true);
     for (var i = 0; i < methods.length; i ++) {
@@ -530,7 +530,7 @@ Fiber.fn.class = {
    */
   ensureOwn: function(object, properties) {
     if (! _.isObject(object)) return object;
-    properties = $fn.castArr(properties);
+    properties = $castArr(properties);
     for (var i = 0; i < properties.length; i ++) {
       var property = properties[i]
         , propertyValue = $fn.get(object, property);
@@ -607,7 +607,7 @@ Fiber.fn.class = {
     if (_.isPlainObject(object)) return false;
     fn = $valIncludes(fn, 'every');
     var source = object.prototype || object;
-    contract = $fn.compact(_.map($fn.castArr(contract), function(one) {
+    contract = $fn.compact(_.map($castArr(contract), function(one) {
       if (_.isString(one) && Fiber.Contracts.hasOwnProperty(one)) return Fiber.Contracts[one];
       else if (one instanceof Fiber.Contract) return one;
       return null;

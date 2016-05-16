@@ -48,7 +48,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @returns {*}
    */
   get: function(key, defaults) {
-    return $fn.get(this._items, key, defaults);
+    return $get(this._items, key, defaults);
   },
 
   /**
@@ -59,7 +59,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    */
   set: function(key, value) {
     if (_.isPlainObject(key)) return this.reset(key);
-    $fn.set(this._items, key, value);
+    $set(this._items, key, value);
     this._fireEvent('set', key, [key, value, this]);
     return this;
   },
@@ -73,7 +73,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @return {*}
    */
   result: function(key) {
-    return $fn.result(this._items, key);
+    return $result(this._items, key);
   },
 
   /**
@@ -82,7 +82,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @returns {boolean}
    */
   has: function(key) {
-    return $fn.has(this._items, key);
+    return $has(this._items, key);
   },
 
   /**
@@ -92,7 +92,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    */
   forget: function(key) {
     var value = this.get(key);
-    $fn.forget(this._items, key);
+    $forget(this._items, key);
     this._fireEvent('forget', [value, key, this]);
     return value;
   },
@@ -112,7 +112,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    */
   reset: function(items) {
     if (_.isPlainObject(items)) this._items = items;
-    this._fireEvent('reset', null, [key, value, this]);
+    this._fireEvent('reset', null, [items, this]);
     return this;
   },
 
@@ -132,7 +132,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @returns {Object}
    */
   pick: function(keys) {
-    return _.pick(this._items, $fn.castArr(keys));
+    return _.pick(this._items, $castArr(keys));
   },
 
   /**
@@ -141,7 +141,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @returns {Object}
    */
   omit: function(keys) {
-    return _.omit(this._items, $fn.castArr(keys));
+    return _.omit(this._items, $castArr(keys));
   },
 
   /**
@@ -184,7 +184,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend({
    * @returns {Fiber.Bag}
    */
   _fireEvent: function(event, key, args) {
-    $fn.fireAttribute(this, event, key, $fn.merge($fn.castArr(args), [this]));
+    $fn.fireAttribute(this, event, key, $fn.merge($castArr(args), [this]));
     return this;
   }
 });

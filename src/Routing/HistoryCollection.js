@@ -3,7 +3,7 @@
  * @class
  * @extends {RouterCollection}
  */
-Fiber.HistoryCollection = RouterCollection.extend({
+Fiber.HistoryCollection = Fiber.RouterCollection.extend({
 
   /**
    * Default Model

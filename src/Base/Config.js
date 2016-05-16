@@ -1,5 +1,5 @@
 /**
  * Fiber Configuration
- * @type {Fiber.Store}
+ * @type {Storage}
  */
-Fiber.Config = new Fiber.Storage({});
+Fiber.Config = new $Storage({});

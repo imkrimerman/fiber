@@ -3,7 +3,7 @@
  * @class
  * @extends {RouterCollection}
  */
-Fiber.MiddlewareCollection = RouterCollection.extend({
+Fiber.MiddlewareCollection = Fiber.RouterCollection.extend({
 
   /**
    * Default collection model

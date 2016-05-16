@@ -65,7 +65,7 @@ Fiber.fn.macros = {
    * @returns {*}
    */
   create: function(name, args) {
-    return $fn.applyFn($fn.macros.get(name, $fn.constant), $fn.castArr(args));
+    return $fn.applyFn($fn.macros.get(name, $fn.constant), $castArr(args));
   },
 
   /**

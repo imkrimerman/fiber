@@ -138,7 +138,7 @@ Fiber.Container = Fiber.Class.extend({
     if (this.isAlias(abstract)) abstract = this.aliases.get(abstract);
     if (this.isRetrievable(abstract)) return this.retrieve(abstract);
     var concrete = this.bindings.get(abstract);
-    if (! concrete || ! _.isFunction(concrete)) $log.throws('Resolution Exception: ' + abstract +
+    if (! concrete || ! _.isFunction(concrete)) $log.error('Resolution Exception: ' + abstract +
                                                             ', is not a Class constructor or function.');
     if ($fn.class.isClass(concrete)) return this.instantiate(concrete, parameters);
     return concrete.apply($val(scope, this), this.resolve(parameters).concat([this]));
@@ -161,7 +161,7 @@ Fiber.Container = Fiber.Class.extend({
    * @returns {function(...)}
    */
   inject: function(fn) {
-    if (! _.isFunction(fn)) $log.throws('Cannot inject dependencies, provided `fn` is not a function()');
+    if (! _.isFunction(fn)) $log.error('Cannot inject dependencies, provided `fn` is not a function()');
     return $fn.injection.inject(fn);
   },
 
@@ -172,7 +172,7 @@ Fiber.Container = Fiber.Class.extend({
    */
   resolve: function(dependencies) {
     var resolved = [];
-    dependencies = $fn.castArr(dependencies);
+    dependencies = $castArr(dependencies);
     for (var i = 0; i < dependencies.length; i ++) {
       var dep = dependencies[i];
       if (_.isString(dep) && this.bound(dep)) dep = this.make(dep);
