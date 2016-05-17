@@ -19,18 +19,19 @@ Fiber.Request = Fiber.Class.extend({
    * @param {Object} [options]
    */
   constructor: function(method, model, options) {
-    this.createRequestObject(method);
     this.createBag(method, model, options);
-    this.prepare();
+    this.prepareParams();
+    this.createRequestObject(this.bag.get('verb'));
     this.$superInit({ method: method, model: model, options: options });
   },
 
   /**
-   * Clear previous timeout.
+   * Uses extension.
+   * @param {Function} fn
    * @return {Fiber.Request}
    */
-  clearTimeout: function() {
-    this._request.clearTimeout();
+  use: function(fn) {
+    this._request.use(fn);
     return this;
   },
 
@@ -41,27 +42,6 @@ Fiber.Request = Fiber.Class.extend({
    */
   parse: function(fn) {
     this._request.parse(fn);
-    return this;
-  },
-
-  /**
-   * Set timeout to `ms`.
-   *
-   * @param {number} ms
-   * @return {Fiber.Request}
-   */
-  timeout: function(ms) {
-    this._request.timeout(ms);
-    return this;
-  },
-
-  /**
-   * Uses extension.
-   * @param {Function} fn
-   * @return {Fiber.Request}
-   */
-  use: function(fn) {
-    this._request.use(fn);
     return this;
   },
 
@@ -160,10 +140,30 @@ Fiber.Request = Fiber.Class.extend({
   },
 
   /**
-   * Prepares request before send.
+   * Clear previous timeout.
    * @return {Fiber.Request}
    */
-  prepare: function() {
+  clearTimeout: function() {
+    this._request.clearTimeout();
+    return this;
+  },
+
+  /**
+   * Set timeout to `ms`.
+   *
+   * @param {number} ms
+   * @return {Fiber.Request}
+   */
+  timeout: function(ms) {
+    this._request.timeout(ms);
+    return this;
+  },
+
+  /**
+   * Prepares Request parameters.
+   * @return {Fiber.Request}
+   */
+  prepareParams: function() {
     if (! this._bag.get('options.prepare')) return this.markAsPreparedWithParams(this._bag.get('options'));
     var Verbs = Fiber.Config.get('Sync.Verbs')
       , options = this._bag.get('options')
@@ -199,7 +199,7 @@ Fiber.Request = Fiber.Class.extend({
     }
     // Don't process data on a non-GET request.
     if (params.verb !== Verbs.get && ! options.emulateJSON) params.processData = false;
-    // Pass `textStatus` and `errorThrown`.
+    // Pass `textStatus` and `errorThrown` and put reference to an options.
     options.error = function(xhr, textStatus, errorThrown) {
       options.textStatus = textStatus;
       options.errorThrown = errorThrown;
@@ -214,7 +214,8 @@ Fiber.Request = Fiber.Class.extend({
    */
   send: function() {
     var params = this.get('params')
-      , model = this.get('model');
+      , model = this.get('model')
+      , promise;
 
     this.type(params.type);
 
@@ -225,12 +226,16 @@ Fiber.Request = Fiber.Class.extend({
 
     if (options.beforeSend) $fn.applyFn(options.beforeSend, [this._request])
     //todo: not allow parsing JSON on non GET method
-    return options.promise = new Fiber.Promise(function(fullFill, rejected) {
+    this.bag.set('promise', promise = new Fiber.Promise(function(fullFill, rejected) {
       this._request.end(function(err, response) {
         if (err) rejected(err);
         fullFill(response);
       });
-    }, this);
+    }, this));
+
+    if (model.fire) model.fire('request', model, this._request, options);
+    else if (model.trigger) model.trigger('request', model, this._request, options);
+    return promise;
   },
 
   /**
@@ -292,10 +297,11 @@ Fiber.Request = Fiber.Class.extend({
 
   /**
    * Creates request object.
+   * @param {string} verb
    * @return {Fiber.Request}
    */
-  createRequestObject: function(method) {
-    this._request = $request(Fiber.Config.get('Sync.Methods.' + method));
+  createRequestObject: function(verb) {
+    this._request = $request(verb);
     return this;
   },
 

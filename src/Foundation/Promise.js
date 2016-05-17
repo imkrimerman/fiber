@@ -16,12 +16,9 @@ Fiber.Promise = Fiber.Class.extend({
      * @type {Object}
      */
     catalog: {
-      beforeStart: 'before:start',
-      start: 'start',
-      afterStart: 'after:start',
-      beforeFinish: 'before:finish',
-      finish: 'finish',
-      afterFinish: 'after:finish'
+      resolved: 'resolved',
+      rejected: 'rejected',
+      finished: 'finished',
     }
   },
 
@@ -121,9 +118,7 @@ Fiber.Promise = Fiber.Class.extend({
    * @private
    */
   _start: function() {
-    return $fn.fireCallCyclic(this, 'start', function() {
-      return this._executor(this.resolve, this.reject);
-    }, { fire: this, callEventMethod: false });
+    this._executor(this.resolve, this.reject);
   },
 
   /**
@@ -134,14 +129,14 @@ Fiber.Promise = Fiber.Class.extend({
    * @private
    */
   _finish: function(result, param) {
-    return $fn.fireCallCyclic(this, 'finish', function() {
-      result = $valIncludes(result, false, [true, false, 'resolved', 'rejected']);
-      if (_.isBoolean(result)) result = result ? 'resolved' : 'rejected';
-      var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected'
-        , released = this.release(function(zip) {return zip[unzipFn](param);});
-      this['_' + result] = true;
-      return released;
-    }, { fire: this, callEventMethod: false });
+    this.fire(result, param);
+    result = $valIncludes(result, false, [true, false, 'resolved', 'rejected']);
+    if (_.isBoolean(result)) result = result ? 'resolved' : 'rejected';
+    var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected'
+      , released = this.release(function(zip) {return zip[unzipFn](param);});
+    this['_' + result] = true;
+    this.fire('finished', result, param, released, this);
+    return released;
   },
 
   /**

@@ -15,7 +15,6 @@ module.exports = [
   './src/Base/Config.js',
   // Support
   './src/Support/fn.js',
-  './src/Support/Macros.js',
   './src/Support/Descriptor.js',
   './src/Support/DeepProps.js',
   './src/Support/Class.js',
@@ -59,7 +58,7 @@ module.exports = [
   './src/Extensions/Extend.js',
   './src/Extensions/Extensions.js',
   './src/Extensions/OwnProps.js',
-  './src/Extensions/Serialize.js',
+  './src/Extensions/Serializable.js',
   // Sync
   './src/Sync/Sync.js',
   './src/Sync/Request.js',
