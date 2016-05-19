@@ -82,7 +82,7 @@ Fiber.Router = Fiber.Object.extend([
       var params = [route, args], result = true;
       $fn.fireCallCyclic(this, 'execute', function() {
         if (! this.executeRoute.apply(this, arguments)) result = false;
-      }, { fire: params, call: params, callback: arguments });
+      }, {fire: params, call: params, callback: arguments});
       return result;
     },
 
@@ -104,7 +104,7 @@ Fiber.Router = Fiber.Object.extend([
       var handler = route.get('handler')();
       if (! handler) return false;
 
-      this.setCurrent(this.history.add({ route: route, args: args }));
+      this.setCurrent(this.history.add({route: route, args: args}));
       this.fire('execute', handler, route, args, this);
       return true;
     },

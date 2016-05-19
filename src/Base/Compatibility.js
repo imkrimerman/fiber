@@ -26,8 +26,8 @@ Backbone.Events.destroyEvents = function() {
 };
 
 /**
-* Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
-* @type {_.each|*|(function((Array|Object), function(...)=): (Array|Object))}
+ * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
+ * @type {_.each|*|(function((Array|Object), function(...)=): (Array|Object))}
  */
 var $origEach = $bind(_.each, _);
 

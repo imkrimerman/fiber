@@ -64,7 +64,7 @@ Fiber.Model = BaseModel.extend({
   constructor: function(attributes, options) {
     this.attributes = {};
     this.errorBag = new Fiber.ErrorBag();
-    this.adapter = new Fiber.Repository();
+    this.adapter = new Fiber.Storage();
     attributes = $val(attributes, {}, $isPlain);
     options = $fn.class.handleOptions(this, options);
     this.createClientId();
@@ -95,7 +95,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {*}
    */
   get: function(attribute, options) {
-    options = $valMerge(options, { compute: true });
+    options = $valMerge(options, {compute: true});
     if (options.compute && $fn.computed.has(this, attribute, 'get'))
       return $fn.computed.get(this, attribute);
     return $get(this.attributes, attribute);
@@ -110,7 +110,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {*}
    */
   set: function(attribute, value, options) {
-    options = $valMerge(options, { compute: true });
+    options = $valMerge(options, {compute: true});
     if (options.compute && $fn.computed.has(this, attribute, 'set'))
       return $fn.computed.set(this, attribute, value);
     return this.$super('set', arguments);
@@ -124,7 +124,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {boolean}
    */
   has: function(attribute, options) {
-    options = $valMerge(options, { compute: true });
+    options = $valMerge(options, {compute: true});
     if (options.compute) return $fn.computed.has(this, attribute, 'get');
     return $has(this.attributes, attribute);
   },
@@ -180,7 +180,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model|null}
    */
   next: function(options) {
-    return this.sibling($fn.merge({ direction: 'next' }, options || {}));
+    return this.sibling($fn.merge({direction: 'next'}, options || {}));
   },
 
   /**
@@ -189,7 +189,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model|null}
    */
   prev: function(options) {
-    return this.sibling($fn.merge({ direction: 'prev' }, options || {}));
+    return this.sibling($fn.merge({direction: 'prev'}, options || {}));
   },
 
   /**
@@ -261,7 +261,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Object}
    */
   toJSON: function(options) {
-    options = $valMerge(options, { hidden: true });
+    options = $valMerge(options, {hidden: true});
     var jsonModel = this.all();
     if (! options.hidden) return jsonModel;
     return _.omit(jsonModel, $result(this, 'hidden'));

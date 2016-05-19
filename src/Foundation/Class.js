@@ -1,4 +1,9 @@
 /**
+ * Add `Map` Contract and statics to Fiber Map
+ */
+$fn.class.mixStatics(Fiber.Access).implemented('Access');
+
+/**
  * Fiber Base Class
  * @class
  * @extends {BaseClass}
@@ -13,7 +18,15 @@ Fiber.Class = BaseClass.implement('Eventable').extend([
      */
     _signature: '[object Fiber.Class]'
   }
-]);
+], {
+
+  /**
+   * Fiber Base Class reference.
+   * @type {BaseClass}
+   */
+  BaseClass: BaseClass
+
+});
 
 /**
  * Add Class type to Fiber

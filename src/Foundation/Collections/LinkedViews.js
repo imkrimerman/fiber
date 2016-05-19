@@ -63,7 +63,7 @@ Fiber.LinkedViews = BaseCollection.extend({
    * @returns {Object.<Fiber.Model>}
    */
   addView: function(view) {
-    var model = this.add({ id: view.cid, view: view });
+    var model = this.add({id: view.cid, view: view});
     this.startListeningToView(view);
     return model;
   },

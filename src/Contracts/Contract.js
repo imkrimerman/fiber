@@ -28,7 +28,7 @@ Fiber.Contract = BaseClass.extend({
     this._contract = {};
     this.setName(name);
     this.set(contract);
-    if (this._immutable) $fn.descriptor.immutable(this);
+    if (this._immutable) $fn.descriptor.immutable(this._contract);
   },
 
   /**
@@ -37,7 +37,8 @@ Fiber.Contract = BaseClass.extend({
    */
   set: function(contract) {
     if ($isArr(contract)) contract = $fn.merge(_.map(contract, function(one) {
-      return $isStr(one) && Fiber.Contracts[one] || one instanceof Fiber.Contract && one || {};
+      if ($isStr(one) && (one = Fiber.Contracts[one]) || one instanceof Fiber.Contract) return one.get();
+      return $isPlain(one) && one || {};
     }));
     if (this._isValid(contract)) this._contract = contract;
     return this;

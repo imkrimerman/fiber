@@ -25,10 +25,10 @@ Fiber.fn.descriptor = {
    * @type {Object}
    */
   descriptors: {
-    private: { enumerable: false, configurable: false, writable: false },
-    protected: { enumerable: false, configurable: true, writable: false },
-    public: { enumerable: true, configurable: true, writable: true },
-    property: { enumerable: false, configurable: true, writable: true },
+    private: {enumerable: false, configurable: false, writable: false},
+    protected: {enumerable: false, configurable: true, writable: false},
+    public: {enumerable: true, configurable: true, writable: true},
+    property: {enumerable: false, configurable: true, writable: true},
   },
 
   /**
@@ -91,7 +91,7 @@ Fiber.fn.descriptor = {
    */
   immutable: function(object, deep) {
     if (! $isObj(object)) return object;
-    $val(deep, true, _.isBoolean) && _.each($fn.properties(object), function(property) {
+    $val(deep, true, _.isBoolean) && $each($fn.properties(object), function(property) {
       if ($fn.descriptor.canDescribe(property)) $fn.descriptor.immutable(property);
     });
     return Object.freeze(object);
@@ -135,7 +135,7 @@ Fiber.fn.descriptor = {
     if ($fn.descriptor.isLocked(secret) && ! override)
       return $fn.descriptor._locked[secret];
     var locked = $fn.descriptor.immutable($fn.clone(object, true));
-    $fn.descriptor._locked[secret] = { original: object, locked: locked };
+    $fn.descriptor._locked[secret] = {original: object, locked: locked};
     return locked;
   },
 

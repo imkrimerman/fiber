@@ -84,7 +84,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
   includeExtension: function(alias, override) {
     alias = $castArr(alias);
     if ($has(alias, 'Extensions')) alias.splice(alias.indexOf('Extensions'), 1);
-    var options = { override: override || false, init: true, list: [], args: {} }
+    var options = {override: override || false, init: true, list: [], args: {}}
       , extension = $fn.extensions.get(alias, false);
     if (_.isEmpty(extension)) return this;
     $fn.class.include(this, extension, options.override);

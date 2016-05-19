@@ -28,4 +28,4 @@ var $Serializable = new Fiber.Extension('Serializable', {
 /**
  * Adds Serializable Extension to the Fiber Base Class
  */
-BaseClass.implementOwn('Serializable').mutate($Serializable.getCode());
+BaseClass.implemented('Serializable').mutate($Serializable.getCode());

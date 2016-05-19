@@ -7,5 +7,8 @@ Fiber.Contracts.Access = new Fiber.Contract('Access', {
   set: Fiber.Types.Function,
   has: Fiber.Types.Function,
   forget: Fiber.Types.Function,
-  result: Fiber.Types.Function
+  result: Fiber.Types.Function,
+  pick: Fiber.Types.Function,
+  omit: Fiber.Types.Function,
+  all: Fiber.Types.Function
 });

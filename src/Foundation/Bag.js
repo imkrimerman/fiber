@@ -4,7 +4,7 @@
  * @extends {Fiber.Class}
  */
 Fiber.Bag = Fiber.Class.implement('Access').extend([
-  $Storage.prototype, {
+  Fiber.Access.prototype, {
 
     /**
      * Events configuration
@@ -58,7 +58,6 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      * @returns {*}
      */
     get: function(path, defaults) {
-      if ($fn.computed.has(this, path)) return $fn.computed.get(this, path);
       return $get(this._items, path, defaults);
     },
 
@@ -70,7 +69,6 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      */
     set: function(path, value) {
       if ($isPlain(path)) return this.reset(path);
-      if ($fn.computed.has(this, path)) $fn.computed.set(this, path, value);
       else $set(this._items, path, value);
       this._fireEvent('set', path, [path, value, this]);
       return this;
@@ -82,7 +80,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      * @returns {boolean}
      */
     has: function(path) {
-      return $fn.computed.has(this, path) || $has(this._items, path);
+      return $has(this._items, path);
     },
 
     /**

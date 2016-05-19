@@ -59,15 +59,6 @@ Fiber.Promise = Fiber.Class.extend({
   },
 
   /**
-   * Reject function to pass to promise callback. To be called when promise is resolved.
-   * @param {Error|*} reason
-   * @returns {Array}
-   */
-  reject: function(reason) {
-    return this._finish('rejected', reason);
-  },
-
-  /**
    * Resolve function to pass to promise callback. To be called when promise is rejected.
    * @param {*} value
    * @returns {Array}
@@ -75,6 +66,15 @@ Fiber.Promise = Fiber.Class.extend({
   resolve: function(value) {
     if (value === this) throw new TypeError('A promise cannot be resolved with itself.');
     return this._finish('resolved', value);
+  },
+
+  /**
+   * Reject function to pass to promise callback. To be called when promise is resolved.
+   * @param {Error|*} reason
+   * @returns {Array}
+   */
+  reject: function(reason) {
+    return this._finish('rejected', reason);
   },
 
   /**

@@ -157,7 +157,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {Fiber.Extension}
    */
   fromCode: function(code, name, initWith) {
-    code = $valMerge(code, { initWith: false });
+    code = $valMerge(code, {initWith: false});
     initWith = $val(initWith, false, [$isStr, $isFn, _.isBoolean]);
     if ($isStr(name)) this.setName(name);
     if ($isFn($get(code, '_init_'))) this._init_ = code._init_;

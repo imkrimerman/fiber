@@ -11,8 +11,8 @@ $fn.deepProps = {
   config: {
     rules: [$isArr, $isPlain],
     exclude: ['fn', '$fn'],
-    private: { allow: true, signature: '_' },
-    explore: [{ owner: Fiber }]
+    private: {allow: true, signature: '_'},
+    explore: [{owner: Fiber}]
   },
 
   /**

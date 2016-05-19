@@ -11,7 +11,7 @@ Fiber.Commands.Registry = BaseCollection.extend({
    */
   model: BaseModel.extend({
     idAttributes: 'name',
-    defaults: { name: '', command: null, handler: null }
+    defaults: {name: '', command: null, handler: null}
   }),
 
 });

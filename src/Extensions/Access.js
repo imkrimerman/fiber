@@ -19,9 +19,15 @@ var $Access = new Fiber.Extension('Access', {
    */
   _accessRules: {
     private: false,
-    protected: ['get', 'result', 'has'],
+    protected: ['get', 'result', 'has', 'pick', 'omit', 'all'],
     public: true
   },
+
+  /**
+   * Properties keys that will be owned by the instance
+   * @type {Array|function(...)}
+   */
+  ownProps: ['_accessLevel', '_accessRules'],
 
   /**
    * Gets value by given `property` key. You can provide `defaults` value that
@@ -76,8 +82,39 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {*}
    */
   forget: function(property) {
-    if (this.isAllowedToCall('unset')) $forget(this, property);
+    if (this.isAllowedToCall('forget')) $forget(this, property);
     return this;
+  },
+
+  /**
+   * Picks values by provided `keys`.
+   * @param {Array} keys
+   * @returns {Object}
+   */
+  pick: function(keys) {
+    if (! this.isAllowedToCall('pick')) return void 0;
+    var args = arguments.length === 1 ? $castArr(arguments[0]) : $castArr(arguments);
+    return $pick.apply(null, [this._items].concat([args]));
+  },
+
+  /**
+   * Omits values by provided `keys`.
+   * @param {Array} keys
+   * @returns {Object}
+   */
+  omit: function(keys) {
+    if (! this.isAllowedToCall('omit')) return void 0;
+    var args = arguments.length === 1 ? $castArr(arguments[0]) : $castArr(arguments);
+    return $omit.apply(null, [this._items].concat([args]));
+  },
+
+  /**
+   * Returns all own properties and methods.
+   * @returns {Object}
+   */
+  all: function() {
+    if (! this.isAllowedToCall('all')) return void 0;
+    return $fn.properties(this, true).concat($fn.methods(this, true));
   },
 
   /**
@@ -86,7 +123,7 @@ var $Access = new Fiber.Extension('Access', {
    * @returns {boolean}
    */
   isAllowedToCall: function(method) {
-    var methods = $get(this._accessRules, this._accessLevel);
+    var methods = this._accessRules[this._accessLevel];
     if (! $isArr(methods)) return $fn.cast.toBoolean(methods);
     return _.includes(methods, method);
   },

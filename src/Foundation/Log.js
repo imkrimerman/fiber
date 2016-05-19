@@ -1,8 +1,19 @@
 /**
- * Add Log levels constants.
+ * Defaults Log configuration.
+ * @type {Object}
  */
-Fiber.Config.set('Log', {
+var $logConfig = {
+
+  /**
+   * Default log level.
+   * @type {string}
+   */
   level: 'trace',
+
+  /**
+   * Log levels map
+   * @type {Object}
+   */
   levels: {
     trace: 'trace',
     debug: 'debug',
@@ -10,7 +21,7 @@ Fiber.Config.set('Log', {
     warn: 'warn',
     error: 'error'
   }
-});
+};
 
 /**
  * Fiber Log.
@@ -24,13 +35,13 @@ Fiber.Log = BaseClass.extend({
    * @type {string}
    * @private
    */
-  level: Fiber.Config.get('Log.level'),
+  level: $logConfig.level,
 
   /**
    * Available log levels.
-   * @type {Array}
+   * @type {Object}
    */
-  levels: Fiber.Config.get('Log.levels'),
+  levels: $logConfig.levels,
 
   /**
    * String representing who is logging the messages.
@@ -110,6 +121,51 @@ Fiber.Log = BaseClass.extend({
   },
 
   /**
+   * Logs using `trace` level.
+   * @param {...args}
+   * @returns {*|Fiber.Log}
+   */
+  trace: function() {
+    return this.write.apply(this, $fn.argsConcat('trace', arguments));
+  },
+
+  /**
+   * Logs using `debug` level.
+   * @param {...args}
+   * @returns {*|Fiber.Log}
+   */
+  debug: function() {
+    return this.write.apply(this, $fn.argsConcat('debug', arguments));
+  },
+
+  /**
+   * Logs using `info` level.
+   * @param {...args}
+   * @returns {*|Fiber.Log}
+   */
+  info: function() {
+    return this.write.apply(this, $fn.argsConcat('info', arguments));
+  },
+
+  /**
+   * Logs using `warn` level.
+   * @param {...args}
+   * @returns {*|Fiber.Log}
+   */
+  warn: function() {
+    return this.write.apply(this, $fn.argsConcat('warn', arguments));
+  },
+
+  /**
+   * Logs using `error` level.
+   * @param {...args}
+   * @returns {*|Fiber.Log}
+   */
+  error: function() {
+    return this.write.apply(this, $fn.argsConcat('error', arguments));
+  },
+
+  /**
    * Writes using `writer` function.
    * @param {string} level
    * @param {...args}
@@ -129,7 +185,7 @@ Fiber.Log = BaseClass.extend({
    */
   callWriter: function(method, args) {
     method = $valIncludes(method, 'log', this._methods);
-    var msg = _.first(args), details = this.renderTemplate({ msg: $isStr(msg) ? msg : '' });
+    var msg = _.first(args), details = this.renderTemplate({msg: $isStr(msg) ? msg : ''});
     $fn.apply(console, method, $fn.argsConcat(details, $drop(args)));
     return this;
   },
@@ -201,7 +257,7 @@ Fiber.Log = BaseClass.extend({
    * @returns {boolean}
    */
   isAllowedLevel: function(level) {
-    if (! level || ! _.includes(this.levels, level)) return false;
+    if (! level || ! this.levels[level]) return false;
     var levels = _.values(this.levels)
       , index = levels.indexOf(level);
     if (index === - 1) return false;
@@ -222,19 +278,10 @@ Fiber.Log = BaseClass.extend({
     delete options.templates;
     return this;
   }
-});
-
-/**
- * Add level methods to the Log prototype.
- */
-$each(_.keys(Fiber.Config.get('Log.levels')), function(level) {
-  Fiber.Log.prototype[level] = function() {
-    return this.write.apply(this, $fn.argsConcat(level, arguments));
-  };
-});
+}, $logConfig);
 
 /**
  * Create default Logger
  * @type {Object.<Fiber.Log>}
  */
-var $log = Fiber.log = new Fiber.Log();
+var $log = Fiber.internal.log = new Fiber.Log();

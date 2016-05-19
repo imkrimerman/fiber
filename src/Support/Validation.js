@@ -78,7 +78,7 @@ Fiber.fn.validation = {
   },
 
   /**
-   * Map of message types
+   * Access of message types
    * @type {Object}
    */
   messageTypes: {
@@ -171,7 +171,7 @@ Fiber.fn.validation = {
    */
   validateAttributes: function(attributes, rules, options) {
     // Create new Fiber.Model with given rules
-    var model = new Fiber.Model(attributes, { rules: rules });
+    var model = new Fiber.Model(attributes, {rules: rules});
     // return validation result
     return this.validate(model, null, options);
   },
@@ -188,7 +188,7 @@ Fiber.fn.validation = {
     var isModel = model instanceof Fiber.Model
       , property = isModel && model.errorBag || model[$fn.validation.private]
       , isErrorBag = property instanceof Fiber.ErrorBag
-      , scope = { attribute: attribute, model: model, rule: rule, type: type }
+      , scope = {attribute: attribute, model: model, rule: rule, type: type}
       , message = $fn.validation.getCompiledMessageByType(rule, type, scope);
 
     if (! isErrorBag) property = new Fiber.ErrorBag();
@@ -207,7 +207,7 @@ Fiber.fn.validation = {
    */
   getMessage: function(rule, attribute, defaults, customPath) {
     customPath = $val(customPath, false);
-    defaults = $val(defaults, $fn.template.compile(this.rule.messages.single, { attribute: attribute }));
+    defaults = $val(defaults, $fn.template.compile(this.rule.messages.single, {attribute: attribute}));
     var isHash = $fn.validation.isHashMessageNeeded(rule)
       , key = $fn.validation.getPathByRule(rule)
       , message = $result(rule, (customPath ? attribute : key), defaults);

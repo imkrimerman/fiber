@@ -22,7 +22,7 @@ Fiber.Sync = Fiber.Class.extend({
     this.createBag(method, model, options);
     this.prepareParams();
     this.createRequestObject(this._bag.get('verb'), this._bag.get('params.url'));
-    this.$superInit({ method: method, model: model, options: options });
+    this.$superInit({method: method, model: model, options: options});
   },
 
   /**
@@ -171,7 +171,7 @@ Fiber.Sync = Fiber.Class.extend({
       , method = this._bag.get('method')
       , verb = this._bag.get('verb')
       , error = options.error
-      , params = { type: 'json', verb: verb };
+      , params = {type: 'json', verb: verb};
     // Retrieve url from Model
     if (! options.url) params.url = $result(model, 'url') || $log.error('`Url` is not found. Aborting request.');
     // if `model` is instance of Model then lets convert it to JSON hash
@@ -184,7 +184,7 @@ Fiber.Sync = Fiber.Class.extend({
     // For older servers, emulate JSON by encoding the request into an HTML-form.
     if (options.emulateJSON) {
       params.type = 'form';
-      params.data = params.data ? { model: params.data } : {};
+      params.data = params.data ? {model: params.data} : {};
     }
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
     // And an `X-HTTP-Method-Override` header.
@@ -267,7 +267,7 @@ Fiber.Sync = Fiber.Class.extend({
    * @returns {Object.<Fiber.Bag>}
    */
   createBag: function(method, model, options) {
-    return this._bag = new Fiber.SyncBag({ method: method, model: model, options: options });
+    return this._bag = new Fiber.SyncBag({method: method, model: model, options: options});
   },
 
   /**
@@ -302,7 +302,7 @@ Fiber.Sync = Fiber.Class.extend({
    * @return {Fiber.Sync}
    */
   createRequestObject: function(verb, url) {
-    this._request = $request(verb, url);
+    this._request = superagent(verb, url);
     return this;
   },
 
@@ -320,7 +320,7 @@ Fiber.Sync = Fiber.Class.extend({
    * @returns {Fiber.Sync}
    */
   setRequestObject: function(object) {
-    if (object instanceof $request) this._request = object;
+    if (object instanceof superagent) this._request = object;
     return this;
   }
 });

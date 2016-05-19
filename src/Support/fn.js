@@ -214,7 +214,6 @@ $fn = Fiber.fn = {
    */
   isExtendable: $isExtendable,
 
-
   /**
    * Returns what user agent is currently detected
    * @returns {string|null}
@@ -454,23 +453,24 @@ $fn = Fiber.fn = {
    * Returns list of `object` methods
    * @param {Object} object
    * @param {Array|string} [exclude]
+   * @param {boolean} [own=false]
    * @returns {Array}
    */
   methods: function(object, exclude, own) {
-    var methods = own ? _.functions(object) : _.functionsIn(object);
-    return _.isEmpty(exclude) ? methods : _.without(methods, $castArr(exclude));
+    if (! $isObj(object)) return [];
+    return _.without(own ? _.functions(object) : _.functionsIn(object), $castArr(exclude, true));
   },
 
   /**
    * Returns list of `object` properties
    * @param {Object} object
    * @param {Array|string} [exclude]
+   * @param {boolean} [own=false]
    * @returns {Array}
    */
-  properties: function(object, exclude) {
-    if (! $isObj(object) || $isArr(object)) return methods;
-    var properties = _.keys(_.omit(object, $fn.methods(object)));
-    return _.isEmpty(exclude) ? properties : _.without(properties, $castArr(exclude));
+  properties: function(object, exclude, own) {
+    if (! $isObj(object) || $isArr(object)) return [];
+    return _.without(own ? _.keys(object) : _.keysIn(object), $fn.methods(object).concat($castArr(exclude, true)));
   },
 
   /**
@@ -522,7 +522,7 @@ $fn = Fiber.fn = {
    */
   modelSibling: function(model, options) {
     if (! model.collection) return model;
-    options = _.defaults(options || {}, { direction: 'next', where: null, defaultCid: null });
+    options = _.defaults(options || {}, {direction: 'next', where: null, defaultCid: null});
     var dirCid, cid = model.cid, models = options.where ?
                                           model.collection.where(options.where) :
                                           model.collection.models;
@@ -557,10 +557,10 @@ $fn = Fiber.fn = {
    * @param {?function(...)} [cb]
    */
   fireAttribute: function(object, event, attribute, args, cb) {
-    var options = { prepare: false, call: false };
+    var options = {prepare: false, call: false};
     event = _.trim(event, ':');
     attribute = _.trim(attribute, ':');
-    args = $fn.prepareFireCallArgs({ fire: args });
+    args = $fn.prepareFireCallArgs({fire: args});
     $fn.fireCall(object, event, args, options);
     var result = $isFn(cb) ? $fn.applyFn(cb, args) : void 0;
     $fn.fireCall(object, event + ':' + attribute, args, options);

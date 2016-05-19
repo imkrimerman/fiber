@@ -11,7 +11,7 @@ module.exports = [
   './src/Base/Types.js',
   './src/Base/Functions.js',
   './src/Base/Compatibility.js',
-  './src/Base/Storage.js',
+  './src/Base/Access.js',
   './src/Base/Config.js',
   // Support
   './src/Support/fn.js',
@@ -37,11 +37,11 @@ module.exports = [
   './src/Foundation/Monitor.js',
   // Contracts
   './src/Contracts/Contract.js',
-  './src/Contracts/Access.js',
   './src/Contracts/Eventable.js',
-  './src/Contracts/Releasable.js',
   './src/Contracts/Serializable.js',
-  './src/Contracts/Repository.js',
+  './src/Contracts/Access.js',
+  './src/Contracts/Access.js',
+  './src/Contracts/Storage.js',
   // Base Classes
   './src/Foundation/Class.js',
   './src/Foundation/Bag.js',
@@ -60,17 +60,19 @@ module.exports = [
   './src/Extensions/OwnProps.js',
   './src/Extensions/Serializable.js',
   // Sync
-  './src/Sync/Sync.js',
-  './src/Sync/RequestBag.js',
+  './src/Sync/Raw/Request.js',
+  './src/Sync/Raw/Response.js',
   './src/Sync/Request.js',
   './src/Sync/Response.js',
+  './src/Sync/Sync.js',
   // Mocks integration
-  './src/Mocks/Transmitter.js',
-  // Repository
-  './src/Repository/Repository.js',
-  './src/Repository/Adapter.js',
-  './src/Repository/Server.js',
-  './src/Repository/Local.js',
+  './src/Mocks/Interceptor.js',
+  './src/Mocks/Mock.js',
+  // Storage
+  './src/Storage/Storage.js',
+  './src/Storage/Adapter.js',
+  './src/Storage/Server.js',
+  './src/Storage/Local.js',
   // Base component classes
   './src/Foundation/Model.js',
   './src/Foundation/Collection.js',

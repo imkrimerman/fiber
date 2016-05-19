@@ -1,22 +1,22 @@
 /**
- * Repository Adapter
+ * Storage Adapter
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
+Fiber.Storage.Adapter = Fiber.Class.implement('Storage').extend({
 
   /**
-   * Repository prefix.
+   * Storage prefix.
    * @type {string|function(...)}
    */
-  prefix: '@Fiber.Repository',
+  prefix: '@Fiber.Storage',
 
   /**
    * Class type signature.
    * @type {string}
    * @private
    */
-  _signature: '[object Fiber.Repository.Adapter]',
+  _signature: '[object Fiber.Storage.Adapter]',
 
   /**
    * Constructs Adapter
@@ -32,7 +32,7 @@ Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
    * @param {string} key - Key to retrieve value
    * @param {function(...)} [callback] - Callback that will be called when value is retrieved
    * @param {*} [defaults] - Value that will be returned if `key` is not exist in the storage
-   * @returns {Fiber.Repository.Adapter}
+   * @returns {Fiber.Storage.Adapter}
    */
   get: function(key, callback, defaults) {
     return this.push(callback).request('get', key, defaults);
@@ -43,7 +43,7 @@ Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
    * @param {string} [key] - Key to set value
    * @param {*} [value] - Value to set
    * @param {function(...)} [callback] - Callback that will be called when value is set
-   * @returns {Fiber.Repository.Adapter}
+   * @returns {Fiber.Storage.Adapter}
    */
   set: function(key, value, callback) {
     return this.push(callback).request('set', key, value);
@@ -105,7 +105,7 @@ Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
   /**
    * Pushes request callback to the stack
    * @param {function(...)} callback
-   * @returns {Fiber.Repository.Adapter}
+   * @returns {Fiber.Storage.Adapter}
    */
   push: function(callback) {
     if (! $isFn(callback)) callback = $fn.through;

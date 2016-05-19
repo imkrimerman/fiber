@@ -1,12 +1,12 @@
 /**
- * Repository
+ * Storage
  * @class
  * @extends {Fiber.Bag}
  */
-Fiber.Repository = Fiber.Bag.extend({
+Fiber.Storage = Fiber.Bag.extend({
 
   /**
-   * Repository connection adapter
+   * Storage connection adapter
    * @type {Object.<Fiber.Repository.Adapter>}
    */
   _connection: null,

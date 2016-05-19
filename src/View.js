@@ -252,7 +252,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
     remove: function() {
       $fn.fireCallCyclic(this, 'remove', function() {
         this.clearBoundEvents();
-        this.$super('remove', { fire: this });
+        this.$super('remove', {fire: this});
       });
       this._rendered = false;
       return this;
@@ -290,7 +290,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
         this.$apply(this, '_beforeRender');
         result = render.call(this);
         this.$apply(this, '_afterRender');
-      }, { fire: this, call: render });
+      }, {fire: this, call: render});
       this._rendered = true;
       return result;
     },
@@ -325,7 +325,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      * @private
      */
     _handleListeners: function() {
-      var listens = this.result('listens', { to: '', on: {} })
+      var listens = this.result('listens', {to: '', on: {}})
         , events = listens.on
         , listenable = listens.to;
       this._createListeners(events);

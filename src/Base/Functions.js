@@ -432,8 +432,8 @@ var $bind = function(fn, scope) {
     , fnToBind = fn
     , noop = function() {}
     , bound = function() {
-      return fnToBind.apply(fn instanceof noop && scope ? fn : scope, partials.concat($slice(arguments)));
-    };
+    return fnToBind.apply(fn instanceof noop && scope ? fn : scope, partials.concat($slice(arguments)));
+  };
 
   noop.prototype = fn.prototype;
   bound.prototype = new noop();
@@ -506,7 +506,6 @@ var $compact = function(array) {
   return result;
 };
 
-
 /**
  * Creates function that returns `value`.
  * @param {*} value
@@ -534,7 +533,6 @@ var $through = function(value) {
 var $expect = function(statement, errorMsg) {
   if (! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
 };
-
 
 /**
  * Returns result of `typeof` call on `arg`
@@ -569,7 +567,7 @@ var $whatType = function(arg) {
     if (argType !== $tr($BaseTypes[i].type) || argSignature !== $tr($BaseTypes[i].signature)) continue;
     return $BaseTypes[i];
   }
-  return { type: argType, signature: argSignature, example: function() {return arg} };
+  return {type: argType, signature: argSignature, example: function() {return arg}};
 };
 
 /**

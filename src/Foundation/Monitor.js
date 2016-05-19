@@ -82,7 +82,7 @@ Fiber.Monitor = BaseClass.extend({
    */
   constructor: function(options) {
     this._monitor = Fiber.Events.$new();
-    this._logger = new Fiber.Log({ level: 'debug', as: '[Fiber.Monitor]', templates: this._templates });
+    this._logger = new Fiber.Log({level: 'debug', as: '[Fiber.Monitor]', templates: this._templates});
     this._fired = $bind(this._fired, this);
     this._firedGlobal = $bind(this._firedGlobal, this);
     $fn.class.handleOptions(this, options);
@@ -150,7 +150,7 @@ Fiber.Monitor = BaseClass.extend({
    */
   watchGlobalEvents: function(object) {
     var index = this._watchingGlobalEventsOn.indexOf(object);
-    if (! (~index)) this._watchingGlobalEventsOn.push(object);
+    if (! (~ index)) this._watchingGlobalEventsOn.push(object);
     this.trigger('watch.events.global:start', object, this);
     return this;
   },
@@ -162,7 +162,7 @@ Fiber.Monitor = BaseClass.extend({
    */
   stopWatchingGlobalEvents: function(object) {
     var index = this._watchingGlobalEventsOn.indexOf(object);
-    if (~index) this._watchingGlobalEventsOn.splice(index, 0);
+    if (~ index) this._watchingGlobalEventsOn.splice(index, 0);
     this.trigger('watch.events.globals:stop', object, this);
     return this;
   },
@@ -295,7 +295,8 @@ Fiber.Monitor = BaseClass.extend({
    * @private
    */
   _getStackTrace: function() {
-    if (this.notifies.stackTrace) try {var stack = (new Error).stack;} catch(e) {}
+    if (this.notifies.stackTrace) try {var stack = (new Error).stack;}
+    catch (e) {}
     return this._prepareStackTrace(stack) || '';
   },
 
@@ -346,7 +347,7 @@ Fiber.Monitor = BaseClass.extend({
    */
   _forgetCached: function(object) {
     $each(this._cache, function(cached, index) {
-      if (cached.object === object) this._cache.splice(+index, 1);
+      if (cached.object === object) this._cache.splice(+ index, 1);
     }, this);
     return this;
   },

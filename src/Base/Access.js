@@ -1,17 +1,23 @@
 /**
- * Fiber Storage
+ * Fiber Base Access Object
  * @class
- * @private
  */
-var $Storage = function(storable) {
+Fiber.Access = function(storable) {
   this._items = $isPlain(storable) ? storable : {};
 };
 
 /**
- * Storage prototype
+ * BaseStorage prototype
  * @type {Object}
  */
-_.extend($Storage.prototype, {
+_.extend(Fiber.Access.prototype, {
+
+  /**
+   * Class type signature
+   * @type {string}
+   * @private
+   */
+  _signature: '[object Fiber.Access]',
 
   /**
    * Gets value by given `path`. You can provide `defaults` value that
@@ -29,7 +35,7 @@ _.extend($Storage.prototype, {
    * Sets `value` by given `property` path.
    * @param {string} path
    * @param {*} value
-   * @returns {Storage|Object}
+   * @returns {BaseStorage|Object}
    */
   set: function(path, value) {
     return $set(this._items, path, value);
@@ -59,7 +65,7 @@ _.extend($Storage.prototype, {
   /**
    * Removes `value` by the given `path`.
    * @param {string} path
-   * @returns {Storage|Object}
+   * @returns {BaseStorage|Object}
    */
   forget: function(path) {
     return $forget(this._items, path);
@@ -90,6 +96,6 @@ _.extend($Storage.prototype, {
    * @returns {Object}
    */
   all: function() {
-    return $clone(this._items);
+    return this._items;
   }
 });

@@ -80,7 +80,7 @@ Fiber.fn.class = {
     _.extend(child, parent, staticProps);
     // Set the prototype chain to inherit from `parent`
     child.prototype = Object.create(parent.prototype, {
-      constructor: _.extend({ value: child }, $fn.descriptor.getDescriptor('property'))
+      constructor: _.extend({value: child}, $fn.descriptor.getDescriptor('property'))
     });
     // Add prototype properties (instance properties) to the subclass, if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);
@@ -222,8 +222,10 @@ Fiber.fn.class = {
     switch (true) {
       case $isArr(object):
         return object.concat(mixin);
-      case $isPlain(object) || $isFn(object):
+      case $isPlain(object):
         return _.merge({}, object, mixin);
+      case $isFn(object):
+        return _.merge(object, mixin);
       default:
         return object;
     }
@@ -256,7 +258,7 @@ Fiber.fn.class = {
         extend: $fn.delegate($fn.class.make),
         create: $fn.delegate($fn.class.createNew),
         implement: $fn.delegate($fn.class.implement),
-        implementOwn: $fn.delegate($fn.class.implementOwn),
+        implemented: $fn.delegate($fn.class.implementOwn),
         mutate: $fn.delegate($fn.class.mutate),
       }
     };
@@ -328,10 +330,9 @@ Fiber.fn.class = {
   attachSuper: function(child, parent) {
     if (! parent) return child;
     child.$super = function(method, args, scope) {
-      var proto = parent.prototype, methodFn;
       if (! arguments.length) return parent;
-      if (methodFn = $fn.class.getMethod(proto, method))
-        return $fn.applyFn(methodFn, args, scope || this);
+      var proto = parent.prototype, methodFn = $fn.class.getMethod(proto, method);
+      if (methodFn) return $fn.applyFn(methodFn, args, scope || this);
       if (method === 'prototype') proto = parent;
       return $get(proto, method);
     };
