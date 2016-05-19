@@ -28,7 +28,7 @@ Fiber.Promise = Fiber.Class.extend({
    * @param {Object} [executor]
    */
   constructor: function(executor, scope) {
-    $fn.expect(_.isFunction(executor));
+    $fn.expect($isFn(executor));
     this._resolved = false;
     this._rejected = false;
     this._executor = scope ? executor.bind(scope) : executor;

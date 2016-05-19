@@ -87,7 +87,7 @@ var $Access = new Fiber.Extension('Access', {
    */
   isAllowedToCall: function(method) {
     var methods = $get(this._accessRules, this._accessLevel);
-    if (! _.isArray(methods)) return $fn.cast.toBoolean(methods);
+    if (! $isArr(methods)) return $fn.cast.toBoolean(methods);
     return _.includes(methods, method);
   },
 

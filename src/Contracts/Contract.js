@@ -36,8 +36,8 @@ Fiber.Contract = BaseClass.extend({
    * @param {Object} contract
    */
   set: function(contract) {
-    if (_.isArray(contract)) contract = $fn.merge(_.map(contract, function(one) {
-      return _.isString(one) && Fiber.Contracts[one] || one instanceof Fiber.Contract && one || {};
+    if ($isArr(contract)) contract = $fn.merge(_.map(contract, function(one) {
+      return $isStr(one) && Fiber.Contracts[one] || one instanceof Fiber.Contract && one || {};
     }));
     if (this._isValid(contract)) this._contract = contract;
     return this;
@@ -67,7 +67,7 @@ Fiber.Contract = BaseClass.extend({
    * @returns {Fiber.Contract}
    */
   setName: function(name) {
-    if (_.isString(name)) this._name = name;
+    if ($isStr(name)) this._name = name;
     return this;
   },
 
@@ -94,8 +94,8 @@ Fiber.Contract = BaseClass.extend({
    * @private
    */
   _isValid: function(contract) {
-    return _.isPlainObject(contract) && _.every(_.values(contract), function(value) {
-        return value instanceof Fiber.Type || _.isPlainObject(value);
+    return $isPlain(contract) && _.every(_.values(contract), function(value) {
+        return value instanceof Fiber.Type || $isPlain(value);
       });
   },
 });

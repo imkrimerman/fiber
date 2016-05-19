@@ -46,7 +46,7 @@ Fiber.fn.descriptor = {
    */
   get: function(object, property) {
     if (! $fn.descriptor.canDescribe(object)) return {};
-    return _.isFunction(object.getOwnPropertyDescriptor) && object.getOwnPropertyDescriptor(object, property) || {};
+    return $isFn(object.getOwnPropertyDescriptor) && object.getOwnPropertyDescriptor(object, property) || {};
   },
 
   /**
@@ -59,10 +59,10 @@ Fiber.fn.descriptor = {
    */
   define: function(object, property, descriptor, extender) {
     if (! $fn.descriptor.canDescribe(object)) return object;
-    if (_.isPlainObject(property)) return $fn.multi(property, function(oneDescriptor, key) {
+    if ($isPlain(property)) return $fn.multi(property, function(oneDescriptor, key) {
       return $fn.descriptor.define(object, key, oneDescriptor, descriptor);
     }, function() {return object;});
-    descriptor = _.isString(descriptor) ? $fn.macros.get(descriptor) : $val(descriptor, {}, _.isPlainObject);
+    descriptor = $isStr(descriptor) ? $fn.macros.get(descriptor) : $val(descriptor, {}, $isPlain);
     return Object.defineProperty(object, property, $fn.merge(descriptor, extender));
   },
 
@@ -75,7 +75,7 @@ Fiber.fn.descriptor = {
    * @returns {Object}
    */
   defineMacros: function(object, property, macros, extender) {
-    var macrosArgs = _.isArray(macros) && _.drop(macros) || []
+    var macrosArgs = $isArr(macros) && $drop(macros) || []
       , macrosCreator = $fn.macros.get(macros)
       , descriptor = macrosCreator.apply(object, macrosArgs);
     return $fn.descriptor.define(object, property, descriptor, extender);
@@ -90,7 +90,7 @@ Fiber.fn.descriptor = {
    * @returns {Object|
    */
   immutable: function(object, deep) {
-    if (! _.isObject(object)) return object;
+    if (! $isObj(object)) return object;
     $val(deep, true, _.isBoolean) && _.each($fn.properties(object), function(property) {
       if ($fn.descriptor.canDescribe(property)) $fn.descriptor.immutable(property);
     });
@@ -105,7 +105,7 @@ Fiber.fn.descriptor = {
    * @returns {Object}
    */
   explicit: function(object, deep) {
-    if (! _.isObject(object)) return object;
+    if (! $isObj(object)) return object;
     $val(deep, true, _.isBoolean) && _.each($fn.properties(object), function(property) {
       if ($fn.descriptor.canDescribe(property)) $fn.descriptor.explicit(property);
     });
@@ -239,6 +239,6 @@ Fiber.fn.descriptor = {
    * @returns {boolean}
    */
   canDescribe: function(object) {
-    return _.isObject(object);
+    return $isObj(object);
   },
 };

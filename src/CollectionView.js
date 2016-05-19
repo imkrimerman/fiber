@@ -196,8 +196,8 @@ Fiber.CollectionView = Fiber.View.extend({
    * @returns {Object.<Fiber.Collection>}
    */
   createCollection: function(models, options) {
-    models = $val(models, [], _.isArray);
-    options = $val(options, {}, _.isPlainObject);
+    models = $val(models, [], $isArr);
+    options = $val(options, {}, $isPlain);
     options.comparator = this.comparator;
     return this.collection = new this.CollectionClass(models, options);
   },
@@ -209,7 +209,7 @@ Fiber.CollectionView = Fiber.View.extend({
    */
   replaceCollectionElementUi: function(collectionElement) {
     collectionElement = collectionElement || this.collectionElement;
-    if (! _.isString(collectionElement)) return collectionElement;
+    if (! $isStr(collectionElement)) return collectionElement;
     if (~ collectionElement.indexOf('@ui'))
       collectionElement = this.ui[collectionElement.replace('@ui.', '')];
     return collectionElement;

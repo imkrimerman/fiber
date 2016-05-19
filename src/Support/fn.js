@@ -39,6 +39,15 @@ $fn = Fiber.fn = {
   has: $has,
 
   /**
+   * Determines if `object` has all given props.
+   * @param {Object} object
+   * @param {string|Array} props
+   * @param {function(arg): boolean} [checkFn]
+   * @returns {boolean}
+   */
+  hasGiven: $hasGiven,
+
+  /**
    * Gets value by the given `property` key, if `property` value is function then it will be called.
    * You can provide `defaults` value that will be returned if value is not found
    * by the given key. If `defaults` is not provided that defaults will be set to `null`.
@@ -144,6 +153,53 @@ $fn = Fiber.fn = {
   valMerge: $valMerge,
 
   /**
+   * Creates function that returns `value`.
+   * @param {*} value
+   * @returns {function(...)}
+   */
+  constant: $constant,
+
+  /**
+   * Passes `value` through.
+   * @param {*} value
+   * @returns {*}
+   */
+  through: $through,
+
+  /**
+   * Removes all falsey values from array.
+   * Falsey values `false`, `null`, `0`, `""`, `undefined`, and `NaN`.
+   * @param {Array} array
+   * @returns {Array}
+   */
+  compact: $compact,
+
+  /**
+   * Assertion helper
+   * @param {boolean} statement
+   * @param {string} errorMsg
+   * @throws Will throw `Error` if statement is not true
+   */
+  expect: $expect,
+
+  /**
+   * Returns function that will create unique IDs.
+   * @param {string} [name]
+   * @returns {Function}
+   */
+  idGeneratorFor: $idGeneratorFor,
+
+  /**
+   * Checks if given array is array with objects
+   * @param {string} of - String of type (object, string, array ...etc)
+   * @param {Array} array - Array to check
+   * @param {?string} [method=every] Method to use to check if `every`, `any` or `some` conditions
+   *   worked
+   * @returns {*|boolean}
+   */
+  isArrayOf: $isArrayOf,
+
+  /**
    * Checks if value is defined
    * @param {*} value - Value to check
    * @returns {boolean}
@@ -158,18 +214,40 @@ $fn = Fiber.fn = {
    */
   isExtendable: $isExtendable,
 
+
+  /**
+   * Returns what user agent is currently detected
+   * @returns {string|null}
+   */
+  whatBrowser: $whatBrowser,
+
+  /**
+   * Determines if given `object` has `Fiber.Events`.
+   * @param {Object} object
+   * @returns {boolean}
+   */
+  isEventable: $isEventable,
+
   /**
    * Merges multiple objects or arrays into one.
-   * @param {Array} args - Array of objects/arrays to merge
+   * @param {Array|*} mergeable - Array of objects/arrays to merge
+   * @param {...args}
    * @returns {Array|Object}
    */
-  merge: function(array) {
-    if (arguments.length > 1) array = _.toArray(arguments);
-    if (! _.isArray(array)) return array;
-    array = $fn.compact(array);
-    if ($fn.isArrayOf(array, 'array')) return _.flattenDeep(array);
-    if ($fn.isArrayOf(array, 'object')) return _.extend.apply(_, [{}].concat(array));
-    return array;
+  merge: function(mergeable) {
+    if (arguments.length > 1) mergeable = $slice(arguments);
+    return $squash('extend', mergeable);
+  },
+
+  /**
+   * Merges multiple objects or arrays into one.
+   * @param {Array|*} mergeable - Array of objects/arrays to merge
+   * @param {...args}
+   * @returns {Array|Object}
+   */
+  deepMerge: function(mergeable) {
+    if (arguments.length > 1) mergeable = $slice(arguments);
+    return $squash('merge', mergeable);
   },
 
   /**
@@ -193,7 +271,7 @@ $fn = Fiber.fn = {
    */
   applyFn: function(fn, args, scope) {
     args = ! $isDef(args) ? [] : $castArr(args);
-    if (_.isFunction(fn)) return fn.apply($val(scope, fn), args);
+    if ($isFn(fn)) return fn.apply($val(scope, fn.prototype), args);
   },
 
   /**
@@ -208,7 +286,7 @@ $fn = Fiber.fn = {
   proxy: function(fn, scope, partials, argCount) {
     return function() {
       var args = $fn.cast.toArray(partials).concat($castArr(arguments))
-        , pass = args.slice(0, $val(argCount, Infinity, _.isNumber));
+        , pass = args.slice(0, $val(argCount, Infinity, $isNum));
       return fn.apply($val(scope, this), pass);
     };
   },
@@ -235,9 +313,8 @@ $fn = Fiber.fn = {
    * @returns {Error|*}
    */
   try: function(callable) {
-    try { return callable.apply(callable, _.drop(arguments)); }
+    try { return callable.apply(callable, $drop(arguments)); }
     catch (e) { return e; }
-    ;
   },
 
   /**
@@ -250,33 +327,18 @@ $fn = Fiber.fn = {
    */
   tryFail: function(callable, args, onFail) {
     var attempt = $fn.try.apply(null, $fn.argsConcat(callable, args));
-    return _.isError(attempt) ? (_.isFunction(onFail) && onFail(e, args, callable) || onFail) : attempt;
+    return _.isError(attempt) ? ($isFn(onFail) && onFail(e, args, callable) || onFail) : attempt;
   },
 
   /**
    * Expect that object has all given properties
-   * @param {Object} obj
+   * @param {Object} object
    * @param {Array|Object} props
    * @param {boolean} [isObject=true]
    */
-  hasAllProps: function(obj, props) {
-    props = _.isPlainObject(props) ? _.keys(props) : $castArr(props);
-    return _.every(props, function(prop) {
-      return $has(obj, prop);
-    });
-  },
-
-  /**
-   * Checks if given array is array with objects
-   * @param {Array} array - Array to check
-   * @param {string} of - String of type (object, string, array ...etc)
-   * @param {?string} [method=every] Method to use to check if `every`, `any` or `some` conditions
-   *   worked
-   * @returns {*|boolean}
-   */
-  isArrayOf: function(array, of, method) {
-    method = $val(method, 'every', _.isString);
-    return _.isArray(array) && _[method](array, _['is' + _.capitalize(of)]);
+  hasAllProps: function(object, props) {
+    if ($isPlain(props)) props = _.keys(props);
+    return $hasGiven(object, props);
   },
 
   /**
@@ -287,7 +349,7 @@ $fn = Fiber.fn = {
    */
   inArrayAllSame: function(array, sameCheckFn) {
     return $fn.cast.toBoolean(array.reduce(function(a, b) {
-      var condition = _.isFunction(sameCheckFn) && sameCheckFn(a, b) || a === b;
+      var condition = $isFn(sameCheckFn) && sameCheckFn(a, b) || a === b;
       return condition ? a : NaN;
     }));
   },
@@ -307,28 +369,13 @@ $fn = Fiber.fn = {
 
     final = $val(final, function(object) {
       return function(result) {
-        return _.isArray(object) ? result : _.first(result);
+        return $isArr(object) ? result : _.first(result);
       };
-    }, [_.isString, _.isFunction]);
+    }, [$isStr, $isFn]);
 
-    if (_.isString(final)) {
-      if ($fn.macros.has(final)) final = $fn.macros.create(final, traversable);
-      if ($has(Fiber, final)) final = $get(Fiber, final);
-    }
-
+    if ($isStr(final) && $has(Fiber, final)) final = $get(Fiber, final);
     var result = $fn.applyFn(_[$val(method, 'map')], [traversable, iterator], scope);
-    return _.isFunction(final) ? $fn.applyFn(final, [result, traversable, method, scope]) : result;
-  },
-
-  /**
-   * Concatenates arguments into one array, if item is arguments it will be converted to array
-   * @param {number} level
-   * @param {...args}
-   * @returns {Array}
-   */
-  argsConcatFlat: function(level) {
-    var concatenated = $fn.argsConcat.apply($fn, _.drop(arguments));
-    return _.flattenDepth(concatenated, $val(level, 1, _.isNumber));
+    return $isFn(final) ? $fn.applyFn(final, [result, traversable, method, scope]) : result;
   },
 
   /**
@@ -362,12 +409,12 @@ $fn = Fiber.fn = {
    */
   fill: function(array, value, times) {
     var i = 0, hasValue = $isDef(value);
-    if (! _.isArray(array)) {
+    if (! $isArr(array)) {
       times = $fn.cast.toNumber(array);
       array = [];
     }
 
-    if (! _.isNumber(times)) times = array.length;
+    if (! $isNum(times)) times = array.length;
     while (i < times) array.push(hasValue ? value : i ++);
     return array;
   },
@@ -380,8 +427,8 @@ $fn = Fiber.fn = {
    * @returns {Object}
    */
   createPlain: function(key, value) {
-    var obj = {}, isValueArray = _.isArray(value);
-    if (! _.isArray(key)) obj[key] = value;
+    var obj = {}, isValueArray = $isArr(value);
+    if (! $isArr(key)) obj[key] = value;
     else $each(key, function(one, index) {
       _.extend(obj, $fn.createPlain(one, isValueArray ? value[index] : value));
     });
@@ -409,11 +456,9 @@ $fn = Fiber.fn = {
    * @param {Array|string} [exclude]
    * @returns {Array}
    */
-  methods: function(object, exclude) {
-    var name, methods = [];
-    if (! _.isObject(object) || _.isArray(object)) return methods;
-    for (name in object) if (_.isFunction(object[name])) methods.push(name);
-    return ! _.isEmpty(exclude) ? _.without(methods, $castArr(exclude)) : methods;
+  methods: function(object, exclude, own) {
+    var methods = own ? _.functions(object) : _.functionsIn(object);
+    return _.isEmpty(exclude) ? methods : _.without(methods, $castArr(exclude));
   },
 
   /**
@@ -423,9 +468,9 @@ $fn = Fiber.fn = {
    * @returns {Array}
    */
   properties: function(object, exclude) {
-    if (! _.isObject(object) || _.isArray(object)) return methods;
+    if (! $isObj(object) || $isArr(object)) return methods;
     var properties = _.keys(_.omit(object, $fn.methods(object)));
-    return ! _.isEmpty(exclude) ? _.difference(properties, $castArr(exclude)) : properties;
+    return _.isEmpty(exclude) ? properties : _.without(properties, $castArr(exclude));
   },
 
   /**
@@ -438,7 +483,7 @@ $fn = Fiber.fn = {
     var trimmed = _.map($castArr(string), function(one) {
       return _.trim(one, delimiter || '');
     });
-    return _.isArray(string) ? trimmed : _.first(trimmed);
+    return $isArr(string) ? trimmed : _.first(trimmed);
   },
 
   /**
@@ -458,153 +503,12 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Creates function that returns `value`.
-   * @param {*} value
-   * @returns {function(...)}
-   */
-  constant: function(value) {
-    return function() {return value;};
-  },
-
-  /**
-   * Passes `value` through.
-   * @param {*} value
-   * @returns {*}
-   */
-  through: function(value) {
-    return value;
-  },
-
-  /**
-   * Removes all falsey values from array.
-   * Falsey values `false`, `null`, `0`, `""`, `undefined`, and `NaN`.
-   * @param {Array} array
-   * @returns {Array}
-   */
-  compact: function(array) {
-    var i = - 1, index = 0, result = []
-      , length = (array = $castArr(array)) ? array.length : 0;
-    while (++ i < length) if (array[i]) result[index ++] = array[i];
-    return result;
-  },
-
-  /**
-   * Fires two events on object, first is simple event, second is event for attribute
-   * @param {Object} object
-   * @param {string} event
-   * @param {string} attribute
-   * @param {?Array} [args]
-   * @param {?function(...)} [cb]
-   */
-  fireAttribute: function(object, event, attribute, args, cb) {
-    var options = { prepare: false, call: false };
-    event = _.trim(event, ':');
-    attribute = _.trim(attribute, ':');
-    args = $fn.prepareFireCallArgs({ fire: args }, { fire: [] });
-    $fn.fireCall(object, event, args, options);
-    var result = _.isFunction(cb) ? $fn.applyFn(cb, args) : void 0;
-    $fn.fireCall(object, event + ':' + attribute, args, options);
-    return result;
-  },
-
-  /**
-   * Invokes method (camel case transformed event) if exists and fires event
-   * @param {function(...)|Object} object - object to call
-   * @param {string} event - event to fire and transform to callback name
-   * @param ?Object} [args]
-   * @param {?Object} [options]
-   * @return {*}
-   */
-  fireCall: function(object, event, args, options) {
-    var result = object;
-    options = _.defaults({}, options || {}, { prepare: true, call: true });
-    if (options.prepare) args = $fn.prepareFireCallArgs(args, { fire: [], call: [] });
-    if (options.callEventMethod) result = $fn.apply(object, _.camelCase(event.split(':').join(' ')), args.call);
-    $fn.apply(object, 'fire', [event].concat(args.fire));
-    return result;
-  },
-
-  /**
-   * Fires lifecycle events, invokes callback and if event method (camel case transformed event) exists will invoke it.
-   * @param {function(...)|Object} object - object to call
-   * @param {string} event - event to fire and transform to callback name
-   * @param {function(...)} callback
-   * @param {Object} [args]
-   * @param {Array} [lifeCycle]
-   * @return {*}
-   */
-  fireCallCyclic: function(object, event, callback, args, lifeCycle) {
-    args = $fn.prepareFireCallArgs(args, { fire: [], call: [], callback: [], callEventMethod: true });
-    lifeCycle = $val(lifeCycle, ['before', '@callback', 'after'], _.isArray);
-    for (var i = 0; i < lifeCycle.length; i ++) {
-      var now = lifeCycle[i], nowEvent = Fiber.Events.joinEventName([now, event]), result;
-      if (now === '@callback') {
-        if (_.isFunction(callback)) result = callback.apply(object, args.callback);
-        nowEvent = event;
-      }
-      $fn.fireCall(object, nowEvent, args, { prepare: false, callEventMethod: args.callEventMethod });
-    }
-    return result;
-  },
-
-  /**
-   * Returns wrapped `fireCallCyclic` method
-   * @param {function(...)} fn
-   * @param {string} event
-   * @param {Object} [args]
-   * @param {Array} [lifeCycle]
-   * @returns {function(...)}
-   */
-  wrapFireCallCyclic: function(fn, event, args, lifeCycle) {
-    return _.wrap(fn, _.bind(function(execFn) {
-      return $fn.fireCallCyclic(this, event, execFn, args, lifeCycle);
-    }, this));
-  },
-
-  /**
-   * Prepares arguments for fire call methods
-   * @param {Object} args
-   * @param {Object} [defaults={}]
-   * @returns {Object}
-   */
-  prepareFireCallArgs: function(args, defaults) {
-    var prepared = $valMerge(args, defaults, 'defaults');
-    for (var key in prepared) {
-      var value = prepared[key];
-      if (_.isArguments(value)) prepared[key] = value;
-      else prepared[key] = $castArr(value);
-    }
-    return prepared;
-  },
-
-  /**
-   * Assertion helper
-   * @param {boolean} statement
-   * @param {string} errorMsg
-   * @throws Will throw `Error` if statement is not true
-   */
-  expect: function(statement, errorMsg) {
-    if (! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
-  },
-
-  /**
    * Returns object for Class prototype. Integrates support helpers to Fiber Classes
    * @param {?Array} [exclude] - Array of properties to exclude from functions object
    * @returns {Object}
    */
   proto: function(exclude) {
-    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], _.isArray)));
-  },
-
-  /**
-   * Logs object to the console or if `log` is `false` returns object serialized to string.
-   * @param {object} object
-   * @param {boolean} [log=true]
-   * @returns {string}
-   */
-  debug: function(object, log) {
-    var msg = "[Fiber.Debug] >> `" + $fn.types.what(object).getType() + "`:\n" + $fn.serialize.stringify(object, true);
-    return $val(log, true, _.isBoolean) ? $log.debug(msg) && void 0 : msg;
+    return _.omit($fn, $fn.protoExclude.concat($val(exclude, [], $isArr)));
   },
 
   /**
@@ -645,29 +549,92 @@ $fn = Fiber.fn = {
   },
 
   /**
-   * Returns browser map with current user agent marked as `true`
-   * @returns {Object}
+   * Fires two events on object, first is simple event, second is event for attribute
+   * @param {Object} object
+   * @param {string} event
+   * @param {string} attribute
+   * @param {?Array} [args]
+   * @param {?function(...)} [cb]
    */
-  detectBrowser: function() {
-    var isOpera = $fn.types.parseSignature(root.opera) == '[object Opera]'
-      , agent = navigator.userAgent;
-    return {
-      isIE: $fn.cast.toBoolean(window.attachEvent && ! isOpera),
-      isOpera: isOpera,
-      isWebKit: $fn.cast.toBoolean(~ agent.indexOf('AppleWebKit/')),
-      isGecko: ~ agent.indexOf('Gecko') && ! (~ agent.indexOf('KHTML')),
-      isMobileSafari: /Apple.*Mobile/.test(agent)
-    }
+  fireAttribute: function(object, event, attribute, args, cb) {
+    var options = { prepare: false, call: false };
+    event = _.trim(event, ':');
+    attribute = _.trim(attribute, ':');
+    args = $fn.prepareFireCallArgs({ fire: args });
+    $fn.fireCall(object, event, args, options);
+    var result = $isFn(cb) ? $fn.applyFn(cb, args) : void 0;
+    $fn.fireCall(object, event + ':' + attribute, args, options);
+    return result;
   },
 
   /**
-   * Returns what user agent is currently detected
-   * @returns {string|null}
+   * Invokes method (camel case transformed event) if exists and fires event
+   * @param {function(...)|Object} object - object to call
+   * @param {string} event - event to fire and transform to callback name
+   * @param {Object|Array|Arguments} [args]
+   * @param {Object} [options]
+   * @return {*}
    */
-  whatBrowser: function() {
-    var map = $fn.detectBrowser();
-    var pairs = _.toPairs(map);
-    for (var i = 0; i < pairs.length; i ++) if (pairs[i][1]) return pairs[i][0].replace('is', '');
-    return null;
+  fireCall: function(object, event, args, options) {
+    options = $valMerge(options, {prepare: true, callEventMethod: true, methodPrefix: 'when', fireMethod: 'fire'});
+    if ($isArr(event)) event = Fiber.Events.joinEventName(event);
+    var result = object, methodName = _.camelCase(Fiber.Events.joinEventName([options.methodPrefix, event]));
+    if (options.prepare || $isArr(args) || $isArgs(args)) args = $fn.prepareFireCallArgs(args);
+    if (options.callEventMethod) result = $fn.apply(object, methodName, args.call);
+    $fn.apply(object, options.fireMethod, [event].concat(args.fire));
+    return result;
+  },
+
+  /**
+   * Fires lifecycle events, invokes callback and if event method (camel case transformed event) exists will invoke it.
+   * @param {function(...)|Object} object - object to call
+   * @param {string} event - event to fire and transform to callback name
+   * @param {function(...)} callback
+   * @param {Object|Array|Arguments} [args]
+   * @param {Object} [options]
+   * @return {*}
+   */
+  fireCallCyclic: function(object, event, callback, args, options) {
+    args = $fn.prepareFireCallArgs(args);
+    options = $valMerge(options, {lifeCycle: ['before', '@callback', 'after'], prepare: false, callEventMethod: true});
+    var hasCallback = $isFn(callback), result;
+    for (var i = 0; i < options.lifeCycle.length; i ++) {
+      var now = options.lifeCycle[i];
+      if (now === '@callback' && hasCallback) result = callback.apply(object, args.callback);
+      $fn.fireCall(object, [now, event], args, $fn.merge(options, {methodPrefix: now}));
+    }
+    return result;
+  },
+
+  /**
+   * Returns wrapped `fireCallCyclic` method
+   * @param {function(...)} fn
+   * @param {string} event
+   * @param {Object|Array|Arguments} [args]
+   * @param {Object} [options]
+   * @returns {function(...)}
+   */
+  createFireCallCyclic: function(fn, event, args, options) {
+    options = $valMerge(options, {ignoreArguments: true});
+    return function() {
+      if (! options.ignoreArguments) args = $valMerge(args, {callback: arguments}, 'extend');
+      return $fn.fireCallCyclic(this, event, fn, args, options);
+    };
+  },
+
+  /**
+   * Prepares arguments for fire call methods
+   * @param {Object|Array|Arguments} args
+   * @returns {Object}
+   */
+  prepareFireCallArgs: function(args) {
+    if ($isArr(args) || $isArgs(args)) args = {fire: args, call: args, callback: args};
+    var prepared = $valMerge(args, {fire: [], call: [], callback: []});
+    for (var key in prepared) {
+      var value = prepared[key];
+      if ($isArgs(value)) prepared[key] = value;
+      else prepared[key] = $castArr(value);
+    }
+    return prepared;
   }
 };

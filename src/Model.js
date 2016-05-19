@@ -65,12 +65,12 @@ Fiber.Model = BaseModel.extend({
     this.attributes = {};
     this.errorBag = new Fiber.ErrorBag();
     this.adapter = new Fiber.Repository();
-    attributes = $val(attributes, {}, _.isPlainObject);
+    attributes = $val(attributes, {}, $isPlain);
     options = $fn.class.handleOptions(this, options);
     this.createClientId();
     this.flushView();
     if (options.adapter) this.adapter = options.adapter;
-    if (options.parse) attributes = $val(this.parse(attributes, options), {}, _.isPlainObject);
+    if (options.parse) attributes = $val(this.parse(attributes, options), {}, $isPlain);
     attributes = _.defaultsDeep({}, attributes, $result(this, 'defaults'));
     this.set(attributes, options);
     this.changed = {};
@@ -95,7 +95,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {*}
    */
   get: function(attribute, options) {
-    options = $valMerge(options, { compute: true }, 'defaults');
+    options = $valMerge(options, { compute: true });
     if (options.compute && $fn.computed.has(this, attribute, 'get'))
       return $fn.computed.get(this, attribute);
     return $get(this.attributes, attribute);
@@ -110,7 +110,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {*}
    */
   set: function(attribute, value, options) {
-    options = $valMerge(options, { compute: true }, 'defaults');
+    options = $valMerge(options, { compute: true });
     if (options.compute && $fn.computed.has(this, attribute, 'set'))
       return $fn.computed.set(this, attribute, value);
     return this.$super('set', arguments);
@@ -124,7 +124,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {boolean}
    */
   has: function(attribute, options) {
-    options = $valMerge(options, { compute: true }, 'defaults');
+    options = $valMerge(options, { compute: true });
     if (options.compute) return $fn.computed.has(this, attribute, 'get');
     return $has(this.attributes, attribute);
   },
@@ -251,8 +251,8 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model}
    */
   fromSerialized: function(serialized) {
-    if (_.isString(serialized)) serialized = $fn.serialize.parse(serialized);
-    if (_.isPlainObject(serialized)) this.set(serialized);
+    if ($isStr(serialized)) serialized = $fn.serialize.parse(serialized);
+    if ($isPlain(serialized)) this.set(serialized);
     return this;
   },
 
@@ -261,7 +261,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {Object}
    */
   toJSON: function(options) {
-    options = $valMerge(options, { hidden: true }, 'defaults');
+    options = $valMerge(options, { hidden: true });
     var jsonModel = this.all();
     if (! options.hidden) return jsonModel;
     return _.omit(jsonModel, $result(this, 'hidden'));
@@ -273,8 +273,8 @@ Fiber.Model = BaseModel.extend({
    * @returns {Fiber.Model}
    */
   fromJSON: function(json) {
-    if (_.isString(json)) json = JSON.parse(json);
-    if (_.isPlainObject(json)) this.set(json);
+    if ($isStr(json)) json = JSON.parse(json);
+    if ($isPlain(json)) this.set(json);
     return this;
   },
 
@@ -293,7 +293,7 @@ Fiber.Model = BaseModel.extend({
    * @returns {boolean}
    */
   isSyncable: function() {
-    try { return _.isString($result(this, 'url')); }
+    try { return $isStr($result(this, 'url')); }
     catch (e) { return false; }
   }
 });

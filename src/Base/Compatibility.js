@@ -26,10 +26,10 @@ Backbone.Events.destroyEvents = function() {
 };
 
 /**
- * Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
- * @type {_.each|*|(function((Array|Object), function(...)=): (Array|Object))}
+* Cache lodash `each` method to use in backward compatibility mode for the previous lodash versions
+* @type {_.each|*|(function((Array|Object), function(...)=): (Array|Object))}
  */
-var $origEach = _.bind(_.each, _);
+var $origEach = $bind(_.each, _);
 
 /**
  * Adds compatibility for `each` method
@@ -39,7 +39,7 @@ var $origEach = _.bind(_.each, _);
  * @returns {*}
  */
 var $each = function(collection, iteratee, scope) {
-  if (scope) iteratee = _.bind(iteratee, scope);
+  if (scope) iteratee = $bind(iteratee, scope);
   return $origEach(collection, iteratee);
 };
 
@@ -87,8 +87,8 @@ var $optimizeCb = function(func, context, argCount) {
 var $iterateeCb = function(value, scope, argCount) {
   if (_.iteratee !== $iteratee) return _.iteratee(value, scope);
   if (value == null) return _.identity;
-  if (_.isFunction(value)) return $optimizeCb(value, scope, argCount);
-  if (_.isObject(value)) return _.matcher(value);
+  if ($isFn(value)) return $optimizeCb(value, scope, argCount);
+  if ($isObj(value)) return _.matcher(value);
   return _.property(value);
 };
 
@@ -132,4 +132,6 @@ _.mixin({
 /**
  * Adds `Function.bind` polyfill if function is not exists. Used to support `bind` in PhantomJS.
  */
-if (! Function.prototype.bind) Function.prototype.bind = $bind;
+if (! Function.prototype.bind) Function.prototype.bind = function() {
+  return $bind.apply(null, [this].concat($slice(arguments)));
+};

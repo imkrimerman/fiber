@@ -44,7 +44,7 @@ var Listeners = BaseCollection.extend({
    */
   getHandler: function(event) {
     var listener = this.getByEvent(event);
-    if (_.isArray(listener)) return _.pluck(listener, 'attributes.handlers');
+    if ($isArr(listener)) return _.pluck(listener, 'attributes.handlers');
     return listener.get('handlers');
   },
 
@@ -57,7 +57,7 @@ var Listeners = BaseCollection.extend({
   applyHandler: function(scope, event, args) {
     if (! this.hasEvent(event)) return;
     var handler = this.getHandler(event);
-    if (_.isArray(handler)) _.each(handler, _.bind(function(oneHandler) {
+    if ($isArr(handler)) _.each(handler, $bind(function(oneHandler) {
       this.callHandler(scope, oneHandler, args);
     }, this));
     else this.callHandler(scope, handler, args);
@@ -71,7 +71,7 @@ var Listeners = BaseCollection.extend({
    * @returns {*}
    */
   callHandler: function(scope, handler, args) {
-    if (_.isString(handler)) handler = scope[handler];
-    if (_.isFunction(handler)) return handler.apply(scope, args);
+    if ($isStr(handler)) handler = scope[handler];
+    if ($isFn(handler)) return handler.apply(scope, args);
   }
 });

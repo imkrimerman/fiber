@@ -122,7 +122,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
      */
     attachToParent: function($parent, fn) {
       if (! $) return this;
-      if (_.isString($parent)) $parent = $($parent);
+      if ($isStr($parent)) $parent = $($parent);
       if ($parent instanceof $) $parent[$val(fn, 'html')](this.$el);
       return this;
     },
@@ -145,8 +145,8 @@ Fiber.View = $fn.class.make(Backbone.View, [
      */
     compileTemplate: function(template, data) {
       data = this.makeTemplateData(data);
-      if (_.isString(template)) return $fn.template.compile(template, data);
-      if (_.isFunction(template)) template = template(data);
+      if ($isStr(template)) return $fn.template.compile(template, data);
+      if ($isFn(template)) template = template(data);
       return template;
     },
 
@@ -329,7 +329,7 @@ Fiber.View = $fn.class.make(Backbone.View, [
         , events = listens.on
         , listenable = listens.to;
       this._createListeners(events);
-      if (_.isString(listenable) && this.has(listenable)) listenable = this.result(listenable);
+      if ($isStr(listenable) && this.has(listenable)) listenable = this.result(listenable);
       else if (! listenable || ! (listenable instanceof Backbone.Events)) $log.logReturn(
         'warn', 'Can not subscribe. `Listenable` is not instance of Backbone.Eventable.', [listenable], this
       );

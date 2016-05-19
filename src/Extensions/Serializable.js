@@ -19,8 +19,8 @@ var $Serializable = new Fiber.Extension('Serializable', {
    * @returns {Object}
    */
   fromSerialized: function(serialized) {
-    if (_.isString(serialized)) serialized = $fn.serialize.parse(serialized);
-    if (_.isPlainObject(serialized)) this.set(serialized);
+    if ($isStr(serialized)) serialized = $fn.serialize.parse(serialized);
+    if ($isPlain(serialized)) this.set(serialized);
     return this;
   }
 });

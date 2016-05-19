@@ -30,7 +30,7 @@ Fiber.ErrorBag = Fiber.Bag.extend({
   push: function(key, error) {
     var array = []
       , check = this.get(key)
-      , isArray = _.isArray(check);
+      , isArray = $isArr(check);
 
     if (! isArray && check) array.push(check);
     else if (isArray) array = check;
@@ -46,7 +46,7 @@ Fiber.ErrorBag = Fiber.Bag.extend({
    */
   pop: function(key) {
     var check = this.get(key);
-    if (! _.isArray(check)) return null;
+    if (! $isArr(check)) return null;
     return check.pop();
   }
 });

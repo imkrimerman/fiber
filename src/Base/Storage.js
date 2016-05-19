@@ -4,7 +4,7 @@
  * @private
  */
 var $Storage = function(storable) {
-  this._items = _.isPlainObject(storable) ? storable : {};
+  this._items = $isPlain(storable) ? storable : {};
 };
 
 /**
@@ -71,7 +71,8 @@ _.extend($Storage.prototype, {
    * @returns {Object}
    */
   pick: function(keys) {
-    return $pick.apply(null, arguments);
+    var args = arguments.length === 1 ? $castArr(arguments[0]) : $castArr(arguments);
+    return $pick.apply(null, [this._items].concat([args]));
   },
 
   /**
@@ -80,7 +81,8 @@ _.extend($Storage.prototype, {
    * @returns {Object}
    */
   omit: function(keys) {
-    return $omit.apply(null, arguments);
+    var args = arguments.length === 1 ? $castArr(arguments[0]) : $castArr(arguments);
+    return $omit.apply(null, [this._items].concat([args]));
   },
 
   /**

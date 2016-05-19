@@ -32,16 +32,16 @@ module.exports = [
   './src/Foundation/Methods.js',
   './src/Foundation/Events.js',
   './src/Foundation/BaseClass.js',
+  './src/Foundation/Type.js',
   './src/Foundation/Log.js',
   './src/Foundation/Monitor.js',
-  './src/Foundation/Type.js',
   // Contracts
   './src/Contracts/Contract.js',
   './src/Contracts/Access.js',
   './src/Contracts/Eventable.js',
   './src/Contracts/Releasable.js',
   './src/Contracts/Serializable.js',
-  './src/Contracts/RepositoryAdapter.js',
+  './src/Contracts/Repository.js',
   // Base Classes
   './src/Foundation/Class.js',
   './src/Foundation/Bag.js',
@@ -61,6 +61,7 @@ module.exports = [
   './src/Extensions/Serializable.js',
   // Sync
   './src/Sync/Sync.js',
+  './src/Sync/RequestBag.js',
   './src/Sync/Request.js',
   './src/Sync/Response.js',
   // Mocks integration

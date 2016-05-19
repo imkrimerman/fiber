@@ -4,7 +4,7 @@
  * @extends {Fiber.Class}
  */
 Fiber.Bag = Fiber.Class.implement('Access').extend([
-  $Storage, {
+  $Storage.prototype, {
 
     /**
      * Events configuration
@@ -59,7 +59,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      */
     get: function(path, defaults) {
       if ($fn.computed.has(this, path)) return $fn.computed.get(this, path);
-      return this.$super('get', [path, defaults]);
+      return $get(this._items, path, defaults);
     },
 
     /**
@@ -69,7 +69,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      * @returns {Fiber.Bag}
      */
     set: function(path, value) {
-      if (_.isPlainObject(path)) return this.reset(path);
+      if ($isPlain(path)) return this.reset(path);
       if ($fn.computed.has(this, path)) $fn.computed.set(this, path, value);
       else $set(this._items, path, value);
       this._fireEvent('set', path, [path, value, this]);
@@ -77,12 +77,12 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
     },
 
     /**
-     * Checks if current Bag holder has given `key`
-     * @param {string} key - Key to check existence of value in items Bag
+     * Checks if current Bag holder has given `path`
+     * @param {string} path - Key to check existence of value in items Bag
      * @returns {boolean}
      */
-    has: function(key) {
-      return $fn.computed.has(this, path) || $has(this._items, key);
+    has: function(path) {
+      return $fn.computed.has(this, path) || $has(this._items, path);
     },
 
     /**
@@ -103,7 +103,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      * @returns {Fiber.Bag}
      */
     reset: function(items) {
-      if (_.isPlainObject(items)) this._items = items;
+      if ($isPlain(items)) this._items = items;
       this._fireEvent('reset', null, [items, this]);
       return this;
     },
@@ -145,8 +145,8 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      * @private
      */
     _initHolder: function(items) {
-      if (! this._items || ! _.isPlainObject(this._items)) this.flush();
-      if (_.isPlainObject(items)) this._items = items;
+      if (! this._items || ! $isPlain(this._items)) this.flush();
+      if ($isPlain(items)) this._items = items;
       return this;
     },
 

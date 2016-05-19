@@ -26,7 +26,7 @@ Fiber.fn.types = {
    * @returns {string}
    */
   transform: function(string) {
-    return $fn.types.transformer(string);
+    return $fn.types.transformer.call(string);
   },
 
   /**
@@ -38,7 +38,7 @@ Fiber.fn.types = {
   matchesType: function(arg, type) {
     var argType = $fn.types.parseType(arg, true);
     type = type instanceof Fiber.Type ? type.getType() : type;
-    if (_.isPlainObject(type) && $has(type, $fn.types.defaults.type))
+    if ($isPlain(type) && $has(type, $fn.types.defaults.type))
       type = $get(type, $fn.types.defaults.type);
     return argType === $fn.types.transform(type);
   },
@@ -52,7 +52,7 @@ Fiber.fn.types = {
   matchesSignature: function(arg, type) {
     var signature = $fn.types.parseSignature(arg, true);
     type = type instanceof Fiber.Type ? type.getSignature() : type;
-    if (_.isPlainObject(type) && $has(type, $fn.types.defaults.signature))
+    if ($isPlain(type) && $has(type, $fn.types.defaults.signature))
       signature = $get(type, $fn.types.defaults.signature);
     return signature === $fn.types.transform(type);
   },
@@ -64,7 +64,7 @@ Fiber.fn.types = {
    * @returns {boolean}
    */
   matches: function(arg, type) {
-    if (_.isString(type)) type = $get(Fiber.Types, type);
+    if ($isStr(type)) type = $get(Fiber.Types, type);
     return $fn.multi(arg, function(one) {
       return $fn.types.matchesType(one, type) && $fn.types.matchesSignature(one, type);
     }, 'fn.constant', 'every');

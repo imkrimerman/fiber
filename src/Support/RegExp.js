@@ -28,7 +28,7 @@ Fiber.fn.regexp = {
    * @returns {boolean}
    */
   test: function(string, regExp, options) {
-    if (_.isString(regExp)) regExp = $fn.regexp.$new(regExp, options);
+    if ($isStr(regExp)) regExp = $fn.regexp.$new(regExp, options);
     if (! _.isRegExp(regExp)) return true;
     return regExp.test($fn.cast.toString(string));
   },
@@ -42,7 +42,7 @@ Fiber.fn.regexp = {
    */
   exec: function(string, regExpOrPath, options) {
     var re = regExpOrPath;
-    if (_.isString(regExpOrPath)) {
+    if ($isStr(regExpOrPath)) {
       re = $get($fn.regexp.map, regExpOrPath);
       if (! re) re = $fn.regexp.$new(re, options);
     }
@@ -61,6 +61,19 @@ Fiber.fn.regexp = {
     var re = $get($fn.regexp.map, path);
     if (re) return $fn.regexp.test(string, re, options);
     return true;
+  },
+
+  /**
+   * Replaces `search` value in the given `string` with `replace`.
+   * `Search` argument can be path to RegExp in `map` or RegExp or string.
+   * @param {string} string
+   * @param {string|RegExp} search
+   * @param {string} replace
+   * @returns {string}
+   */
+  replace: function(string, search, replace) {
+    if ($isStr(search) && $has($fn.regexp.map, search)) search = $get($fn.regexp.map, search);
+    return string.replace($fn.regexp.escape(search), replace);
   },
 
   /**

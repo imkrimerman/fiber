@@ -19,7 +19,7 @@ Fiber.Browser = $fn.whatBrowser();
  */
 Fiber.make = function(abstract, parameters, scope) {
   if (! Fiber.hasOwnProperty('container')) return abstract;
-  if (arguments.length > 1 && ! _.isArray(abstract))
+  if (arguments.length > 1 && ! $isArr(abstract))
     return Fiber.container.make(abstract, parameters, scope);
 
   var made = _.map($castArr(abstract), function(one) {
@@ -27,17 +27,17 @@ Fiber.make = function(abstract, parameters, scope) {
       , parameters = []
       , scope = null;
 
-    if (_.isArray(one) && one.length > 1) {
+    if ($isArr(one) && one.length > 1) {
       abstractAlias = one[0];
       parameters = one[1];
       scope = one[2];
     }
-    else if (_.isObject(one)) return one;
-    else if (_.isString(one)) abstractAlias = one;
+    else if ($isObj(one)) return one;
+    else if ($isStr(one)) abstractAlias = one;
 
     return Fiber.container.make(abstractAlias, parameters, scope);
   });
-  return _.isArray(abstract) ? made : _.first(made);
+  return $isArr(abstract) ? made : _.first(made);
 };
 
 /**
@@ -49,7 +49,7 @@ Fiber.retrieve = function(abstract) {
   var result = _.map($castArr(abstract), function(one) {
     return Fiber.retrieve(one);
   });
-  return ! _.isArray(abstract) ? result : _.first(result);
+  return ! $isArr(abstract) ? result : _.first(result);
 };
 
 /**

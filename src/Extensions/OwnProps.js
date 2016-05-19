@@ -25,7 +25,7 @@ var $OwnProps = new Fiber.Extension('OwnProps', {
   applyOwnProps: function(properties) {
     var own = $result(this, 'ownProps', []);
     if (own === 'all' || own) own = $fn.properties(this);
-    if (_.isArray(own)) properties = $fn.concat(own, $fn.compact($castArr(properties)));
+    if ($isArr(own)) properties = $fn.concat(own, $fn.compact($castArr(properties)));
     return $fn.class.ensureOwn(this, properties);
   }
 });

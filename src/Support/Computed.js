@@ -47,9 +47,8 @@ Fiber.fn.computed = {
    * @returns {boolean}
    */
   has: function(model, prop, action, match) {
-    $valIncludes(match, 'some');
-    return _[match]($castArr(action), function(onePrefix) {
-      return _.isFunction(model[$fn.computed.createMethodName(prop, onePrefix, model)]);
+    return _[$valIncludes(match, 'some')]($castArr(action || ['get', 'set', 'has']), function(onePrefix) {
+      return $isFn(model[$fn.computed.createMethodName(prop, onePrefix, model)]);
     });
   },
 
@@ -66,8 +65,8 @@ Fiber.fn.computed = {
     options = $valMerge(options, { compute: true }, 'extend');
     var computedFn = $fn.class.resolveMethod(model, $fn.computed.createMethodName(prop, action, model))
       , nativeArgs = [$fn[action].bind(null, model.attributes || model._items || model), $fn.computed, $Ioc];
-    if (! _.isFunction(computedFn)) return;
-    var computedValue = computedFn.apply(model, $val(args, [], _.isArray).concat(nativeArgs));
+    if (! $isFn(computedFn)) return;
+    var computedValue = computedFn.apply(model, $val(args, [], $isArr).concat(nativeArgs));
     if (action !== 'set') return computedValue;
     return model.set && model.set(prop, computedValue, options) || $set(model._items || model, prop, computedValue);
   },
@@ -80,7 +79,7 @@ Fiber.fn.computed = {
    * @returns {string}
    */
   createMethodName: function(prop, action, postfix) {
-    action = $val(action, '', _.isString);
+    action = $val(action, '', $isStr);
     postfix = $fn.computed.getPostfix(postfix);
     prop = _.camelCase(prop);
     return (_.isEmpty(action) ? prop : action + _.upperFirst(prop)) + postfix;
@@ -94,7 +93,7 @@ Fiber.fn.computed = {
   getPostfix: function(model) {
     var modelPostfix = $get(model, $fn.computed.lookUp, null);
     if (! (model instanceof Backbone.Model)) return $fn.computed.postfix;
-    return _.isString(modelPostfix) ? modelPostfix : $fn.computed.postfix;
+    return $isStr(modelPostfix) ? modelPostfix : $fn.computed.postfix;
   },
 
   /**

@@ -36,7 +36,7 @@ Fiber.Extension = Fiber.Class.extend({
    * @param {Object} code
    */
   constructor: function(name, code) {
-    $fn.expect(_.isString(name));
+    $fn.expect($isStr(name));
     this.resetEventProperties();
     this.fromCode(code, name);
     $fn.apply(this, '_init_', arguments);
@@ -157,10 +157,10 @@ Fiber.Extension = Fiber.Class.extend({
    * @returns {Fiber.Extension}
    */
   fromCode: function(code, name, initWith) {
-    code = $valMerge(code, { initWith: false }, 'defaults');
-    initWith = $val(initWith, false, [_.isString, _.isFunction, _.isBoolean]);
-    if (_.isString(name)) this.setName(name);
-    if (_.isFunction($get(code, '_init_'))) this._init_ = code._init_;
+    code = $valMerge(code, { initWith: false });
+    initWith = $val(initWith, false, [$isStr, $isFn, _.isBoolean]);
+    if ($isStr(name)) this.setName(name);
+    if ($isFn($get(code, '_init_'))) this._init_ = code._init_;
     this.setCode(code);
     this.setInitMethod(initWith || code.initWith || this._initWith);
     $forget(code, ['initWith', '_init_']);

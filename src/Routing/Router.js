@@ -53,7 +53,7 @@ Fiber.Router = Fiber.Object.extend([
      * @return {Fiber.Router}
      */
     createCollections: function(options) {
-      options = $val(options, {}, _.isPlainObject);
+      options = $val(options, {}, $isPlain);
       for (var collectionKey in this.collections) {
         var Collection = this.collections[collectionKey]
           , data = this.prepareCollectionData(options[collectionKey]);
@@ -155,7 +155,7 @@ Fiber.Router = Fiber.Object.extend([
      */
     prepareCollectionData: function(data) {
       if (_.isEmpty(data)) return [];
-      if (_.isPlainObject(data)) {
+      if ($isPlain(data)) {
         for (var alias in data) {
           var route = data[alias];
           if ($has(route, 'alias')) continue;

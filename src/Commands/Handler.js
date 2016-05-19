@@ -12,7 +12,7 @@ Fiber.Commands.Handler = Fiber.Class.extend({
   constructor: function(command) {
     this.$superInit();
     this.command = command;
-    this.handle = $fn.wrapFireCallCyclic(this.handle, 'handle', {
+    this.handle = $fn.createFireCallCyclic(this.handle, 'handle', {
       fire: [this.command, this], call: [this.command, this]
     });
   },

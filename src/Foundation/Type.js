@@ -15,6 +15,7 @@ Fiber.Type = BaseClass.extend({
   /**
    * Type options defaults
    * @type {Object|function(...)}
+   * @private
    */
   _defaults: {
     type: null,
@@ -28,7 +29,7 @@ Fiber.Type = BaseClass.extend({
    * @param {Object} options
    */
   constructor: function(options) {
-    options = $valMerge(options, $result(this._defaults), 'defaults');
+    options = $valMerge(options, $result(this._defaults));
     this._type = $fn.descriptor.immutable(options);
   },
 

@@ -34,10 +34,10 @@ var $Binder = new Fiber.Extension('Binder', {
   applyBinder: function() {
     var methods = $result(this, 'bindMethods');
     if (methods === 'all' || _.isBoolean(methods) && methods) methods = $fn.methods(this);
-    if (! _.isArray(methods)) return;
+    if (! $isArr(methods)) return;
     for (var i = 0; i < methods.length; i ++)
-      if (_.isFunction(this[methods[i]]))
-        this[methods[i]] = _.bind(this[methods[i]], this);
+      if ($isFn(this[methods[i]]))
+        this[methods[i]] = $bind(this[methods[i]], this);
   }
 });
 

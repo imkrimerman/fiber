@@ -6,6 +6,26 @@
 Fiber.Request = Fiber.Class.extend({
 
   /**
+   * Events configuration
+   * @type {Object}
+   */
+  eventsConfig: {
+
+    /**
+     * Events catalog to hold the events
+     * @type {Object}
+     */
+    catalog: {
+      send: 'send',
+      abort: 'abort',
+      destroy: 'destroy',
+      success: 'success',
+      error: 'error',
+      progress: 'progress'
+    }
+  },
+
+  /**
    * Class type signature.
    * @type {string}
    * @private
@@ -14,35 +34,14 @@ Fiber.Request = Fiber.Class.extend({
 
   /**
    * Constructs Request.
-   * @param {string} method
-   * @param {Object.<Fiber.Model>} model
-   * @param {Object} [options]
+   * @param {string} verb
+   * @param {string} [url]
    */
-  constructor: function(method, model, options) {
-    this.createBag(method, model, options);
-    this.prepareParams();
-    this.createRequestObject(this.bag.get('verb'));
-    this.$superInit({ method: method, model: model, options: options });
-  },
-
-  /**
-   * Uses extension.
-   * @param {Function} fn
-   * @return {Fiber.Request}
-   */
-  use: function(fn) {
-    this._request.use(fn);
-    return this;
-  },
-
-  /**
-   * Sets body parser function.
-   * @param {Function} fn
-   * @returns {Fiber.Request}
-   */
-  parse: function(fn) {
-    this._request.parse(fn);
-    return this;
+  constructor: function(verb, url) {
+    this._callbacks = {};
+    this._request = $request(verb, url);
+    this._request.on('progress', $bind(this._onProgress, this));
+    this.$superInit({verb: verb, url: url});
   },
 
   /**
@@ -82,6 +81,26 @@ Fiber.Request = Fiber.Class.extend({
     var fieldValue = this._request.get(field);
     this._request.unset(field);
     return fieldValue;
+  },
+
+  /**
+   * Uses extension.
+   * @param {Function} fn
+   * @return {Fiber.Request}
+   */
+  use: function(fn) {
+    this._request.use(fn);
+    return this;
+  },
+
+  /**
+   * Sets body parser function.
+   * @param {Function} fn
+   * @returns {Fiber.Request}
+   */
+  parse: function(fn) {
+    this._request.parse(fn);
+    return this;
   },
 
   /**
@@ -160,168 +179,62 @@ Fiber.Request = Fiber.Class.extend({
   },
 
   /**
-   * Prepares Request parameters.
+   * Sends request
+   * @param {Object} [callbacks]
+   * @returns {Fiber.Request}
+   */
+  send: function(callbacks) {
+    if ($isPlain(callbacks)) this._callbacks = callbacks;
+    this.fire('send', this);
+    this._request.end($bind(this._onRequestEnd, this));
+    return this;
+  },
+
+  /**
+   * Aborts current request
    * @return {Fiber.Request}
    */
-  prepareParams: function() {
-    if (! this._bag.get('options.prepare')) return this.markAsPreparedWithParams(this._bag.get('options'));
-    var Verbs = Fiber.Config.get('Sync.Verbs')
-      , options = this._bag.get('options')
-      , model = this._bag.get('model')
-      , method = this._bag.get('method')
-      , verb = this._bag.get('verb')
-      , error = options.error
-      , params = { type: 'json', verb: verb };
-    // Retrieve url from Model
-    if (! options.url) params.url = $result(model, 'url') || $log.error('`Url` is not found. Aborting request.');
-    // if `model` is instance of Model then lets convert it to JSON hash
-    if (model instanceof Backbone.Model) model = model.toJSON(options);
-    // Ensure that we have the appropriate request data.
-    if (options.data == null && model && (method === 'create' || method === 'update' || method === 'patch')) {
-      params.type = 'json';
-      params.data = JSON.stringify(options.attrs || model);
-    }
-    // For older servers, emulate JSON by encoding the request into an HTML-form.
-    if (options.emulateJSON) {
-      params.type = 'form';
-      params.data = params.data ? { model: params.data } : {};
-    }
-    // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
-    // And an `X-HTTP-Method-Override` header.
-    if (options.emulateHTTP && (verb === Verbs.put || verb === Verbs['delete'] || verb === Verbs.patch)) {
-      params.verb = Verbs.post;
-      if (options.emulateJSON) params.data._method = verb;
-      var beforeSend = options.beforeSend;
-      options.beforeSend = function(request) {
-        request.set('X-HTTP-Method-Override', verb);
-        if (beforeSend) return beforeSend.apply(this, arguments);
-      };
-    }
-    // Don't process data on a non-GET request.
-    if (params.verb !== Verbs.get && ! options.emulateJSON) params.processData = false;
-    // Pass `textStatus` and `errorThrown` and put reference to an options.
-    options.error = function(xhr, textStatus, errorThrown) {
-      options.textStatus = textStatus;
-      options.errorThrown = errorThrown;
-      if (error) error.call(options.context, xhr, textStatus, errorThrown);
-    };
-    return this.markAsPreparedWithParams($fn.merge(options, params));
+  abort: function() {
+    this._request.abort();
+    this.fire('abort', this);
+    return this;
   },
 
   /**
-   * Sends request
-   * @returns {JQueryXHR}
-   */
-  send: function() {
-    var params = this.get('params')
-      , model = this.get('model')
-      , promise;
-
-    this.type(params.type);
-
-    if (! _.isEmpty(params.data)) {
-      if (params.type === 'form') this.query(params.data);
-      else this.data(params.data);
-    }
-
-    if (options.beforeSend) $fn.applyFn(options.beforeSend, [this._request])
-    //todo: not allow parsing JSON on non GET method
-    this.bag.set('promise', promise = new Fiber.Promise(function(fullFill, rejected) {
-      this._request.end(function(err, response) {
-        if (err) rejected(err);
-        fullFill(response);
-      });
-    }, this));
-
-    if (model.fire) model.fire('request', model, this._request, options);
-    else if (model.trigger) model.trigger('request', model, this._request, options);
-    return promise;
-  },
-
-  /**
-   * Destroys Request Class
+   * Destroys Request
    * @returns {Fiber.Request}
    */
   destroy: function() {
-    this._request.abort();
-    this._bag.flush();
+    this.abort();
+    this._callbacks = {};
+    this._request = null;
+    this.fire('destroy', this);
     return this.$super('destroy');
   },
 
   /**
-   * Marks Request as prepared and sets prepared params that will be used to send it.
-   * @param {Object} params
-   * @returns {Fiber.Request}
+   * Hook.
+   * On request ends.
+   * @param {Object} err
+   * @param {Object} res
+   * @private
    */
-  markAsPreparedWithParams: function(params) {
-    this._bag.set('params', params);
-    return this;
+  _onRequestEnd: function(err, res) {
+    var response = err || res;
+    if (err) $isFn(this._callbacks.error) && this._callbacks.error(response, this);
+    else $isFn(this._callbacks.success) && this._callbacks.success(response, this);
+    this.fire(err ? 'error' : 'success', response, this);
   },
 
   /**
-   * Creates Request Bag.
-   * @param {string} method
-   * @param {Object|Backbone.Model|Fiber.Model} model
-   * @param {Object} [options]
-   * @returns {Object.<Fiber.Bag>}
+   * Hook.
+   * On progress.
+   * @param {Object} event
+   * @private
    */
-  createBag: function(method, model, options) {
-    return this._bag = new Fiber.RequestBag({ method: method, model: model, options: options });
-  },
-
-  /**
-   * Returns Request Bag.
-   * @returns {Object.<Fiber.Bag>}
-   */
-  getBag: function() {
-    return this._bag;
-  },
-
-  /**
-   * Sets given Bag as Request Bag.
-   * @param {Object.<Fiber.Bag>} bag
-   * @returns {Fiber.Request}
-   */
-  setBag: function(bag) {
-    if (bag instanceof Fiber.Bag) this._bag = bag;
-    return this;
-  },
-
-  /**
-   * Determines if Request has valid Bag.
-   * @returns {boolean}
-   */
-  hasBag: function() {
-    return this._bag instanceof Fiber.Bag;
-  },
-
-  /**
-   * Creates request object.
-   * @param {string} verb
-   * @return {Fiber.Request}
-   */
-  createRequestObject: function(verb) {
-    this._request = $request(verb);
-    return this;
-  },
-
-  /**
-   * Returns inner request object.
-   * @returns {$request}
-   */
-  getRequestObject: function() {
-    return this._request;
-  },
-
-  /**
-   * Sets inner request object.
-   * @param {$request} object
-   * @returns {Fiber.Request}
-   */
-  setRequestObject: function(object) {
-    if (object instanceof $request) this._request = object;
-    return this;
-  },
+  _onProgress: function(event) {
+    this.fire('progress', event, this);
+  }
 });
 
 /**

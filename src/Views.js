@@ -25,7 +25,7 @@ Fiber.Views = Fiber.Class.extend({
   constructor: function($el, viewMap) {
     this._linked = new Fiber.LinkedViews();
     this._shown = new Fiber.Bag();
-    if (_.isPlainObject(viewMap)) this._shown.reset(viewMap);
+    if ($isPlain(viewMap)) this._shown.reset(viewMap);
     this.handleRootElement($el);
   },
 
@@ -96,9 +96,9 @@ Fiber.Views = Fiber.Class.extend({
    */
   handleRootElement: function($el) {
     if (! $) return $log.debug('Dom manipulation library in not available.');
-    if (! ($el instanceof $) && ! _.isString($el))
+    if (! ($el instanceof $) && ! $isStr($el))
       $log.error('`$el` should be a valid jQuery element or selector.');
-    this.$el = _.isString($el) ? $($el) : $el;
+    this.$el = $isStr($el) ? $($el) : $el;
     return this;
   },
 

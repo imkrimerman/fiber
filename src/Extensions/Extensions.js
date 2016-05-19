@@ -36,7 +36,7 @@ var $Extensions = new Fiber.Extension('Extensions', {
    * @return {Object}
    */
   applyExtensions: function(extensions) {
-    extensions = $val(extensions, [], _.isArray).concat($castArr($result(this, 'extensions')));
+    extensions = $val(extensions, [], $isArr).concat($castArr($result(this, 'extensions')));
     return this.includeExtension(extensions);
   },
 

@@ -15,12 +15,6 @@ var BaseClass = $fn.class.create([
     _signature: '[object Fiber.BaseClass]',
 
     /**
-     * Constructs base class
-     * @param {Object} [options]
-     */
-    constructor: $fn.class.createConstructor(),
-
-    /**
      * Destroys Class
      * @returns {BaseClass}
      */

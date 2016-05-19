@@ -24,7 +24,38 @@ Fiber.Events = _.extend({
      * Events catalog to hold the events
      * @type {Object}
      */
-    catalog: {}
+    catalog: {},
+
+    /**
+     * Events fire configuration.
+     * @type {Object}
+     */
+    fire: {
+
+      /**
+       * Flag to determine if method that is computed from event name will be called on object.
+       * @type {boolean}
+       */
+      callEventMethod: true,
+
+      /**
+       * Prefix to use in events transformation to method name.
+       * @type {string}
+       */
+      methodPrefix: 'when',
+
+      /**
+       * Flag to determine if events will be fired with lifecycle.
+       * @type {boolean}
+       */
+      cyclic: false,
+
+      /**
+       * List of full event lifecycle.
+       * @type {Array}
+       */
+      lifeCycle: ['before', '@callback', 'after']
+    }
   },
 
   /**
@@ -34,18 +65,24 @@ Fiber.Events = _.extend({
   willExtend: ['eventsConfig'],
 
   /**
-   * Responders holder
-   * @type {Object}
-   * @private
+   * Properties keys that will be owned by the instance
+   * @type {Array|function(...)}
    */
-  _responders: {},
+  ownProps: ['eventsConfig'],
 
   /**
-   * Channels holder
+   * Registered channels holder
    * @type {Object}
    * @private
    */
-  _channels: {},
+  _eventChannels: {},
+
+  /**
+   * Registered request holder
+   * @type {Object}
+   * @private
+   */
+  _eventRequests: {},
 
   /**
    * Returns event channel, if one is not exists with given `name`, it will be created
@@ -53,21 +90,22 @@ Fiber.Events = _.extend({
    * @returns {Fiber.Events}
    */
   channel: function(name) {
-    if ($has(this._channels, name)) return $get(this._channels, name);
+    if ($has(this._eventChannels, name)) return $get(this._eventChannels, name);
     var channel = Fiber.Events.$new();
-    $set(this._channels, name, channel);
+    $set(this._eventChannels, name, channel);
     return channel;
   },
 
   /**
    * Adds response as an action call for the given `event`
    * @param {string} event
-   * @param {function(...)} action
+   * @param {function(...)} withAction
    * @param {?Object} [scope=this]
    * @returns {Fiber.Events}
    */
-  respondTo: function(event, action, scope) {
-    return $set(this._responders, event, _.bind(action, $val(scope, this)));
+  respondTo: function(event, withAction, scope) {
+    $set(this._eventRequests, event, $bind(withAction, $val(scope, this)));
+    return this;
   },
 
   /**
@@ -77,20 +115,63 @@ Fiber.Events = _.extend({
    * @returns {*}
    */
   request: function(event) {
-    if (! $has(this._responders, event)) return void 0;
-    var responder = $get(this._responders, event);
-    if (_.isFunction(responder)) return responder.apply(responder, _.drop(_.toArray(arguments)));
+    var response = $get(this._eventRequests, event);
+    if ($isFn(response)) return response.apply(response, $drop(arguments));
+    $log.warn('Response for the requested `event` [' + event + '] is not registered.')
+    return void 0;
   },
 
   /**
-   * Fires `event` with namespace (if available) and `catalog` alias look up
+   * Emits `event` with namespace (if available) and `catalog` alias look up.
+   * @param event
+   * @returns {Fiber.Events}
+   */
+  emit: function(event) {
+    this.trigger.apply(this, [this.event(event)].concat($drop(arguments)));
+    return this;
+  },
+
+  /**
+   * Fires `event` with namespace (if available) and `catalog` alias look up.
+   * If `eventsConfig.callEventMethod` is `true` then `fireCall` method will be triggered with current arguments.
+   * If `eventsConfig.cyclic` is `true` then `fireCallCyclic` method will be triggered with current arguments.
    * @param {string} event
    * @param {...args}
    * @returns {*}
    */
   fire: function(event) {
-    var args = _.drop(_.toArray(arguments));
-    return this.trigger.apply(this, [this.event(event)].concat(args));
+    if (this.eventsConfig.fire.cyclic) {
+      if (! $isFn(arguments[1])) arguments[1] = $noop;
+      return this.fireCallCyclic.apply(this, arguments);
+    }
+
+    if (this.eventsConfig.fire.callEventMethod) return this.fireCall.apply(this, arguments);
+    this.emit.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Invokes method (camel case transformed event) if exists and fires `event`.
+   * @param {string} event - event to fire and transform to callback name
+   * @param {...args}
+   * @returns {Object}
+   */
+  fireCall: function(event) {
+    var args = $drop(arguments), options = $fn.merge(this.eventsConfig.fire, {fireMethod: 'trigger'});
+    return $fn.fireCall(this, event, {fire: args, call: args}, options);
+  },
+
+  /**
+   * Fires lifecycle `event` by calling `fireCall` on each lifecycle part.
+   * If current lifecycle includes `@callback` then given callback will be called on time.
+   * @param {string} event - event to fire and transform to callback name
+   * @param {function(...)} callback
+   * @param {...args}
+   * @return {Object}
+   */
+  fireCallCyclic: function(event, callback) {
+    var args = $drop(arguments, 2), options = $fn.merge(this.eventsConfig.fire, {fireMethod: 'trigger'});
+    return $fn.fireCallCyclic(this, event, {fire: args, call: args, callback: args}, options);
   },
 
   /**
@@ -103,8 +184,7 @@ Fiber.Events = _.extend({
    */
   when: function(event, action, listenable, scope) {
     listenable = $val(listenable, this);
-    var event = this._prepareEventName(event, listenable);
-    return this.listenTo(listenable, event, _.bind(action, $val(scope, this)));
+    return this.listenTo(listenable, this._handleEventName(event, listenable), $bind(action, $val(scope, this)));
   },
 
   /**
@@ -117,8 +197,7 @@ Fiber.Events = _.extend({
    */
   after: function(event, action, listenable, scope) {
     listenable = $val(listenable, this);
-    var event = this._prepareEventName(event, listenable);
-    return this.listenToOnce(listenable, event, _.bind(action, $val(scope, this)));
+    return this.listenToOnce(listenable, this._handleEventName(event, listenable), $bind(action, $val(scope, this)));
   },
 
   /**
@@ -130,7 +209,7 @@ Fiber.Events = _.extend({
    * @returns {*}
    */
   fireGlobal: function(event) {
-    return $fn.apply(Fiber.internal.events, 'trigger', arguments);
+    return $fn.apply(Fiber.internal.events, 'trigger', $fn.argsConcat(this.event(event), arguments));
   },
 
   /**
@@ -144,7 +223,7 @@ Fiber.Events = _.extend({
    */
   whenGlobal: function(event, action, scope) {
     return Fiber.internal.events.listenTo(
-      Fiber.internal.events, event, _.bind(action, $val(scope, this))
+      Fiber.internal.events, this.event(event), $bind(action, $val(scope, this))
     );
   },
 
@@ -159,7 +238,7 @@ Fiber.Events = _.extend({
    */
   afterGlobal: function(event, action, scope) {
     return Fiber.internal.events.listenToOnce(
-      Fiber.internal.events, event, _.bind(action, $val(scope, this))
+      Fiber.internal.events, event, $bind(action, $val(scope, this))
     );
   },
 
@@ -174,7 +253,7 @@ Fiber.Events = _.extend({
    */
   stopGlobal: function(event, action, scope) {
     return Fiber.internal.events.stopListening(
-      Fiber.internal.events, event, _.bind(action, $val(scope, this))
+      Fiber.internal.events, event, $bind(action, $val(scope, this))
     );
   },
 
@@ -198,8 +277,8 @@ Fiber.Events = _.extend({
    * @return {Fiber.Events}
    */
   resetEventProperties: function() {
-    this._responders = {};
-    this._channels = {};
+    this._eventRequests = {};
+    this._eventChannels = {};
     return this;
   },
 
@@ -208,7 +287,7 @@ Fiber.Events = _.extend({
    * @returns {Fiber.Events}
    */
   clearBoundEvents: function() {
-    $fn.applyFn(Backbone.Events.destroyEvents, [], this);
+    Backbone.Events.destroyEvents.call(this);
     return this;
   },
 
@@ -230,9 +309,7 @@ Fiber.Events = _.extend({
    * @returns {Fiber.Events}
    */
   clearChannels: function() {
-    $each(this._channels, function(channel) {
-      Fiber.Events.destroyEvents(channel);
-    });
+    $each(this._eventChannels, Fiber.Events.destroyEvents);
     return this;
   },
 
@@ -254,27 +331,28 @@ Fiber.Events = _.extend({
   },
 
   /**
-   * Prepares event name, handle ns event if listenable has event namespaces
-   * @param {string} event
-   * @param {Object} listenable
-   * @returns {string}
-   * @private
-   */
-  _prepareEventName: function(event, listenable) {
-    listenable = $val(listenable, this);
-    return $has(listenable, 'event') ? listenable.event(event) : event;
-  },
-
-  /**
    * Makes single event string from array of events
    * @param {Array} events
    * @param {?string} [delimiter=':']
    * @returns {string}
    */
   joinEventName: function(events, delimiter) {
-    delimiter = $val(delimiter, ':', _.isString);
+    delimiter = $val(delimiter, ':', $isStr);
     return $fn.compact(_.map($castArr(events), function(event) {
-      return $fn.trim($fn.cast.toString(event), delimiter);
+      if (! $isStr(event)) return;
+      return $fn.trim(event, delimiter);
     })).join(delimiter);
+  },
+
+  /**
+   * Handles `event` by trying to retrieve it from listenable.
+   * @param {string} event
+   * @param {Object} listenable
+   * @returns {string}
+   * @private
+   */
+  _handleEventName: function(event, listenable) {
+    listenable = $val(listenable, this);
+    return $isFn(listenable.event) ? listenable.event(event) : event;
   },
 }, Backbone.Events);

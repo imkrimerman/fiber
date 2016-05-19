@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Class}
  */
-Fiber.Queue = Fiber.Class.implement('Releasable').extend({
+Fiber.Queue = Fiber.Class.extend({
 
   /**
    * Queue holder.
@@ -17,7 +17,7 @@ Fiber.Queue = Fiber.Class.implement('Releasable').extend({
    * @param {Array} [stack]
    */
   constructor: function(stack) {
-    this._queue = $val(stack, [], _.isArray);
+    this._queue = $val(stack, [], $isArr);
   },
 
   /**
@@ -45,7 +45,7 @@ Fiber.Queue = Fiber.Class.implement('Releasable').extend({
    * @returns {Array}
    */
   release: function(iterator, check, scope) {
-    if (! _.isFunction(check)) check = $fn.constant(true);
+    if (! $isFn(check)) check = $fn.constant(true);
     var results = [], index = 0, len = this._queue.length;
     while (index < len) {
       var one = this.dequeue();

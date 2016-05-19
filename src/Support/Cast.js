@@ -21,12 +21,12 @@ Fiber.fn.cast = {
    */
   toPlain: function(value, force) {
     force = _.isBoolean(force) ? force : false;
-    if (_.isPlainObject(value)) return value;
-    if (_.isArray(value) && force) return _.zipObject($fn.fill(value.length), value);
-    if (! _.isObject(value) || _.isArray(value)) return {};
-    if (_.isFunction(value) && ! $fn.class.isClass(value)) {
+    if ($isPlain(value)) return value;
+    if ($isArr(value) && force) return _.zipObject($fn.fill(value.length), value);
+    if (! $isObj(value) || $isArr(value)) return {};
+    if ($isFn(value) && ! $fn.class.isClass(value)) {
       var tryVal = value();
-      if (_.isPlainObject(value)) return tryVal;
+      if ($isPlain(value)) return tryVal;
     }
     return {};
   },
@@ -37,7 +37,7 @@ Fiber.fn.cast = {
    * @returns {*}
    */
   toObject: function(value) {
-    if (! _.isObject(value)) return {};
+    if (! $isObj(value)) return {};
     return value;
   },
 
@@ -47,7 +47,7 @@ Fiber.fn.cast = {
    * @returns {*}
    */
   toFunction: function(value) {
-    if (! _.isFunction(value)) return $fn.constant(value);
+    if (! $isFn(value)) return $fn.constant(value);
     return value;
   },
 

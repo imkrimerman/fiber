@@ -21,11 +21,11 @@ Fiber.Middleware = Fiber.Model.extend({
   rules: {
     alias: {
       required: true,
-      validators: [_.isString]
+      validators: [$isStr]
     },
     handler: {
       required: true,
-      validators: [_.isFunction]
+      validators: [$isFn]
     }
   },
 
@@ -37,7 +37,7 @@ Fiber.Middleware = Fiber.Model.extend({
    */
   passThrough: function(route) {
     var handler = this.get('handler');
-    if (_.isFunction(handler) && handler(route)) return true;
+    if ($isFn(handler) && handler(route)) return true;
     return false;
   }
 });

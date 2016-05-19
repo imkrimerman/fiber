@@ -32,7 +32,7 @@ Fiber.Routes = Fiber.RouterCollection.extend({
       for (var i = 0; i < models.length; i ++) {
         var model = models[i];
 
-        if (! _.isArray(model.url)) prepared.push(model);
+        if (! $isArr(model.url)) prepared.push(model);
         else for (var j = 0; j < model.url.length; j ++) {
           var url = model.url[j]
             , clone = _.clone(model);

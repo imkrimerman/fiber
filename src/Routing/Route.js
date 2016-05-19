@@ -30,16 +30,16 @@ Fiber.Route = Fiber.Model.extend({
   rules: {
     url: {
       required: true,
-      validators: [_.isString]
+      validators: [$isStr]
     },
     compose: {
-      validators: [_.isPlainObject],
+      validators: [$isPlain],
       when: function(attributes) {
-        return ! _.isFunction(attributes.handler);
+        return ! $isFn(attributes.handler);
       }
     },
     handler: {
-      validators: [_.isFunction],
+      validators: [$isFn],
       when: function(attributes) {
         return ! _.isEmpty(attributes.compose);
       }

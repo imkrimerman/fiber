@@ -11,7 +11,7 @@ Fiber.Layout = Fiber.View.extend({
   },
 
   setContentElement: function($content) {
-    if (_.isString($content)) {
+    if ($isStr($content)) {
       this.contentSelector = $content;
       this.$contentElement = this.$(this.contentSelector);
     }

@@ -9,8 +9,8 @@ Fiber.fn.template = {
    * @type {Object}
    */
   settings: {
-    evaluate: /{{([\s\S]+?)}}/g,
-    interpolate: /{{=([\s\S]+?)}}/g,
+    evaluate: /{{{([\s\S]+?)}}}/g,
+    interpolate: /{{([\s\S]+?)}}/g,
     escape: /{{-([\s\S]+?)}}/g,
     imports: {
       Fiber: Fiber,
@@ -89,7 +89,7 @@ Fiber.fn.template = {
     engineName = $valIncludes(engineName, 'engine', $fn.template.getAliases());
     var engine = $fn.template.getEngine(engineName);
     // if engine is not found then lets wrap to return the same
-    if (! _.isFunction(engine)) $log.error('Template engine is not a function');
+    if (! $isFn(engine)) $log.error('Template engine is not a function');
     // otherwise lets use all arguments and path them into the engine
     var prepared = engine(template);
     // adds static compile function to the template
@@ -105,7 +105,7 @@ Fiber.fn.template = {
    * @returns {Object}
    */
   imports: function(data, inherit) {
-    data = $val(data, {}, _.isPlainObject);
+    data = $val(data, {}, $isPlain);
     var imports = $fn.template.getSettings('imports')
       , args = [data, imports];
     if (! inherit) args.unshift({});
@@ -119,7 +119,7 @@ Fiber.fn.template = {
    */
   getEngine: function(alias) {
     var engine = $get($fn.template._engines, alias || 'engine');
-    if (_.isFunction(engine)) return engine;
+    if ($isFn(engine)) return engine;
     return $fn.template.getFallback();
   },
 
@@ -130,7 +130,7 @@ Fiber.fn.template = {
    * @return {Fiber.fn.template}
    */
   setEngine: function(alias, engine) {
-    if (! _.isFunction(engine)) return $fn.template;
+    if (! $isFn(engine)) return $fn.template;
     return $set($fn.template._engines, alias, engine);
   },
 
@@ -140,7 +140,7 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasEngine: function(alias) {
-    return _.isFunction($fn.template.getEngine(alias))
+    return $isFn($fn.template.getEngine(alias))
   },
 
   /**
@@ -168,7 +168,7 @@ Fiber.fn.template = {
    * @returns {Fiber.fn.template}
    */
   setFallback: function(engine) {
-    if (_.isFunction(engine)) $fn.template.setEngine('fallback', engine);
+    if ($isFn(engine)) $fn.template.setEngine('fallback', engine);
     return $fn.template;
   },
 
@@ -177,7 +177,7 @@ Fiber.fn.template = {
    * @returns {boolean}
    */
   hasFallback: function() {
-    return _.isFunction($fn.template.getFallback());
+    return $isFn($fn.template.getFallback());
   },
 
   /**
@@ -196,7 +196,7 @@ Fiber.fn.template = {
    * @returns {Fiber.fn.template}
    */
   setSettings: function(path, value) {
-    if (_.isPlainObject(path)) {
+    if ($isPlain(path)) {
       path = 'settings';
       value = path;
     }

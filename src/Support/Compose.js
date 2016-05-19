@@ -15,9 +15,9 @@ Fiber.fn.compose = {
     if (! ($fn.class.isBackboneClass(View)))
       $log.error('View cannot be composed.', View, options);
 
-    options = $val(options, {}, _.isPlainObject);
+    options = $val(options, {}, $isPlain);
 
-    var args = _.drop(arguments, 2)
+    var args = $drop(arguments, 2)
       , CollectionClass = options.Collection
       , Collection = options.collection
       , ModelClass = options.Model
@@ -40,9 +40,9 @@ Fiber.fn.compose = {
    * @returns {function(...)}
    */
   collection: function(Collection, options) {
-    options = $valMerge(options, { Model: false, model: false, extender: {}, args: [] });
+    options = $valMerge(options, { Model: false, model: false, extender: {}, args: [] }, 'extend');
     var args = [Collection]
-      , partials = $val(_.drop(arguments, 2), [], _.isEmpty)
+      , partials = $val($drop(arguments, 2), [], _.isEmpty)
       , compose = $fn.compose
       , Model = options.Model
       , model = options.model
@@ -61,7 +61,7 @@ Fiber.fn.compose = {
    * @returns {*|function(...)}
    */
   model: function(Model, options) {
-    options = $valMerge(options, { extender: {}, args: [] });
+    options = $valMerge(options, { extender: {}, args: [] }, 'extend');
     if (! _.isEmpty(options.extender) && fn.class.isBackboneClass(Model))
       Model = $fn.class.make(Model, options.extender);
     return $fn.compose.initialize(Model, options.args);
@@ -74,10 +74,10 @@ Fiber.fn.compose = {
    * @returns {function(...)}
    */
   initialize: function(Component) {
-    var args = _.drop(arguments);
+    var args = $drop(arguments);
 
-    if (_.isArray(Component)) {
-      args = _.drop(Component).concat(args);
+    if ($isArr(Component)) {
+      args = $drop(Component).concat(args);
       Component = _.first(Component);
     }
 

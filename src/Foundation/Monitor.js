@@ -6,34 +6,39 @@
 Fiber.Monitor = BaseClass.extend({
 
   /**
-   * Monitoring options
-   * @type {Object}
-   */
-  watches: {
-    events: ['on', 'listenTo', 'off', 'stopListening', 'trigger'],
-    sync: true,
-  },
-
-  /**
    * Notify options
    * @type {Object}
    */
   notifies: {
-    log: true,
-    callback: null
+    stackTrace: false,
   },
+
+  /**
+   * Symbols
+   * @type {Object}
+   */
+  symbols: {
+    method: '#',
+    event: '@'
+  },
+
+  /**
+   * Template to use to notify
+   * @type {string}
+   */
+  template: '>> {{ symbol }} {{ type }} `{{ param }}` was {{ action }} with arguments:',
 
   /**
    * Properties keys that will be auto extended from the initialization object
    * @type {Array|function(...)|string|boolean}
    */
-  willExtend: ['watches', 'notifies'],
+  willExtend: ['notifies', 'symbols'],
 
   /**
    * Properties keys that will be owned by the instance
    * @type {Array|function(...)}
    */
-  ownProps: ['watches', 'notifies', '_monitor', '_monitoring', '_cache', '_logger', '_globalEventingMethods'],
+  ownProps: ['notifies', '_monitor', '_cache', '_logger', 'templates', '_watchingGlobalEventsOn'],
 
   /**
    * Events monitor
@@ -43,18 +48,11 @@ Fiber.Monitor = BaseClass.extend({
   _monitor: null,
 
   /**
-   * Monitoring state
-   * @type {boolean}
-   * @private
-   */
-  _monitoring: false,
-
-  /**
    * Cache object
-   * @type {Object}
+   * @type {Array}
    * @private
    */
-  _cache: {},
+  _cache: [],
 
   /**
    * Logger instance
@@ -64,136 +62,303 @@ Fiber.Monitor = BaseClass.extend({
   _logger: null,
 
   /**
-   * List of global Events methods
-   * @type {Array}
-   * @private
+   * Log templates
+   * @type {Object}
    */
-  _globalEventingMethods: ['fireGlobal', 'whenGlobal', 'afterGlobal', 'stopGlobal'],
+  _templates: {
+    level: false,
+    delimiter: false
+  },
+
+  /**
+   * List of objects that are monitored for Global Events
+   * @type {Array}
+   */
+  _watchingGlobalEventsOn: [],
 
   /**
    * Constructs Debug
    * @param {?Object} [options]
    */
   constructor: function(options) {
+    this._monitor = Fiber.Events.$new();
+    this._logger = new Fiber.Log({ level: 'debug', as: '[Fiber.Monitor]', templates: this._templates });
+    this._fired = $bind(this._fired, this);
+    this._firedGlobal = $bind(this._firedGlobal, this);
     $fn.class.handleOptions(this, options);
     $fn.class.ensureOwn(this, this.ownProps);
     $fn.class.extendFromOptions(this, options, this.willExtend);
-    this._monitor = Fiber.Events.$new();
-    this._logger = new Fiber.Log({ level: 'debug', as: '[Fiber.Monitor]', templates: { level: false } });
+    this._listeningToGlobals(true);
   },
 
   /**
-   * Starts event monitoring on the `object`
+   * Watches and notifies about all events and methods triggered/called by the `object`.
    * @param {Object} object
    * @returns {Fiber.Monitor}
    */
-  monitor: function(object) {
-    this._monitor.listenTo(object, 'all', this.notifyEvent.bind(this));
-    this._monitor.listenTo(Fiber.internal.events, 'all', function(event, obj) {
-      if (obj === object) this.notifyEvent.apply(this, arguments);
-    }.bind(this));
-    this.watch(object, null, true);
+  watch: function(object) {
+    this.watchEvents(object);
+    this.watchMethods(object);
+    this.trigger('watch:start', object, this);
     return this;
   },
 
   /**
-   * Starts monitoring
-   * @return {boolean}
+   * Stops watching and notifying about all events and methods triggered/called by the `object`.
+   * @param object
+   * @return {Fiber.Monitor}
    */
-  start: function() {
-    if (this.isMonitoring()) return false;
-    if (this.watches.sync) this.watch(Backbone, 'sync');
-    this._monitor.listenTo(Fiber.internal.events, 'all', this.notifyEvent.bind(this));
-    return this._monitoring = true;
+  stopWatching: function(object) {
+    this.stopWatchingEvents(object);
+    this.stopWatchingMethods(object);
+    this.trigger('watch:stop', object, this);
+    return this;
   },
 
   /**
-   * Stops monitoring, removes all event listeners and returns cached methods back to their owners.
-   * @return {boolean}
+   * Watches and notifies about all events triggered by the `object`.
+   * @param {Object} object
+   * @param {boolean} [watchGlobals=true]
+   * @returns {Fiber.Monitor}
    */
-  stop: function() {
-    if (! this.isMonitoring()) return false;
-    this._monitor.stopListening();
-    for (var name in this._cache) {
-      var orig = this._cache[name];
-      if (orig.source) orig.source[name] = orig.fn;
+  watchEvents: function(object, watchGlobals) {
+    if (! $fn.isEventable(object)) $log.error('Cannot watch events. `Object` is not using `Backbone.Events`.');
+    this._monitor.listenTo(object, 'all', this._fired);
+    $val(watchGlobals, true) && this.watchGlobalEvents(object);
+    this.trigger('watch.events:start', object, this);
+    return this;
+  },
+
+  /**
+   * Stops watching and notifying about all events triggered by the `object`.
+   * @param {Object} object
+   * @param {boolean} [stopGlobals=true]
+   * @returns {Fiber.Monitor}
+   */
+  stopWatchingEvents: function(object, stopGlobals) {
+    if (! $fn.isEventable(object)) $log.error('Cannot watch events. `Object` is not using `Backbone.Events`.');
+    this._monitor.stopListening(object, 'all', this._fired);
+    $val(stopGlobals, true) && this.stopWatchingGlobalEvents(object);
+    this.trigger('watch.events:stop', object, this);
+    return this;
+  },
+
+  /**
+   * Watches and notifies about all global events triggered by the `object`.
+   * @param {Object} object
+   * @returns {Fiber.Monitor}
+   */
+  watchGlobalEvents: function(object) {
+    var index = this._watchingGlobalEventsOn.indexOf(object);
+    if (! (~index)) this._watchingGlobalEventsOn.push(object);
+    this.trigger('watch.events.global:start', object, this);
+    return this;
+  },
+
+  /**
+   * Stops watching and notifying about all global events triggered by the `object`.
+   * @param {Object} object
+   * @returns {Fiber.Monitor}
+   */
+  stopWatchingGlobalEvents: function(object) {
+    var index = this._watchingGlobalEventsOn.indexOf(object);
+    if (~index) this._watchingGlobalEventsOn.splice(index, 0);
+    this.trigger('watch.events.globals:stop', object, this);
+    return this;
+  },
+
+  /**
+   * Watches `object` `methods` calls
+   * @param {Object} object
+   * @param {string|Array.<string>} [methods]
+   * @return {Fiber.Monitor}
+   */
+  watchMethods: function(object, methods) {
+    if (_.isEmpty(methods)) methods = $fn.methods(object);
+    this._releaseCached(object);
+    var cached = this._createCached(object);
+    cached.own = $fn.methods(object, false, true);
+    for (var i = 0; i < methods.length; i ++) {
+      var name = methods[i];
+      cached.methods[name] = object[name];
+      object[name] = (function(self, name, object) {
+        return function() {
+          self.notifyMethod(name, arguments, self._getStackTrace());
+          return cached.methods[name].apply(object, arguments);
+        };
+      })(this, name, object);
     }
-    this._monitoring = false;
-    return true;
+
+    this.trigger('watch.methods:start', object, this);
+    return this;
   },
 
   /**
-   * Creates watcher for the given method(s) of the source.
-   * @param {Object} source
-   * @param {string|Array.<string>} method
-   * @param {?boolean} [isEvent=false]
+   * Stops watching `object` `methods` calls.
+   * @param {Object} object
+   * @param {string|Array.<string>} [methods]
+   * @return {Fiber.Monitor}
    */
-  watch: function(source, method, isEvent) {
-    var self = this;
-    if (_.isEmpty(method)) method = $fn.methods(source);
-    $fn.multi(method, function(one) {
-      var orig = self._cache[one] = { source: source, fn: source[one] };
-      source[one] = function() {
-        if (isEvent) self.notifyEvent.apply(self, arguments);
-        else self.notifyMethod.apply(self, [one].concat(_.toArray(arguments)));
-        $fn.applyFn(orig.fn, arguments, source);
-      };
+  stopWatchingMethods: function(object, methods) {
+    var cached = this._findCached(object);
+    if (! cached) return this;
+    if (_.isEmpty(methods)) methods = _.keys(cached.methods);
+    $each(methods, function(name) {
+      if (! $has(cached.own, name)) delete object[name];
+      else object[name] = cached.methods[name];
     });
+    this._forgetCached(object);
+    this.trigger('watch.methods:stop', object, this);
+    return this;
   },
 
   /**
    * Notifies about event
    * @param {string} event
-   * @param {...args}
+   * @param {Array|Arguments} args
+   * @param {*} stack
    * @return {Fiber.Monitor}
    */
-  notifyEvent: function(event) {
-    return this.notify('event', event, arguments);
+  notifyEvent: function(event, args, stack) {
+    return this._notify('event', event, args, stack);
   },
 
   /**
    * Notifies about method call
    * @param {string} method
-   * @param {...args}
+   * @param {Array|Arguments} args
+   * @param {*} stack
    * @return {Fiber.Monitor}
    */
-  notifyMethod: function(method) {
-    return this.notify('method', method, arguments);
+  notifyMethod: function(method, args, stack) {
+    return this._notify('method', method, args, stack);
   },
 
   /**
-   * Notifies about intercepted type action
+   * Starts/Stops listening to Global Events.
+   * @param {boolean} state
+   * @private
+   */
+  _listeningToGlobals: function(state) {
+    this._monitor[(state ? 'listenTo' : 'stopListening')](Fiber.internal.events, 'all', this._firedGlobal);
+  },
+
+  /**
+   * Notifies that event was triggered.
+   * @param {string} event
+   * @param {...args}
+   * @private
+   */
+  _fired: function(event, object) {
+    this.notifyEvent(event, arguments, this._getStackTrace());
+  },
+
+  /**
+   * Notifies that Global event was triggered.
+   * @param {string} event
+   * @param {...args}
+   * @private
+   */
+  _firedGlobal: function(event, object) {
+    for (var i = 0; i < this._watchingGlobalEventsOn.length; i ++) {
+      if (this._watchingGlobalEventsOn[i].object === object) this._fired.apply(null, arguments);
+    }
+  },
+
+  /**
+   * Notifies about intercepted type action.
    * @param {string} type
    * @param {string} parameter
-   * @param {...args}
+   * @param {Array|Arguments} args
+   * @param {*} [stack]
    * @returns {Fiber.Monitor}
    * @private
    */
-  notify: function(type, parameter, args) {
-    var action = type.toLowerCase() === 'event' ? 'triggered' : 'called'
-    return this._notify(_.capitalize(type) + ' `' + parameter + '` was ' + action + ': ', _.drop(args));
-  },
+  _notify: function(type, parameter, args, stack) {
+    type = type.toLowerCase();
 
-  /**
-   * Determines if Monitor is watching
-   * @returns {boolean}
-   */
-  isMonitoring: function() {
-    return this._monitoring;
-  },
+    var msg = $fn.template.system(this.template, {
+      symbol: this.symbols[type],
+      type: type,
+      action: type === 'event' ? 'triggered' : 'called',
+      param: parameter
+    });
 
-  /**
-   * Notifies about intercepted case
-   * @param {string} msg
-   * @param {*} [args]
-   * @returns {Fiber.Monitor}
-   * @private
-   */
-  _notify: function(msg, args) {
-    var notifyArgs = $fn.cast.toArray(arguments);
-    this.trigger.apply(this, ['notify'].concat(notifyArgs));
-    if (this.notifies.log) this._logger.callWriter('debug', notifyArgs);
-    if (_.isFunction(this.notifies.callback)) $fn.applyFn(this.notifies.callback, notifyArgs);
+    this._logger.log(msg, args, stack);
+    this.trigger.apply(this, ['notify'].concat([msg, args, stack]));
     return this;
   },
+
+  /**
+   * Returns stack trace for the current call.
+   * @returns {*|string}
+   * @private
+   */
+  _getStackTrace: function() {
+    if (this.notifies.stackTrace) try {var stack = (new Error).stack;} catch(e) {}
+    return this._prepareStackTrace(stack) || '';
+  },
+
+  /**
+   * Prepares stack trace.
+   * @param {string} stackTrace
+   * @returns {string}
+   * @private
+   */
+  _prepareStackTrace: function(stackTrace) {
+    var stack = (stackTrace || '').split("\n");
+    if (stack.length > 2) {
+      stack.shift();
+      stack.shift();
+    }
+    return "\n" + stack.join("\n");
+  },
+
+  /**
+   * Creates cached object structure and returns reference to it.
+   * @param {Object} object
+   * @returns {{object: {Object}, methods: {}}}
+   * @private
+   */
+  _createCached: function(object) {
+    var prepared = {object: object, methods: {}, own: []};
+    this._cache.push(prepared);
+    return prepared;
+  },
+
+  /**
+   * Returns first found cached object using given `object`
+   * @param {Object} object
+   * @returns {Object|void}
+   * @private
+   */
+  _findCached: function(object) {
+    return _.first(_.filter(this._cache, function(cached) {
+      if (cached.object === object) return cached;
+    }));
+  },
+
+  /**
+   * Removes object from the Monitor cache.
+   * @param {Object} object
+   * @returns {Fiber.Monitor}
+   * @private
+   */
+  _forgetCached: function(object) {
+    $each(this._cache, function(cached, index) {
+      if (cached.object === object) this._cache.splice(+index, 1);
+    }, this);
+    return this;
+  },
+
+  /**
+   * Returns all watched methods to the owner object in original state.
+   * @param {Object} object
+   * @returns {Fiber.Monitor}
+   * @private
+   */
+  _releaseCached: function(object) {
+    if (this._findCached(object)) this.stopWatchingMethods(object);
+    return this;
+  }
 });

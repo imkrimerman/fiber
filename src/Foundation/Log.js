@@ -33,13 +33,6 @@ Fiber.Log = BaseClass.extend({
   levels: Fiber.Config.get('Log.levels'),
 
   /**
-   * Writer object.
-   * @type {function(...)}
-   * @private
-   */
-  writer: console.log,
-
-  /**
    * String representing who is logging the messages.
    * @type {string}
    */
@@ -108,6 +101,15 @@ Fiber.Log = BaseClass.extend({
   },
 
   /**
+   * Logs using current level.
+   * @param {...args}
+   * @returns {*|Fiber.Log}
+   */
+  log: function() {
+    return this.write.apply(this, $fn.argsConcat(this.level, arguments));
+  },
+
+  /**
    * Writes using `writer` function.
    * @param {string} level
    * @param {...args}
@@ -116,7 +118,7 @@ Fiber.Log = BaseClass.extend({
   write: function(level) {
     level = $valIncludes(level, 'log', this._methods);
     if (! this.isAllowedLevel(level)) return this;
-    return this.callWriter(level, _.drop(arguments));
+    return this.callWriter(level, $drop(arguments));
   },
 
   /**
@@ -127,8 +129,8 @@ Fiber.Log = BaseClass.extend({
    */
   callWriter: function(method, args) {
     method = $valIncludes(method, 'log', this._methods);
-    var msg = _.first(args), details = this.renderTemplate({ msg: _.isString(msg) ? msg : '' });
-    $fn.applyFn(method, $fn.argsConcat(details, $val(args, [], _.isArray)));
+    var msg = _.first(args), details = this.renderTemplate({ msg: $isStr(msg) ? msg : '' });
+    $fn.apply(console, method, $fn.argsConcat(details, $drop(args)));
     return this;
   },
 
@@ -148,7 +150,7 @@ Fiber.Log = BaseClass.extend({
    */
   getTemplate: function(glue) {
     return $fn.compact(_.map($result(this.templates), function(part) {
-      if (_.isString(part) || _.isFunction(part)) return part;
+      if ($isStr(part) || $isFn(part)) return part;
     })).join(glue || ' ');
   },
 
@@ -164,7 +166,7 @@ Fiber.Log = BaseClass.extend({
       level: this.level,
       as: this.as,
       timestamp: date.toTimeString().slice(0, 8) + '.' + date.getMilliseconds()
-    }, $val(data, {}, _.isPlainObject));
+    }, $val(data, {}, $isPlain));
   },
 
   /**

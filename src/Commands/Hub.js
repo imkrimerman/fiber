@@ -17,7 +17,7 @@ Fiber.Commands.Hub = Fiber.Class.extend({
    * @param {Array} [commands=[]]
    */
   constructor: function(commands) {
-    this._registry = new Fiber.Commands.Registry($val(commands, [], _.isArray));
+    this._registry = new Fiber.Commands.Registry($val(commands, [], $isArr));
     this.$superInit();
   },
 
@@ -67,7 +67,7 @@ Fiber.Commands.Hub = Fiber.Class.extend({
    * @returns {*}
    */
   execute: function(command) {
-    if (_.isString(command)) command = this.get(command);
+    if ($isStr(command)) command = this.get(command);
     // if we also have handler for the command
     if (command instanceof Fiber.Commands.Command) {
       // if we don't have any handler, then let's try to execute command,
@@ -75,9 +75,9 @@ Fiber.Commands.Hub = Fiber.Class.extend({
       // then lets retrieve it
       var Handler = command.get('handler');
       // if is function then just call it with `command` and return
-      if (_.isFunction(Handler)) return Handler(command);
+      if ($isFn(Handler)) return Handler(command);
       // if Handler is string then we'll try to make it using IOC container
-      if (_.isString(Handler) && $Ioc.bound(Handler)) Handler = $Ioc.make(Handler);
+      if ($isStr(Handler) && $Ioc.bound(Handler)) Handler = $Ioc.make(Handler);
       // if is Class constructor
       if ($fn.class.isClass(Handler)) {
         // then let's instantiate new Handler with `command` as argument

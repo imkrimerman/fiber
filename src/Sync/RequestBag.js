@@ -3,7 +3,7 @@
  * @class
  * @extends {Fiber.Bag}
  */
-Fiber.Sync.RequestBag = Fiber.Bag.extend({
+Fiber.RequestBag = Fiber.Bag.extend({
 
   /**
    * Bag items defaults

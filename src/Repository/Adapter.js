@@ -82,7 +82,7 @@ Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
     return new Fiber.Request(method, $fn.createPlain(key, value), $valMerge(options, {
       $callback: this.pop(),
       fake: true
-    }));
+    }), 'extend');
   },
 
   /**
@@ -108,7 +108,7 @@ Fiber.Repository.Adapter = Fiber.Class.implement('Repository').extend({
    * @returns {Fiber.Repository.Adapter}
    */
   push: function(callback) {
-    if (! _.isFunction(callback)) callback = $fn.through;
+    if (! $isFn(callback)) callback = $fn.through;
     this._stack.push(callback);
     return this;
   },

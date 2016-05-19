@@ -13,7 +13,7 @@ Fiber.fn.class = {
   createConstructorCaller: function(constructor, parentClass) {
     var migration = $fn.extensions.migrate;
     // fallback on constructor as Parent constructor to make available creation without Parent
-    parentClass = $val(parentClass, constructor, _.isObject);
+    parentClass = $val(parentClass, constructor, $isObj);
     // ensures that contracts will be extended from `parentClass`
     $fn.class.ensureContractsInSync(constructor, parentClass);
     // Return Class constructor wrapper
@@ -119,7 +119,7 @@ Fiber.fn.class = {
     // check if `Parent` is valid, if not then set simple Fiber Class as a `Parent`
     Parent = $val(Parent, Fiber.Class, $fn.class.isClass);
     // If Parent is string, then try to resolve Class from dependency injection container
-    if (_.isString(Parent) && Fiber.hasOwnProperty('container') && Fiber.container.bound(Parent))
+    if ($isStr(Parent) && Fiber.hasOwnProperty('container') && Fiber.container.bound(Parent))
       Parent = Fiber.make(Parent);
     // resolve extension list from prototype and statics
     var extensionsToInclude = $fn.extensions.findIncluded(proto, statics);
@@ -166,9 +166,9 @@ Fiber.fn.class = {
   mix: function(object, mixin, override) {
     override = $val(override, false);
     // If mixin is function then it will be called with given `object`.
-    if (_.isFunction(mixin)) return mixin(object);
+    if ($isFn(mixin)) return mixin(object);
     if ($fn.extensions.isExtension(mixin)) mixin = mixin.getCode();
-    if (_.isPlainObject(mixin)) {
+    if ($isPlain(mixin)) {
       var method = 'defaultsDeep';
       if (override) method = 'extend';
       _[method](object, mixin);
@@ -185,7 +185,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   include: function(object, mixin, override) {
-    if (! _.isArray(mixin) && (_.isPlainObject(mixin) || $fn.extensions.isExtension(mixin)))
+    if (! $isArr(mixin) && ($isPlain(mixin) || $fn.extensions.isExtension(mixin)))
       return $fn.class.mix(object, mixin, override);
     else for (var i = 0; i < mixin.length; i ++)
       object = $fn.class.mix(object, mixin[i], override);
@@ -217,12 +217,12 @@ Fiber.fn.class = {
    * @returns {*}
    */
   mergeExtendMixin: function(mixin, object) {
-    mixin = _.isString(mixin) ? $fn.class.getExtendMixin(mixin) : mixin;
+    mixin = $isStr(mixin) ? $fn.class.getExtendMixin(mixin) : mixin;
     object = $val(object, {});
     switch (true) {
-      case _.isArray(object):
+      case $isArr(object):
         return object.concat(mixin);
-      case _.isPlainObject(object) || _.isFunction(object):
+      case $isPlain(object) || $isFn(object):
         return _.merge({}, object, mixin);
       default:
         return object;
@@ -272,7 +272,7 @@ Fiber.fn.class = {
    */
   createNew: function(object) {
     var parent = $fn.class.isClass(object) ? object : $get(object, 'constructor');
-    return $fn.class.instance(parent, _.drop(arguments));
+    return $fn.class.instance(parent, $drop(arguments));
   },
 
   /**
@@ -282,7 +282,7 @@ Fiber.fn.class = {
    * @returns {function(...)|Function|Object}
    */
   mutate: function(object, proto) {
-    var source = _.isFunction(object.$super) && object.$super('prototype') || object.prototype || object.__proto__;
+    var source = $isFn(object.$super) && object.$super('prototype') || object.prototype || object.__proto__;
     $fn.class.include(source, $fn.merge(Fiber.resolve(proto)), true);
     return object;
   },
@@ -294,7 +294,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   implement: function(object, contract) {
-    return $fn.class.implementOwn.apply(null, $fn.argsConcat($fn.class.nativeExtend(object), _.drop(arguments)));
+    return $fn.class.implementOwn.apply(null, $fn.argsConcat($fn.class.nativeExtend(object), $drop(arguments)));
   },
 
   /**
@@ -305,13 +305,13 @@ Fiber.fn.class = {
    */
   implementOwn: function(object, contract) {
     if (! Fiber.Contract) return object;
-    if (arguments.length > 2) contract = _.drop(arguments);
+    if (arguments.length > 2) contract = $drop(arguments);
 
     contract = $fn.merge($fn.multi(contract, function(one) {
-      one = _.isString(one) ? $get(Fiber.Contracts, one) : one;
+      one = $isStr(one) ? $get(Fiber.Contracts, one) : one;
       if (one instanceof Fiber.Contract) return $fn.createPlain(one.getName(), one);
       $log.error('`Contract` is not instance of Fiber.Contract.', one);
-    }));
+    }, 'fn.through'));
 
     var follows = object[$propNames.contract] || {};
     object[$propNames.contract] = $fn.merge(follows, contract);
@@ -336,7 +336,7 @@ Fiber.fn.class = {
       return $get(proto, method);
     };
     child.$superInit = function() {
-      return parent.apply(this, arguments.length === 1 && _.isArguments(arguments[0]) ? arguments[0] : arguments);
+      return parent.apply(this, arguments.length === 1 && $isArgs(arguments[0]) ? arguments[0] : arguments);
     };
     return child;
   },
@@ -351,10 +351,10 @@ Fiber.fn.class = {
    * @returns {function(...)|null}
    */
   resolveMethod: function(object, method, scope) {
-    scope = $val(scope, object, _.isObject);
-    if (_.isString(method)) {
+    scope = $val(scope, object, $isObj);
+    if ($isStr(method)) {
       var fn = $fn.class.getMethod(object, method);
-      if (_.isFunction(fn)) return _.bind(fn, scope);
+      if ($isFn(fn)) return $bind(fn, scope);
     }
     return null;
   },
@@ -368,7 +368,7 @@ Fiber.fn.class = {
    * @returns {boolean}
    */
   alias: function(object, method, alias, toProto) {
-    if (_.isPlainObject(method)) return _.every(method, function(mAlias, mMethod) {
+    if ($isPlain(method)) return _.every(method, function(mAlias, mMethod) {
       return $fn.class.alias(object, mMethod, mAlias, toProto);
     });
 
@@ -414,11 +414,11 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   bindMixin: function(object, mixin, toProto, bindFn) {
-    bindFn = $val(bindFn, $fn.proxy, _.isFunction);
+    bindFn = $val(bindFn, $fn.proxy, $isFn);
     $each(mixin, function(value, property) {
       var container = object;
       if (toProto) container = object.prototype;
-      if (_.isFunction(value)) container[property] = bindFn(value, object);
+      if ($isFn(value)) container[property] = bindFn(value, object);
       else container[property] = value;
     });
     return object;
@@ -434,7 +434,7 @@ Fiber.fn.class = {
    */
   getMethod: function(object, method, defaults, allowFunctions) {
     var method = $get(object.prototype || object, method, defaults);
-    if ($val(allowFunctions, true) && ! _.isFunction(method)) return defaults;
+    if ($val(allowFunctions, true) && ! $isFn(method)) return defaults;
     return method;
   },
 
@@ -446,7 +446,7 @@ Fiber.fn.class = {
    * @returns {*}
    */
   getProperty: function(object, property, fn) {
-    return _[$val(fn, 'result', _.isString)](object.prototype || object, property);
+    return _[$val(fn, 'result', $isStr)](object.prototype || object, property);
   },
 
   /**
@@ -490,9 +490,9 @@ Fiber.fn.class = {
    * @returns {function(...)}
    */
   prepareConditionCheckerMethod: function(object, method) {
-    if (_.isString(method)) method = object[method];
+    if ($isStr(method)) method = object[method];
     if (_.isBoolean(method)) method = $fn.constant(method);
-    if (! _.isFunction(method)) return $fn.constant(true);
+    if (! $isFn(method)) return $fn.constant(true);
   },
 
   /**
@@ -505,7 +505,7 @@ Fiber.fn.class = {
    */
   handleOptions: function(scope, options, defaults, deep) {
     if (! scope) return $log.error('Scope is not provided or not valid', scope);
-    options = $val(options, {}, [_.isPlainObject, $fn.class.isInstance]);
+    options = $val(options, {}, [$isPlain, $fn.class.isInstance]);
     return scope.options = $fn.class.handleOptionsDefaults(options, defaults, deep);
   },
 
@@ -517,7 +517,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   handleOptionsDefaults: function(options, defaults, deep) {
-    if (! _.isPlainObject(defaults) || _.isEmpty(defaults)) return options;
+    if (! $isPlain(defaults) || _.isEmpty(defaults)) return options;
     _[deep ? 'defaultsDeep' : 'defaults'](options, defaults);
     return options;
   },
@@ -529,7 +529,7 @@ Fiber.fn.class = {
    * @returns {Object}
    */
   ensureOwn: function(object, properties) {
-    if (! _.isObject(object)) return object;
+    if (! $isObj(object)) return object;
     properties = $castArr(properties);
     for (var i = 0; i < properties.length; i ++) {
       var property = properties[i]
@@ -550,9 +550,9 @@ Fiber.fn.class = {
    */
   extendFromOptions: function(object, options, willExtend) {
     willExtend = $result($val(willExtend, []));
-    var isArray = _.isArray(willExtend);
+    var isArray = $isArr(willExtend);
     if (isArray) options = _.pick(options, $fn.compact(willExtend));
-    if (! (_.isBoolean(willExtend) && willExtend || willExtend === 'all')) options = {};
+    else if (_.isBoolean(willExtend) && ! willExtend || willExtend !== 'all') return object;
     return _.extend(object, options);
   },
 
@@ -562,7 +562,7 @@ Fiber.fn.class = {
    * @returns {boolean}
    */
   isClass: function(object) {
-    return _.isFunction(object) && object.prototype && object.prototype.constructor;
+    return $isFn(object) && object.prototype && object.prototype.constructor;
   },
 
   /**
@@ -571,7 +571,7 @@ Fiber.fn.class = {
    * @returns {boolean}
    */
   isInstance: function(object) {
-    return ! $fn.class.isClass(object) && ! _.isPlainObject(object) && _.isObject(object);
+    return ! $fn.class.isClass(object) && ! $isPlain(object) && $isObj(object);
   },
 
   /**
@@ -604,11 +604,11 @@ Fiber.fn.class = {
    * @returns {boolean}
    */
   isImplementing: function(object, contract, fn) {
-    if (_.isPlainObject(object)) return false;
+    if ($isPlain(object)) return false;
     fn = $valIncludes(fn, 'every');
     var source = object.prototype || object;
     contract = $fn.compact(_.map($castArr(contract), function(one) {
-      if (_.isString(one) && Fiber.Contracts.hasOwnProperty(one)) return Fiber.Contracts[one];
+      if ($isStr(one) && Fiber.Contracts.hasOwnProperty(one)) return Fiber.Contracts[one];
       else if (one instanceof Fiber.Contract) return one;
       return null;
     }));

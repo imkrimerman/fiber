@@ -29,7 +29,7 @@ Fiber.Collection = BaseCollection.extend({
    * @param {?Object} [options] - Options to extend from
    */
   constructor: function(models, options) {
-    _.isPlainObject(options) && this.extendModel(options.modelOptions);
+    $isPlain(options) && this.extendModel(options.modelOptions);
     this.$superInit(models, options);
   },
 
@@ -50,6 +50,6 @@ Fiber.Collection = BaseCollection.extend({
    * @returns {boolean}
    */
   isSyncable: function() {
-    return _.isString($result(this, 'url'));
+    return $isStr($result(this, 'url'));
   }
 });

@@ -57,14 +57,14 @@ Fiber.fn.validation = {
        * `Attribute required` message.
        * @type {string|function(...)}
        */
-      required: 'Required attribute [{{= attribute }}] is missing.',
+      required: 'Required attribute [{{ attribute }}] is missing.',
 
       /**
        * Single validation message for all validators.
        * Will be used if validators type is not plain object.
        * @type {string|function(...)}
        */
-      single: 'Attribute [{{= attribute }}] is not valid.',
+      single: 'Attribute [{{ attribute }}] is not valid.',
 
       /**
        * Hash map of validation messages.
@@ -99,8 +99,8 @@ Fiber.fn.validation = {
     // if model doesn't have any rules, then we are okey to return true
     if (_.isEmpty(rules)) return true;
     // otherwise ensure arguments have default values
-    options = $val(options, {}, _.isPlainObject);
-    attributes = $val(attributes, model.attributes || model, _.isPlainObject);
+    options = $val(options, {}, $isPlain);
+    attributes = $val(attributes, model.attributes || model, $isPlain);
     // If attributes are empty, then we are okey to return true
     if (_.isEmpty(attributes)) return true;
     model.fire('validating', rules, model, options);
@@ -117,11 +117,11 @@ Fiber.fn.validation = {
       // ensure that rule has all default properties
       rule = this.ensureRuleDefaults(rule);
       // Check if `when` rule condition is function and if so, then call it with the arguments
-      if (_.isFunction(rule.when)) applyRule = rule.when(model, attributeValue, options);
+      if ($isFn(rule.when)) applyRule = rule.when(model, attributeValue, options);
       // If result of `when` rule condition is true then we can proceed, otherwise we'll return true
       if (! applyRule) return true;
       // if attribute is required and it's empty and not a number (0 can be treated as false),
-      if (rule.required && (! _.isNumber(attributeValue) && _.isEmpty(attributeValue))) {
+      if (rule.required && (! $isNum(attributeValue) && _.isEmpty(attributeValue))) {
         // then we'll add error to model's error bag
         if (! isPreserved) $validate.addMessage(model, attribute, rule, this.messageTypes.required);
       }
@@ -129,20 +129,20 @@ Fiber.fn.validation = {
       if (rule.validators) {
         var validators = [];
         // If validator is function, then simply push it to validators array
-        if (_.isFunction(rule.validators)) validators.push(rule.validators);
+        if ($isFn(rule.validators)) validators.push(rule.validators);
         // If is array, then concatenate
-        else if (_.isArray(rule.validators)) validators = rule.validators;
+        else if ($isArr(rule.validators)) validators = rule.validators;
         // And If is string, then try to resolve validation method from model
-        else if (_.isString(rule.validators) && $has(model, rule.validators))
+        else if ($isStr(rule.validators) && $has(model, rule.validators))
           validators.push($fn.class.resolveMethod(model, rule.validators));
         // validation runner to support recursive validators grouping
         var runValidation = function(validators) {
           return _[rule.match](validators, function(validator) {
             $fn.fireAttribute(model, 'validating:attribute', attribute, [validator, model, options]);
             var result = false;
-            if (_.isString(validator)) validator = $fn.class.resolveMethod(model, validator);
-            if (_.isFunction(validator)) result = validator(attributeValue, rule, model, options);
-            else if (_.isArray(validator)) result = runValidation(validator);
+            if ($isStr(validator)) validator = $fn.class.resolveMethod(model, validator);
+            if ($isFn(validator)) result = validator(attributeValue, rule, model, options);
+            else if ($isArr(validator)) result = runValidation(validator);
             $fn.fireAttribute(model, 'validated:attribute', attribute, [result, validator, model, options]);
             return result;
           });
@@ -252,7 +252,7 @@ Fiber.fn.validation = {
    */
   getRules: function(model, defaults) {
     var rules = {};
-    if (_.isFunction(model.getRules)) rules = model.getRules();
+    if ($isFn(model.getRules)) rules = model.getRules();
     else if (model.rules) rules = model.rules;
     if ($isDef(defaults) && _.isEmpty(rules)) return defaults;
     return rules;
@@ -292,6 +292,6 @@ Fiber.fn.validation = {
    * @returns {boolean}
    */
   isHashMessageNeeded: function(rule) {
-    return _.isPlainObject($result(rule, 'validators'));
+    return $isPlain($result(rule, 'validators'));
   },
 };
