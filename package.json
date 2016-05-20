@@ -51,7 +51,7 @@
   },
   "scripts": {
     "postinstall": "npm run min && npm run doc",
-    "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber-min.map -o ./build/fiber-min.js",
+    "min": "uglifyjs ./build/fiber.js --mangle --source-map ./build/fiber.min.map -o ./build/fiber.min.js",
     "lint": "eslint fiber.js",
     "test": "./node_modules/mocha/bin/mocha",
     "doc": "rm -rf ./docs/doc && mr-doc -s ./src -o ./docs/doc -n 'Fiber' -t 'cayman'",
