@@ -22,5 +22,5 @@ var $BaseTypes = {
   Blob: {type: 'object', signature: '[object Blob]', example: function() {return new Blob;}},
   FormData: {type: 'object', signature: '[object FormData]', example: function() {return new FormData;}},
 
-  Access: {type: 'object', signature: '[object Fiber.Access]', example: function() {return new Fiber.Access;}},
+  Access: {type: 'object', signature: '[object Fiber.Access]', example: function() {return new Fiber.Access;}}
 };

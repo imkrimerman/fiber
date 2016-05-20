@@ -159,7 +159,7 @@ Fiber.Promise = Fiber.Class.extend({
    * @private
    */
   _releaseIterator: function(result, response, zipCallbacks) {
-    var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected'
+    var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected';
     return zipCallbacks[unzipFn](response, resolved);
   },
 

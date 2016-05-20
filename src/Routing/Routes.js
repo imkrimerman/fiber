@@ -34,10 +34,8 @@ Fiber.Routes = Fiber.RouterCollection.extend({
 
         if (! $isArr(model.url)) prepared.push(model);
         else for (var j = 0; j < model.url.length; j ++) {
-          var url = model.url[j]
-            , clone = _.clone(model);
-
-          clone.url = url;
+          var clone = _.clone(model);
+          clone.url = model.url[j];
           prepared.push(clone);
         }
       }

@@ -270,8 +270,7 @@ Fiber.Log = BaseClass.extend({
       , index = levels.indexOf(level);
     if (index === - 1) return false;
     var currentLevelIndex = levels.indexOf(this.level);
-    if (index >= currentLevelIndex) return true;
-    return false;
+    return index >= currentLevelIndex;
   },
 
   /**

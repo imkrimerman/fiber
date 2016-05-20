@@ -37,7 +37,6 @@ Fiber.Middleware = Fiber.Model.extend({
    */
   passThrough: function(route) {
     var handler = this.get('handler');
-    if ($isFn(handler) && handler(route)) return true;
-    return false;
+    return ! ! ($isFn(handler) && handler(route));
   }
 });

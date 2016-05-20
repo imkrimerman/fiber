@@ -117,7 +117,7 @@ Fiber.Events = _.extend({
   request: function(event) {
     var response = $get(this._eventRequests, event);
     if ($isFn(response)) return response.apply(response, $drop(arguments));
-    $log.warn('Response for the requested `event` [' + event + '] is not registered.')
+    $log.warn('Response for the requested `event` [' + event + '] is not registered.');
     return void 0;
   },
 

@@ -11,8 +11,8 @@ var Listeners = BaseCollection.extend({
    * @returns {boolean}
    */
   hasEvent: function(event) {
-    return $fn.cast.toBoolean
-    this.filterByEvent(event).length;
+    return $fn.cast.toBoolean;
+    return !! this.filterByEvent(event).length;
   },
 
   /**

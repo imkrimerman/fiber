@@ -2,4 +2,4 @@
  * Config Repository
  * @class
  */
-Fiber.Repository = {}
+Fiber.Repository = {};

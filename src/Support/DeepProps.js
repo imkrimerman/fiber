@@ -106,7 +106,7 @@ $fn.deepProps = {
   validate: function(property, rules, method) {
     if (! rules) return true;
     if (! property) return false;
-    method = $valIncludes(method, 'some', ['some', 'any', 'every'])
+    method = $valIncludes(method, 'some', ['some', 'any', 'every']);
     return _[method]($castArr(rules), function(rule) {
       if ($isFn(rule) && rule(property)) return true;
     });

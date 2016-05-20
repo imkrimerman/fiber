@@ -101,7 +101,7 @@ Fiber.Sync = Fiber.Class.extend({
     var params = this.bag.all();
     this.request.type(params.type);
     if (! _.isEmpty(params.data)) this.request.data(params.data);
-    if (params.beforeSend) $fn.applyFn(params.beforeSend, [this.request])
+    if (params.beforeSend) $fn.applyFn(params.beforeSend, [this.request]);
 
     this.bag.set('promise', this.request.send());
 

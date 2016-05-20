@@ -101,7 +101,7 @@ Fiber.Route = Fiber.Model.extend({
    * @returns {Fiber.View}
    */
   composeView: function(options) {
-    var View = options.View || this.ViewClass
+    var View = options.View || this.ViewClass;
     return $fn.compose.view(View, options);
   },
 

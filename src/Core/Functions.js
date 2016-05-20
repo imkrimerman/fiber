@@ -80,9 +80,9 @@ var $val = function(value, defaults, checker, match) {
   // if defaults not specified then assign notDefined `$__NULL__$` value
   defaults = arguments.length > 1 ? defaults : $notDefined;
   // if we don't have any `value` then return `defaults`
-  if (! arguments.length) return defaults;
+  if(! arguments.length) return defaults;
   // if value check was made and it's not valid then return `defaults`
-  if (! $valCheck(value, checker, match)) return defaults;
+  if(! $valCheck(value, checker, match)) return defaults;
   // if value not specified return defaults, otherwise return value;
   return value != null ? value : defaults;
 };
@@ -96,9 +96,9 @@ var $val = function(value, defaults, checker, match) {
  */
 var $valCheck = function(value, checkers, match) {
   // if value and checker is specified then use it to additionally check value
-  if (! $isArr(checkers) && ! $isFn(checkers)) return true;
+  if(! $isArr(checkers) && ! $isFn(checkers)) return true;
   return _[match || 'some']($castArr(checkers), function(check) {
-    if ($isFn(check)) return check(value);
+    if($isFn(check)) return check(value);
   });
 };
 
@@ -111,8 +111,8 @@ var $valCheck = function(value, checkers, match) {
  * @returns {*}
  */
 var $valIncludes = function(value, defaults, includes, match) {
-  if (includes == null) includes = ['every', 'some', 'any'];
-  if ($isPlain(includes)) includes = _.keys(includes);
+  if(includes == null) includes = ['every', 'some', 'any'];
+  if($isPlain(includes)) includes = _.keys(includes);
   return $val(value, defaults, function(val) {
     return _.includes(includes, val);
   }, match || 'some');
@@ -129,7 +129,7 @@ var $valIncludes = function(value, defaults, includes, match) {
  */
 var $valCb = function(value, defaults, cb, checker, match) {
   var val = $val(value, defaults, checker, match);
-  if (! $isFn(cb)) return val;
+  if(! $isFn(cb)) return val;
   return cb(val);
 };
 
@@ -147,12 +147,12 @@ var $valCb = function(value, defaults, cb, checker, match) {
  */
 var $valMerge = function(value, extender, method, defaultsAndChecker, toOwn, match) {
   method = $val(method, _.defaults, [$isFn, $isStr]);
-  if ($isStr(method) && $has(_, method)) method = _[method];
-  if (! $isDef(defaultsAndChecker)) defaultsAndChecker = [{}, $isPlain];
+  if($isStr(method) && $has(_, method)) method = _[method];
+  if(! $isDef(defaultsAndChecker)) defaultsAndChecker = [{}, $isPlain];
   toOwn = $val(toOwn, false, _.isBoolean);
   return $valCb(value, defaultsAndChecker[0], function(checked) {
     var args = toOwn ? [checked, extender] : [defaultsAndChecker[0], checked, extender];
-    if (! $isExtendable(args)) return checked;
+    if(! $isExtendable(args)) return checked;
     return method.apply(_, args);
   }, defaultsAndChecker[1], match);
 };
@@ -163,7 +163,7 @@ var $valMerge = function(value, extender, method, defaultsAndChecker, toOwn, mat
  * @returns {boolean}
  */
 var $isDef = function(value) {
-  if (! arguments.length) return false;
+  if(! arguments.length) return false;
   return $val(value) !== $notDefined;
 };
 
@@ -181,7 +181,7 @@ $val.notDefined = $notDefined;
  * @returns {boolean}
  */
 var $isExtendable = function(object) {
-  if (arguments.length > 1) object = _.toArray(arguments);
+  if(arguments.length > 1) object = _.toArray(arguments);
   return _.every($castArr(object), function(one) {
     return $isObj(one) && ($isClass(object) || $isFn(one.extend) || $isPlain(one));
   });
@@ -194,7 +194,7 @@ var $isExtendable = function(object) {
  */
 var $isBackboneEventable = function(object) {
   var checkMethods = ['trigger', 'listenTo', 'stopListening', 'on', 'off'];
-  if (arguments.length > 1) object = _.toArray(arguments);
+  if(arguments.length > 1) object = _.toArray(arguments);
   return _.every($castArr(object), function(one) {
     return $hasGiven(one, checkMethods, $isFn);
   });
@@ -207,7 +207,7 @@ var $isBackboneEventable = function(object) {
  */
 var $isEventable = function(object) {
   var checkMethods = ['fire', 'when', 'after', 'whenGlobal', 'afterGlobal'];
-  if (arguments.length > 1) object = _.toArray(arguments);
+  if(arguments.length > 1) object = _.toArray(arguments);
   return _.every($castArr(object), function(one) {
     return one.eventsConfig && $hasGiven(one, checkMethods, $isFn);
   });
@@ -232,9 +232,9 @@ var $hasGiven = function(object, props, checkFn) {
  * @type {Object}
  */
 var $isClass = function(object) {
-  if ($isPlain(object) || $isArr(object)) return false;
+  if($isPlain(object) || $isArr(object)) return false;
   var proto = Object.getPrototypeOf(object);
-  if (proto === null) return false;
+  if(proto === null) return false;
   return typeof proto.constructor == 'function' && $funcToString(object) != objectCtorString;
 };
 
@@ -248,7 +248,7 @@ var $isClass = function(object) {
  * @returns {*}
  */
 var $get = function(object, path, defaults) {
-  if (! $isArr(path)) return _.get(object, path, defaults);
+  if(! $isArr(path)) return _.get(object, path, defaults);
   return _.map(path, function(prop) {
     return $get(object, prop);
   });
@@ -263,11 +263,11 @@ var $get = function(object, path, defaults) {
  */
 var $set = function(object, path, value) {
   var isArr = $isArr(object);
-  if ($isPlain(path)) {
-    if (! isArr) _.merge(object, path);
+  if($isPlain(path)) {
+    if(! isArr) _.merge(object, path);
     else object.push.apply(object, _.values(path));
   }
-  if (! $isArr(path)) _.set(object, path, value);
+  if(! $isArr(path)) _.set(object, path, value);
   else {
     var isValueArray = $isArr(value);
     $each(path, function(prop, index) {
@@ -286,11 +286,11 @@ var $set = function(object, path, value) {
  */
 var $has = function(object, path, match) {
   match = $isStr(match) ? match : 'every';
-  if ($isArr(object)) return _[match]($castArr(path), function(part) {
+  if($isArr(object)) return _[match]($castArr(path), function(part) {
     return _.includes(object, part);
   });
 
-  if (! $isArr(path)) return _.has(object, path);
+  if(! $isArr(path)) return _.has(object, path);
   return _[match](path, function(prop) {
     return _.has(object, prop);
   });
@@ -306,9 +306,9 @@ var $has = function(object, path, match) {
  * @returns {*}
  */
 var $result = function(object, path, defaults) {
-  if (! $isObj(object)) return object;
-  if ($isFn(object)) return object(path, defaults, object);
-  if (arguments.length === 1) return object;
+  if(! $isObj(object)) return object;
+  if($isFn(object)) return object(path, defaults, object);
+  if(arguments.length === 1) return object;
   var mapped = _.map($castArr(path), function(prop) {
     return _.result(object, prop, defaults);
   });
@@ -322,7 +322,7 @@ var $result = function(object, path, defaults) {
  * @returns {Object}
  */
 var $forget = function(object, path) {
-  if (! $isArr(path)) _.unset(object, path);
+  if(! $isArr(path)) _.unset(object, path);
   else $each(path, function(prop) {
     $forget(object, prop);
   });
@@ -336,7 +336,7 @@ var $forget = function(object, path) {
  * @returns {Object}
  */
 var $pick = function(object, keys) {
-  if ($isStr(keys) && arguments.length === 3) {
+  if($isStr(keys) && arguments.length === 3) {
     object = $get(object, keys);
     keys = arguments[2];
   }
@@ -350,7 +350,7 @@ var $pick = function(object, keys) {
  * @returns {Object}
  */
 var $omit = function(object, keys) {
-  if ($isStr(keys) && arguments.length === 3) {
+  if($isStr(keys) && arguments.length === 3) {
     object = $get(object, keys);
     keys = arguments[2];
   }
@@ -364,7 +364,7 @@ var $omit = function(object, keys) {
  * @returns {Array}
  */
 var $drop = function(array, n) {
-  if ($isArgs(array)) array = $slice(array);
+  if($isArgs(array)) array = $slice(array);
   return _.drop(array, n);
 };
 
@@ -377,8 +377,8 @@ var $drop = function(array, n) {
  */
 var $squash = function(fn, mergable) {
   mergable = $fn.compact($slice($castArr(mergable)));
-  if ($isArrayOf('array', mergable)) return _.flattenDeep(mergable);
-  if ($isArrayOf('object', mergable)) return _[fn].apply(_, [{}].concat(mergable));
+  if($isArrayOf('array', mergable)) return _.flattenDeep(mergable);
+  if($isArrayOf('object', mergable)) return _[fn].apply(_, [{}].concat(mergable));
   return [];
 };
 
@@ -399,7 +399,8 @@ var $isArrayOf = function(type, array, method) {
  * A no-operation function that returns undefined regardless of the arguments it receives.
  * @returns {void}
  */
-var $noop = function() {};
+var $noop = function() {
+};
 
 /**
  * Starts timer to detect function execution speed.
@@ -427,14 +428,16 @@ var $timer = function(fn, args, scope) {
  * @returns {function(...)}
  */
 var $bind = function(fn, scope) {
-  if ($parseType(fn) !== 'function') throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+  if($parseType(
+      fn) !== 'function') throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
   var partials = $slice(arguments, 2)
     , fnToBind = fn
-    , noop = function() {}
+    , noop = function() {
+  }
     , bound = function() {
-        scope = fn.prototype && fn instanceof noop && scope ? fn : (scope || {});
-        return fnToBind.apply(scope, partials.concat($slice(arguments)));
-      };
+    scope = fn.prototype && fn instanceof noop && scope ? fn : (scope || {});
+    return fnToBind.apply(scope, partials.concat($slice(arguments)));
+  };
 
   bound.prototype = fn.prototype;
 //   bound.prototype = new noop();
@@ -449,8 +452,8 @@ var $bind = function(fn, scope) {
  */
 var $clone = function(object, deep, cloneIterator) {
   return (deep ? $cloneDeepWith : $cloneWith)(object, $val(cloneIterator, function(value) {
-    if ($isFn(value)) return value;
-    if ($isArr(value)) return value.slice();
+    if($isFn(value)) return value;
+    if($isArr(value)) return value.slice();
     return _.clone(value);
   }, $isFn));
 };
@@ -463,7 +466,7 @@ var $clone = function(object, deep, cloneIterator) {
  * @returns {Object}
  */
 var $cloneDeepWith = function(object, customizer, scope) {
-  if ($isObj(scope)) customizer = $bind(customizer, scope);
+  if($isObj(scope)) customizer = $bind(customizer, scope);
   return _.cloneDeepWith(object, customizer);
 };
 
@@ -489,8 +492,8 @@ var $cloneWith = function(object, customizer, scope) {
  * @returns {Array}
  */
 var $castArr = function(object, compact) {
-  if ($isArr(object)) return object;
-  if ($isArgs(object)) return $slice(object);
+  if($isArr(object)) return object;
+  if($isArgs(object)) return $slice(object);
   return compact ? $compact([object]) : [object];
 };
 
@@ -503,7 +506,7 @@ var $castArr = function(object, compact) {
 var $compact = function(array) {
   var i = - 1, index = 0, result = []
     , length = (array = $castArr(array)) ? array.length : 0;
-  while (++ i < length) if (array[i]) result[index ++] = array[i];
+  while(++ i < length) if(array[i]) result[index ++] = array[i];
   return result;
 };
 
@@ -513,7 +516,9 @@ var $compact = function(array) {
  * @returns {function(...)}
  */
 var $constant = function(value) {
-  return function() {return value;};
+  return function() {
+    return value;
+  };
 };
 
 /**
@@ -532,7 +537,7 @@ var $through = function(value) {
  * @throws Will throw `Error` if statement is not true
  */
 var $expect = function(statement, errorMsg) {
-  if (! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
+  if(! statement) throw new Error(errorMsg || 'Expected `statement` to be true');
 };
 
 /**
@@ -564,11 +569,15 @@ var $parseSignature = function(arg, transform) {
  */
 var $whatType = function(arg) {
   var argType = $parseType(arg, true), argSignature = $parseSignature(arg, true), $tr = $typeTransformer.call;
-  for (var i = 0; i < $BaseTypes.length; i ++) {
-    if (argType !== $tr($BaseTypes[i].type) || argSignature !== $tr($BaseTypes[i].signature)) continue;
+  for(var i = 0; i < $BaseTypes.length; i ++) {
+    if(argType !== $tr($BaseTypes[i].type) || argSignature !== $tr($BaseTypes[i].signature)) continue;
     return $BaseTypes[i];
   }
-  return {type: argType, signature: argSignature, example: function() {return arg}};
+  return {
+    type: argType, signature: argSignature, example: function() {
+      return arg
+    }
+  };
 };
 
 /**
@@ -579,7 +588,7 @@ var $whatType = function(arg) {
  */
 var $ofType = function(arg, type) {
   var detected = $whatType(arg);
-  if (! $isPlain(type) || ! type.type && ! type.signature) type = $whatType(type);
+  if(! $isPlain(type) || ! type.type && ! type.signature) type = $whatType(type);
   return detected.type === type.type && detected.signature === type.signature;
 };
 
@@ -596,9 +605,9 @@ var $detectBrowser = function() {
     isWebKit: ! ! ~ agent.indexOf('AppleWebKit/'),
     isGecko: ~ agent.indexOf('Gecko') && ! (~ agent.indexOf('KHTML')),
     isMobileSafari: /Apple.*Mobile/.test(agent),
-    isChrome: !! window.chrome && ! isOpera,
+    isChrome: ! ! window.chrome && ! isOpera,
     isFirefox: typeof InstallTrigger !== 'undefined',
-    isPhantom: !! window.callPhantom,
+    isPhantom: ! ! window.callPhantom,
   }
 };
 
@@ -608,7 +617,7 @@ var $detectBrowser = function() {
  */
 var $whatBrowser = function() {
   var map = $detectBrowser(), pairs = _.toPairs(map);
-  for (var i = 0; i < pairs.length; i ++) if (pairs[i][1]) return pairs[i][0].replace('is', '');
+  for(var i = 0; i < pairs.length; i ++) if(pairs[i][1]) return pairs[i][0].replace('is', '');
   return null;
 };
 
@@ -619,11 +628,27 @@ var $whatBrowser = function() {
  */
 var $idGeneratorFor = function(name) {
   name = $isStr(name) ? name : '$_default_$';
-  if (! $isNum(idCounters[name])) idCounters[name] = 0;
+  if(! $isNum(idCounters[name])) idCounters[name] = 0;
   return function(prefix) {
     prefix = $val(prefix, '', $isStr);
     return prefix + ++ idCounters[name];
   };
+};
+
+/**
+ * Generates Globally Unique Identifier
+ * @returns {string}
+ */
+var $guid = function guid() {
+
+  /**
+   * @return {string}
+   */
+  var S4 = function() {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+  };
+
+  return (S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4());
 };
 
 /**
@@ -636,9 +661,3 @@ var $isObj = _.isObject
   , $isArgs = _.isArguments
   , $isStr = _.isString
   , $isNum = _.isNumber;
-
-/**
- * Superagent request.
- * @type {Function}
- */
-var $request = superagent;
