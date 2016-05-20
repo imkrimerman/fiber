@@ -1,9 +1,4 @@
 /**
- * Add `Map` Contract and statics to Fiber Map
- */
-$fn.class.mixStatics(Fiber.Access).implemented('Access');
-
-/**
  * Fiber Base Class
  * @class
  * @extends {BaseClass}

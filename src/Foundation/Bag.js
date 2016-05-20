@@ -4,7 +4,7 @@
  * @extends {Fiber.Class}
  */
 Fiber.Bag = Fiber.Class.implement('Access').extend([
-  Fiber.Access.prototype, {
+  AccessObject.prototype, {
 
     /**
      * Events configuration
@@ -45,7 +45,7 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
      */
     constructor: function(items, options) {
       this._initHolder(items);
-      this._handleDefaults();
+      this._handleDefaults(options);
       this.$superInit(options);
     },
 
@@ -150,11 +150,13 @@ Fiber.Bag = Fiber.Class.implement('Access').extend([
 
     /**
      * Ensures that default values are presenting in the Bag.
+     * @param {Object} [options]
      * @returns {Fiber.Bag}
      * @private
      */
-    _handleDefaults: function() {
-      if (! _.isEmpty(this.defaults)) _.defaultsDeep(this._items, $result(this.defaults));
+    _handleDefaults: function(options) {
+      var defaults = $val(options, {}, $isPlain).defaults || this.defaults;
+      if (! _.isEmpty(defaults)) _.defaultsDeep(this._items, $result(defaults));
       return this;
     },
 

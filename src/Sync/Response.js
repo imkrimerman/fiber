@@ -14,7 +14,7 @@ Fiber.Response = Fiber.Class.extend({
 
   /**
    * Constructs Response.
-   * @param {Object.<Fiber.Request>|Object.<Fiber.Response.RawClass>|Object.<Fiber.Request.RawClass>} response
+   * @param {Object.<Fiber.Request>|Object.<Fiber.Response.Raw>|Object.<Fiber.Request.Raw>} response
    */
   constructor: function(request) {
     this._request = null;
@@ -25,17 +25,17 @@ Fiber.Response = Fiber.Class.extend({
 
   /**
    * Constructs Response from the given `object`.
-   * @param {Object.<Fiber.Request>|Object.<Fiber.Response.RawClass>|Object.<Fiber.Request.RawClass>} object
+   * @param {Object.<Fiber.Request>|Object.<Fiber.Response.Raw>|Object.<Fiber.Request.Raw>} object
    * @returns {Fiber.Response}
    */
   from: function(object) {
     if (! object) return this;
-    if (object instanceof Fiber.Request.RawClass) object = new Fiber.Request(object);
+    if (object instanceof Fiber.Request.Raw) object = new Fiber.Request(object);
     if (object instanceof Fiber.Request) {
       this._request = object;
       this._response = object.getRawRequest();
     }
-    else if (object instanceof Fiber.Response.RawClass) {
+    else if (object instanceof Fiber.Response.Raw) {
       this._request = new Fiber.Request(object.req);
       this._response = object;
     }
@@ -43,11 +43,52 @@ Fiber.Response = Fiber.Class.extend({
   },
 
   /**
-   * Returns Response status code.
-   * @returns {number}
+   * Returns Response body.
+   * @returns {Array|Object|*}
    */
-  getStatusCode: function() {
-    return this._response.status;
+  getBody: function() {
+    return this.body;
+  },
+
+  /**
+   * Returns Response text.
+   * @returns {string}
+   */
+  getText: function() {
+    return this.text;
+  },
+
+  /**
+   * Returns registered alias for Response `Content-Type`.
+   * @returns {string}
+   */
+  getType: function() {
+    return _.invert(Fiber.Request.types)[this.type];
+  },
+
+  /**
+   * Returns raw Response `Content-Type`.
+   * @returns {string}
+   */
+  getRawType: function() {
+    return this.type;
+  },
+
+  /**
+   * Returns response header by `field` name.
+   * @param {string} field
+   * @return {string}
+   */
+  getHeader: function(field) {
+    return this._response.get(field);
+  },
+
+  /**
+   * Returns all Response headers.
+   * @returns {*|options.headers|{Content-Type}|{}|string}
+   */
+  getAllHeaders: function() {
+    return this._response.headers
   },
 
   /**
@@ -59,98 +100,11 @@ Fiber.Response = Fiber.Class.extend({
   },
 
   /**
-   * Returns Response status type.
+   * Returns Response status code.
    * @returns {number}
    */
-  getStatusType: function() {
-    return this._response.statusType;
-  },
-
-  isSuccess: function() {
-    return this._response.ok;
-  },
-
-  isError: function() {
-    return this.hasError();
-  },
-
-  isClientError: function() {
-    return this._response.clientError;
-  },
-
-  isServerError: function() {
-    return this._response.serverError;
-  },
-
-  isAccepted: function() {
-    return this.getStatusCode() === Fiber.Response.status['202'];
-  },
-
-  isNoContent: function() {
-    return this.getStatusCode() === Fiber.Response.status['204'];
-  },
-
-  isBadAuthorized: function() {
-    return this.getStatusCode() === Fiber.Response.status['400'];
-  },
-
-  isUnAuthorized: function() {
-    return this.getStatusCode() === Fiber.Response.status['401'];
-  },
-
-  isForbidden: function() {
-    return this.getStatusCode() === Fiber.Response.status['403'];
-  },
-
-  isNotFound: function() {
-    return this.getStatusCode() === Fiber.Response.status['404'];
-  },
-
-  isNotAccepted: function() {
-    return this.getStatusCode() === Fiber.Response.status['406'];
-  },
-
-  isUnProcessableEntity: function() {
-    return this.getStatusCode() === Fiber.Response.status['422'];
-  },
-
-  isInternalServerError: function() {
-    return this.getStatusCode() === Fiber.Response.status['500'];
-  },
-
-  /**
-   * Retrieves response header by `field` name.
-   * @param {string} field
-   * @return {string}
-   */
-  get: function(field) {
-    return this._response.get(field);
-  },
-
-  /**
-   * Returns all Response headers
-   * @returns {*|options.headers|{Content-Type}|{}|string}
-   */
-  getHeaders: function() {
-    return this._response.headers
-  },
-
-  /**
-   * Returns all response data.
-   * @returns {Object}
-   */
-  all: function() {
-    return $pick(this._response, $fn.properties(this._response, true));
-  },
-
-  /**
-   * Sets current Response body serialize function.
-   * @param {Function} fn
-   * @returns {Fiber.Response}
-   */
-  stringifier: function(fn) {
-    this._response.serialize(fn);
-    return this;
+  getStatusCode: function() {
+    return this._response.status;
   },
 
   /**
@@ -162,19 +116,123 @@ Fiber.Response = Fiber.Class.extend({
   },
 
   /**
+   * Returns raw `superagent` Request object.
+   * @returns {Fiber.Request.Raw}
+   */
+  getRawRequest: function() {
+    this._request.getRawRequest();
+  },
+
+  /**
    * Returns raw `superagent` Response object.
-   * @returns {Fiber.Response.RawClass}
+   * @returns {Fiber.Response.Raw}
    */
   getRawResponse: function() {
     return this._response;
   },
 
   /**
-   * Returns raw `superagent` Request object.
-   * @returns {Fiber.Request.RawClass}
+   * Returns `XMLHttpRequest` that was used in Request.
+   * @returns {Object.<XMLHttpRequest>}
    */
-  getRawRequest: function() {
-    this._request.getRawRequest();
+  getXhr: function() {
+    return this.xhr;
+  },
+
+  /**
+   * Determines if Response is successful.
+   * @returns {boolean}
+   */
+  isSuccessful: function() {
+    return this._response.ok;
+  },
+
+  /**
+   * Determines if Response is failed and has error.
+   * @returns {boolean}
+   */
+  isFailed: function() {
+    return this.hasError();
+  },
+
+  /**
+   * Determines if Response is `200` OK.
+   * @return {boolean}
+   */
+  isOk: function() {
+    return this.getStatusCode() === Fiber.Response.status['200'];
+  },
+
+  /**
+   * Determines if Response is `202` Accepted.
+   * @returns {boolean}
+   */
+  isAccepted: function() {
+    return this.getStatusCode() === Fiber.Response.status['202'];
+  },
+
+  /**
+   * Determines if Response is `204` No Content.
+   * @returns {boolean}
+   */
+  isNoContent: function() {
+    return this.getStatusCode() === Fiber.Response.status['204'];
+  },
+
+  /**
+   * Determines if Response is `400` Bad Authorized.
+   * @returns {boolean}
+   */
+  isBadAuthorized: function() {
+    return this.getStatusCode() === Fiber.Response.status['400'];
+  },
+
+  /**
+   * Determines if Response is `401` Unauthorized.
+   * @returns {boolean}
+   */
+  isUnAuthorized: function() {
+    return this.getStatusCode() === Fiber.Response.status['401'];
+  },
+
+  /**
+   * Determines if Response is `403` Forbidden.
+   * @returns {boolean}
+   */
+  isForbidden: function() {
+    return this.getStatusCode() === Fiber.Response.status['403'];
+  },
+
+  /**
+   * Determines if Response is `404` Not Found.
+   * @returns {boolean}
+   */
+  isNotFound: function() {
+    return this.getStatusCode() === Fiber.Response.status['404'];
+  },
+
+  /**
+   * Determines if Response is `406` Not Accepted.
+   * @returns {boolean}
+   */
+  isNotAccepted: function() {
+    return this.getStatusCode() === Fiber.Response.status['406'];
+  },
+
+  /**
+   * Determines if Response is `422` Unprocessable Entity.
+   * @returns {boolean}
+   */
+  isUnProcessableEntity: function() {
+    return this.getStatusCode() === Fiber.Response.status['422'];
+  },
+
+  /**
+   * Determines if Response is `500` Internal Server Error.
+   * @returns {boolean}
+   */
+  isInternalServerError: function() {
+    return this.getStatusCode() === Fiber.Response.status['500'];
   },
 
   /**
@@ -186,6 +244,22 @@ Fiber.Response = Fiber.Class.extend({
   },
 
   /**
+   * Determines if Response error was on the Client Side.
+   * @returns {boolean}
+   */
+  isClientError: function() {
+    return this._response.clientError;
+  },
+
+  /**
+   * Determines if Response error was on the Server Side.
+   * @returns {boolean}
+   */
+  isServerError: function() {
+    return this._response.serverError;
+  },
+
+  /**
    * Returns an `Error` representation of the current response.
    * @return {Error}
    */
@@ -194,13 +268,13 @@ Fiber.Response = Fiber.Class.extend({
   },
 
   /**
-   * Parses the given body `string`.
-   * Used for bodies auto-parsing. Parsers are defined on the `Fiber.Request.parse` object.
-   * @param {string} body
-   * @return {mixed}
+   * Sets current Response body serialize function.
+   * @param {Function} fn
+   * @returns {Fiber.Response}
    */
-  parseBody: function(body) {
-    return this._response.parseBody(body);
+  stringifier: function(fn) {
+    this._response.serialize(fn);
+    return this;
   }
 }, {
 
@@ -209,7 +283,7 @@ Fiber.Response = Fiber.Class.extend({
    * @see {https://github.com/visionmedia/superagent}
    * @type {Function}
    */
-  RawClass: RawResponse,
+  Raw: RawResponse,
 
   /**
    * Http Status Codes

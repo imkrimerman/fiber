@@ -4,14 +4,14 @@
  * @extends {Fiber.Class}
  * @extends {superagent.Request}
  */
-var RawRequest = Fiber.Class.extend(superagent.Request, {
+var RawRequest = $fn.class.extend(superagent.Request, {
 
   /**
    * Class type signature.
    * @type {string}
    * @private
    */
-  _signature: '[object Fiber.Request.RawClass]',
+  _signature: '[object Fiber.Request.Raw]',
 
   /**
    * Invoke current callback with `err` and `res`.
@@ -19,7 +19,7 @@ var RawRequest = Fiber.Class.extend(superagent.Request, {
    * @param {Object.<superagent.Response>} res
    */
   callback: function(err, res) {
-    return this.$super('callback', [err, new Fiber.Response.RawClass(res)]);
+    return this.$super('callback', [err, new Fiber.Response.Raw(res)]);
   },
 
   /**

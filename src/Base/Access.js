@@ -2,7 +2,7 @@
  * Fiber Base Access Object
  * @class
  */
-Fiber.Access = function(storable) {
+var AccessObject = function(storable) {
   this._items = $isPlain(storable) ? storable : {};
 };
 
@@ -10,7 +10,7 @@ Fiber.Access = function(storable) {
  * BaseStorage prototype
  * @type {Object}
  */
-_.extend(Fiber.Access.prototype, {
+_.extend(AccessObject.prototype, {
 
   /**
    * Class type signature

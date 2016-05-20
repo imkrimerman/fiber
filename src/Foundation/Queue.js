@@ -46,7 +46,7 @@ Fiber.Queue = Fiber.Class.extend({
    */
   release: function(iterator, check, scope) {
     if (! $isFn(check)) check = $fn.constant(true);
-    var results = [], index = 0, len = this._queue.length;
+    var results = [], index = 0, len = this.size();
     while (index < len) {
       var one = this.dequeue();
       if (! $fn.applyFn(check, [one, index, this._queue], scope)) return results;

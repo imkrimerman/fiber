@@ -2,7 +2,7 @@
  * Fiber Configuration
  * @type {Storage}
  */
-Fiber.Config = new Fiber.Access({
+Fiber.Config = new AccessObject({
 
   /**
    * Debug configuration

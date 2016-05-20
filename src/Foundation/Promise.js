@@ -33,6 +33,7 @@ Fiber.Promise = Fiber.Class.extend({
     this._rejected = false;
     this._executor = scope ? executor.bind(scope) : executor;
     this._callbacks = new Fiber.Queue();
+    this._doneCallback = $fn.through;
     this._start();
   },
 
@@ -56,6 +57,16 @@ Fiber.Promise = Fiber.Class.extend({
    */
   catch: function(onRejected) {
     return this._pushCallback(null, onRejected);
+  },
+
+  /**
+   *
+   * @param onDone
+   * @returns {Fiber.Promise}
+   */
+  done: function(onDone) {
+    if ($isFn(onDone)) this._doneCallback = onDone;
+    return this;
   },
 
   /**
@@ -118,25 +129,38 @@ Fiber.Promise = Fiber.Class.extend({
    * @private
    */
   _start: function() {
-    this._executor(this.resolve, this.reject);
+    this._executor(this.resolve.bind(this), this.reject.bind(this));
   },
 
   /**
    * Finishes promise execution by releasing callbacks.
    * @param {string|boolean} result
-   * @param {*} param
+   * @param {Object.<Fiber.Response.Raw>} response
    * @returns {Array}
    * @private
    */
-  _finish: function(result, param) {
-    this.fire(result, param);
+  _finish: function(result, response) {
+    this.fire(result, response);
     result = $valIncludes(result, false, [true, false, 'resolved', 'rejected']);
     if (_.isBoolean(result)) result = result ? 'resolved' : 'rejected';
-    var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected'
-      , released = this.release(function(zip) {return zip[unzipFn](param);});
+    var released = this.release(this._releaseIterator.bind(this, result, response));
     this['_' + result] = true;
-    this.fire('finished', result, param, released, this);
+    $fn.applyFn(this._doneCallback, [response, result, released, this]);
+    this.fire('finished', result, response, released, this);
     return released;
+  },
+
+  /**
+   * Iterator that will be called on each callback release.
+   * @param {string} result
+   * @param {Object.<Fiber.Response.Raw>} response
+   * @param {Object} zipCallbacks
+   * @returns {*}
+   * @private
+   */
+  _releaseIterator: function(result, response, zipCallbacks) {
+    var unzipFn = result === 'resolved' ? 'onFulFilled' : 'onRejected'
+    return zipCallbacks[unzipFn](response, resolved);
   },
 
   /**
@@ -152,5 +176,5 @@ Fiber.Promise = Fiber.Class.extend({
       onRejected: onRejected || $fn.through
     });
     return this;
-  },
+  }
 });

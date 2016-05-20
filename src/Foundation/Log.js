@@ -78,7 +78,7 @@ Fiber.Log = BaseClass.extend({
    * @type {Object}
    * @private
    */
-  _methods: {
+  _api: {
     log: 'log',
     trace: 'trace',
     debug: 'debug',
@@ -100,11 +100,18 @@ Fiber.Log = BaseClass.extend({
   },
 
   /**
+   * Cached Console Api methods.
+   * @type {Object}
+   */
+  _cachedApi: {},
+
+  /**
    * Constructs log.
    * @param {?Object} [options]
    */
   constructor: function(options) {
     this._timers = [];
+    this._cacheConsoleApi();
     $fn.class.ensureOwn(this, this.ownProps);
     this._handleTemplatesExtend(options);
     $fn.class.extendFromOptions(this, options, this.willExtend);
@@ -172,7 +179,7 @@ Fiber.Log = BaseClass.extend({
    * @return {Fiber.Log}
    */
   write: function(level) {
-    level = $valIncludes(level, 'log', this._methods);
+    level = $valIncludes(level, 'log', this._api);
     if (! this.isAllowedLevel(level)) return this;
     return this.callWriter(level, $drop(arguments));
   },
@@ -184,9 +191,10 @@ Fiber.Log = BaseClass.extend({
    * @return {Fiber.Log}
    */
   callWriter: function(method, args) {
-    method = $valIncludes(method, 'log', this._methods);
+    method = $valIncludes(method, 'log', this._api);
+    if (! $isFn(this._cachedApi[method])) return this;
     var msg = _.first(args), details = this.renderTemplate({msg: $isStr(msg) ? msg : ''});
-    $fn.apply(console, method, $fn.argsConcat(details, $drop(args)));
+    this._cachedApi[method].apply(null, $fn.argsConcat(details, $drop(args)));
     return this;
   },
 
@@ -264,6 +272,17 @@ Fiber.Log = BaseClass.extend({
     var currentLevelIndex = levels.indexOf(this.level);
     if (index >= currentLevelIndex) return true;
     return false;
+  },
+
+  /**
+   * Caches Console Api.
+   * @returns {Fiber.Log._cachedApi|{}}
+   * @private
+   */
+  _cacheConsoleApi: function() {
+    for (var method in this._api)
+      this._cachedApi[this._api[method]] = _.bind(console[this._api[method]], console);
+    return this._cachedApi;
   },
 
   /**

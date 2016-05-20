@@ -427,16 +427,17 @@ var $timer = function(fn, args, scope) {
  * @returns {function(...)}
  */
 var $bind = function(fn, scope) {
-  if ($parseType(fn) !== 'function') throw new TypeError('`Function.bind` >> Caller is not callable.');
+  if ($parseType(fn) !== 'function') throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
   var partials = $slice(arguments, 2)
     , fnToBind = fn
     , noop = function() {}
     , bound = function() {
-    return fnToBind.apply(fn instanceof noop && scope ? fn : scope, partials.concat($slice(arguments)));
-  };
+        scope = fn.prototype && fn instanceof noop && scope ? fn : (scope || {});
+        return fnToBind.apply(scope, partials.concat($slice(arguments)));
+      };
 
-  noop.prototype = fn.prototype;
-  bound.prototype = new noop();
+  bound.prototype = fn.prototype;
+//   bound.prototype = new noop();
   return bound;
 };
 
@@ -587,14 +588,17 @@ var $ofType = function(arg, type) {
  * @returns {Object}
  */
 var $detectBrowser = function() {
-  var isOpera = $parseSignature(root.opera) == '[object Opera]'
+  var isOpera = $parseSignature(root.opera) == '[object Opera]' && window.opera
     , agent = navigator.userAgent;
   return {
     isIE: ! ! window.attachEvent && ! isOpera,
     isOpera: isOpera,
     isWebKit: ! ! ~ agent.indexOf('AppleWebKit/'),
     isGecko: ~ agent.indexOf('Gecko') && ! (~ agent.indexOf('KHTML')),
-    isMobileSafari: /Apple.*Mobile/.test(agent)
+    isMobileSafari: /Apple.*Mobile/.test(agent),
+    isChrome: !! window.chrome && ! isOpera,
+    isFirefox: typeof InstallTrigger !== 'undefined',
+    isPhantom: !! window.callPhantom,
   }
 };
 

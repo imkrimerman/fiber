@@ -270,7 +270,7 @@ $fn = Fiber.fn = {
    */
   applyFn: function(fn, args, scope) {
     args = ! $isDef(args) ? [] : $castArr(args);
-    if ($isFn(fn)) return fn.apply($val(scope, fn.prototype), args);
+    if ($isFn(fn)) return fn.apply($val(scope, fn.prototype || fn), args);
   },
 
   /**

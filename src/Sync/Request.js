@@ -19,7 +19,7 @@ Fiber.Request = Fiber.Class.extend({
       send: 'send',
       abort: 'abort',
       destroy: 'destroy',
-      response: 'response',
+      done: 'done',
       success: 'success',
       error: 'error',
       progress: 'progress'
@@ -35,34 +35,39 @@ Fiber.Request = Fiber.Class.extend({
 
   /**
    * Constructs Request.
-   * @param {string|Object.<Fiber.Request.RawClass>} verb
+   * @param {string|Object.<Fiber.Request.Raw>} verb
    * @param {string} [url]
    */
   constructor: function(verb, url) {
-    this._sending = false;
-    this._promise = null;
-    this._request = null;
-    this._callbacks = {};
-    this.from(verb, url);
+    this.flush();
+    this.from(verb, url, false);
     this.$superInit({verb: verb, url: url});
   },
 
   /**
    * Constructs Request from the `verb` and `url` or from `superagent` Request
-   * @param {string|Object.<Fiber.Request.RawClass>} verb
+   * @param {string|Object.<Fiber.Request.Raw>} verb
    * @param {string} [url]
+   * @param {boolean} [flush=true]
    */
-  from: function(verb, url) {
-    this._sending = false;
-    this._callbacks = {};
-    if (this._request) this.destroy();
-    if ($isStr(verb)) this._request = new Fiber.Request.RawClass(verb, url);
-    else if (verb instanceof Fiber.Request.RawClass) this._request = verb;
-    this._request.on('progress', $bind(this._onProgress, this));
-    this._promise = new Fiber.Promise(function(fullFilled, rejected) {
-      this.after('response', function(err, resp) {
-        if (err) return rejected(err);
-        return fullFilled(resp);
+  from: function(verb, url, flush) {
+    if (this._request) this.abort();
+    $val(flush, true) && this.flush();
+    if ($isStr(verb)) this._request = new Fiber.Request.Raw(verb, url);
+    else if (verb instanceof Fiber.Request.Raw) this._request = verb;
+    this._request.on('progress', this._onProgress.bind(this));
+    this.createPromise();
+  },
+
+  /**
+   * Creates Promise that will be listening to `response` event and will release callbacks after it.
+   * @returns {Object.<Fiber.Promise>}
+   */
+  createPromise: function() {
+    return this._promise = new Fiber.Promise(function(fullfil, reject) {
+      this.after('done', function(err, resp) {
+        if (err) return reject(err);
+        return fullfil(resp);
       });
     }, this);
   },
@@ -233,20 +238,20 @@ Fiber.Request = Fiber.Class.extend({
    * @returns {Object.<Fiber.Promise>}
    */
   send: function() {
-    this._sending = true;
+    this._pending = true;
     this.fire('send', this);
-    this._request.end($bind(this._onRequestEnd, this));
+    this._request.end(this._onRequestEnd.bind(this));
     return this._promise;
   },
 
   /**
    * Attaches promise callbacks.
-   * @param {function(resp)} fullFilled
+   * @param {function(resp)} fullfil
    * @param {function(err)} rejected
    * @returns {Fiber.Request}
    */
-  then: function(fullFilled, rejected) {
-    this._promise.then(fullFilled, rejected);
+  then: function(fullfil, rejected) {
+    this._promise.then(fullfil, rejected);
     return this;
   },
 
@@ -261,6 +266,16 @@ Fiber.Request = Fiber.Class.extend({
   },
 
   /**
+   * Attaches done callback. Will be called after Request is done loading.
+   * @param {Function} callback
+   * @returns {Fiber.Request}
+   */
+  done: function(callback) {
+    this._doneCallback = callback;
+    return this;
+  },
+
+  /**
    * Aborts current request
    * @return {Fiber.Request}
    */
@@ -271,17 +286,28 @@ Fiber.Request = Fiber.Class.extend({
   },
 
   /**
+   * Flushes Request.
+   * @return {Fiber.Request}
+   */
+  flush: function() {
+    if (this._pending) this.abort();
+    this._request = null;
+    this._promise && this._promise.destroy();
+    this._promise = null;
+    this._callbacks = {};
+    this._doneCallback = $fn.through;
+    this._pending = false;
+    return this;
+  },
+
+  /**
    * Destroys Request.
    * @returns {Fiber.Request}
    */
   destroy: function() {
-    if (this._sending) this.abort();
-    this._promise.destroy();
-    this._callbacks = {};
-    this._request = null;
-    this._promise = null;
+    this.flush();
     this.fire('destroy', this);
-    return this.$super('destroy');
+    return this.$apply(Fiber.Class, 'destroy');
   },
 
   /**
@@ -304,7 +330,7 @@ Fiber.Request = Fiber.Class.extend({
 
   /**
    * Returns raw `superagent` request object.
-   * @returns {Fiber.Request.RawClass|Object}
+   * @returns {Fiber.Request.Raw|Object}
    */
   getRawRequest: function() {
     return this._request;
@@ -332,13 +358,14 @@ Fiber.Request = Fiber.Class.extend({
   /**
    * Hook.
    * On request ends.
-   * @param {Object} err
-   * @param {Object} res
+   * @param {Object.<Error>|null} err
+   * @param {Object.<Fiber.Response.Raw>} res
    * @private
    */
   _onRequestEnd: function(err, res) {
-    this._sending = false;
-    this.fire('response', err, res, this);
+    this._pending = false;
+    this._doneCallback(err || res, this);
+    this.fire('done', this, err, res);
     this.fire(err ? 'error' : 'success', err || res, this);
   },
 
@@ -358,7 +385,7 @@ Fiber.Request = Fiber.Class.extend({
    * @see {https://github.com/visionmedia/superagent}
    * @type {Function}
    */
-  RawClass: RawRequest,
+  Raw: RawRequest,
 
   /**
    * Request types.
@@ -376,7 +403,19 @@ Fiber.Request = Fiber.Class.extend({
    * Request body serializers by type.
    * @type {Object}
    */
-  stringify: RawRequest.stringify
+  stringify: RawRequest.stringify,
+
+  /**
+   * Http Methods Verbs.
+   * @type {Object}
+   */
+  verbs: {
+    GET: 'GET',
+    POST: 'POST',
+    PUT: 'PUT',
+    PATCH: 'PATCH',
+    DELETE: 'DELETE'
+  },
 });
 
 /**

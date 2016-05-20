@@ -4,14 +4,14 @@
  * @extends {Fiber.Class}
  * @extends {superagent.Response}
  */
-var RawResponse = Fiber.Class.extend(superagent.Response, {
+var RawResponse = $fn.class.extend(superagent.Response, {
 
   /**
    * Class type signature.
    * @type {string}
    * @private
    */
-  _signature: '[object Fiber.Response.RawClass]',
+  _signature: '[object Fiber.Response.Raw]',
 
   /**
    * Returns an `Error` representation of this Response.

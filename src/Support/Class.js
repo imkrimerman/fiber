@@ -242,6 +242,9 @@ Fiber.fn.class = {
       proto: {
         $fn: $fn.proto(protoExclude),
         $apply: function(Class, method, args, context) {
+          if ($isStr(Class)) {
+            context = args; args = method; method = Class; Class = this;
+          }
           return $fn.apply(Class, method, args, context || this);
         },
         $implement: function(contract) {
@@ -251,7 +254,7 @@ Fiber.fn.class = {
         $mutate: $fn.delegate($fn.class.mutate),
         $new: $fn.delegate($fn.class.createNew),
         toString: function() {
-          return $get(this, $propNames.type, $fn.types.parseSignature(this));
+          return $get(this, $propNames.type, $parseSignature(this));
         },
       },
       statics: {
@@ -284,7 +287,7 @@ Fiber.fn.class = {
    * @returns {function(...)|Function|Object}
    */
   mutate: function(object, proto) {
-    var source = $isFn(object.$super) && object.$super('prototype') || object.prototype || object.__proto__;
+    var source = Object.getPrototypeOf(object);
     $fn.class.include(source, $fn.merge(Fiber.resolve(proto)), true);
     return object;
   },
@@ -329,6 +332,7 @@ Fiber.fn.class = {
    */
   attachSuper: function(child, parent) {
     if (! parent) return child;
+
     child.$super = function(method, args, scope) {
       if (! arguments.length) return parent;
       var proto = parent.prototype, methodFn = $fn.class.getMethod(proto, method);
@@ -336,9 +340,11 @@ Fiber.fn.class = {
       if (method === 'prototype') proto = parent;
       return $get(proto, method);
     };
+
     child.$superInit = function() {
       return parent.apply(this, arguments.length === 1 && $isArgs(arguments[0]) ? arguments[0] : arguments);
     };
+
     return child;
   },
 
@@ -349,15 +355,15 @@ Fiber.fn.class = {
    * @param {Object} object - Object to resolve method from
    * @param {string} method - Method key (string) to resolve
    * @param {?Object} [scope] - binds `scope` object to method
-   * @returns {function(...)|null}
+   * @returns {function(...)|void}
    */
   resolveMethod: function(object, method, scope) {
-    scope = $val(scope, object, $isObj);
+    scope = $val(scope, object);
     if ($isStr(method)) {
       var fn = $fn.class.getMethod(object, method);
-      if ($isFn(fn)) return $bind(fn, scope);
+      if ($isFn(fn)) return fn.bind(scope);
     }
-    return null;
+    return void 0;
   },
 
   /**

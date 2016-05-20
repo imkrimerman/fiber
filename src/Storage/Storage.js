@@ -9,10 +9,10 @@ Fiber.Storage = Fiber.Bag.extend({
    * Storage connection adapter
    * @type {Object.<Fiber.Repository.Adapter>}
    */
-  _connection: null,
+  connection: null,
 
   constructor: function(connection) {
-    this._connection = connection;
+    this.connection = connection;
   },
 
 });
