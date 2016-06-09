@@ -6,13 +6,13 @@
  */
 module.exports = [
   // Base
-  './src/Base/Properties.js',
-  './src/Base/Version.js',
-  './src/Base/Types.js',
-  './src/Base/Functions.js',
-  './src/Base/Compatibility.js',
-  './src/Base/Access.js',
-  './src/Base/Config.js',
+  './src/Core/Properties.js',
+  './src/Core/Version.js',
+  './src/Core/Types.js',
+  './src/Core/Functions.js',
+  './src/Core/Compatibility.js',
+  './src/Core/Access.js',
+  './src/Core/Config.js',
   // Support
   './src/Support/fn.js',
   './src/Support/Descriptor.js',

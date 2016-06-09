@@ -10,7 +10,7 @@ Fiber.Monitor = BaseClass.extend({
    * @type {Object}
    */
   notifies: {
-    stackTrace: false,
+    stackTrace: true,
   },
 
   /**
