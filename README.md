@@ -1,7 +1,9 @@
-## Deprecated. Moving to ES6.
+## Not fully finished and deprecated. 
+### Use it on your own risk. 
+Currently moving to ES6. [Fiber Framework](https://github.com/FiberFoundation/Framework)
 
 # Fiber Framework
-## Give your Backbone Apps some Fiber.
+## Give your Apps some Fiber.
 Fiber framework was born to bring simplicity and consistency to the Backbone Apps with the ease of development and scaling modern apps.
 
 ##Simple Application example
